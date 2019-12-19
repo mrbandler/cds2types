@@ -1,1 +1,685 @@
-{"definitions":{"Country":{"kind":"type","@description":"{i18n>CountryCode.Description}","@title":"{i18n>Country}","type":"cds.Association","target":"sap.common.Countries","keys":[{"ref":["code"]}]},"Currency":{"kind":"type","@description":"{i18n>CurrencyCode.Description}","@title":"{i18n>Currency}","type":"cds.Association","target":"sap.common.Currencies","keys":[{"ref":["code"]}]},"Language":{"kind":"type","@description":"{i18n>LanguageCode.Description}","@title":"{i18n>Language}","type":"cds.Association","target":"sap.common.Languages","keys":[{"ref":["code"]}]},"TestService":{"kind":"service","@source":"service.cds"},"TestService.EnumTest":{"kind":"type","type":"cds.String","enum":{"one":{},"two":{}}},"TestService.Foo":{"kind":"entity","includes":["managed"],"elements":{"modifiedAt":{"@Core.Immutable":true,"@UI.HiddenFilter":true,"@cds.on.update":{"=":"$now"},"@odata.on.update":{"#":"now"},"@readonly":true,"@title":"{i18n>ChangedAt}","type":"cds.DateTime"},"createdAt":{"@Core.Immutable":true,"@UI.HiddenFilter":true,"@cds.on.insert":{"=":"$now"},"@odata.on.insert":{"#":"now"},"@readonly":true,"@title":"{i18n>CreatedAt}","type":"cds.DateTime"},"createdBy":{"@Core.Immutable":true,"@UI.HiddenFilter":true,"@cds.on.insert":{"=":"$user"},"@description":"{i18n>UserID.Description}","@odata.on.insert":{"#":"user"},"@readonly":true,"@title":"{i18n>CreatedBy}","type":"User","length":255},"modifiedBy":{"@Core.Immutable":true,"@UI.HiddenFilter":true,"@cds.on.update":{"=":"$user"},"@description":"{i18n>UserID.Description}","@odata.on.update":{"#":"user"},"@readonly":true,"@title":"{i18n>ChangedBy}","type":"User","length":255},"FooId":{"key":true,"type":"cds.UUID"},"FooInlineEnum":{"type":"cds.Integer","enum":{"BarOne":{"val":1},"BarTwo":{"val":2},"BarThree":{"val":3}}},"FooBool":{"type":"cds.Boolean"},"FooEnum":{"type":"TestService.Gender"},"FooDate":{"type":"cds.Date"},"FooTimestamp":{"type":"cds.Timestamp"},"FooDateTime":{"type":"cds.DateTime"},"FooString":{"type":"cds.String"},"FooStringArray":{"items":{"type":"cds.String"}},"FooDouble":{"type":"cds.Double"},"FooInteger":{"type":"cds.Integer"},"FooDecimal":{"@Core.Computed":true,"virtual":true,"type":"cds.Decimal","precision":10,"scale":3}}},"TestService.Gender":{"kind":"type","type":"cds.String","enum":{"male":{"val":"male"},"female":{"val":"female"}}},"TestService.bar":{"kind":"action","params":{"foo":{"type":"cds.String"}}},"TestService.foo":{"kind":"function","params":{"bar":{"type":"cds.String"}},"returns":{"type":"cds.String"}},"User":{"kind":"type","@description":"{i18n>UserID.Description}","@title":"{i18n>UserID}","type":"cds.String","length":255},"cuid":{"kind":"entity","abstract":true,"elements":{"ID":{"key":true,"type":"cds.UUID"}}},"localized.sap.common.Countries":{"kind":"entity","@UI.Identification":[{"=":"name"}],"@cds.autoexpose":true,"@cds.odata.valuelist":true,"@cds.persistence.skip":"if-unused","@odata.draft.enabled":false,"query":{"SELECT":{"from":{"ref":["sap.common.Countries"],"as":"L"},"columns":["*",{"func":"coalesce","args":[{"ref":["L","localized","name"]},{"ref":["L","name"]}],"as":"name"},{"func":"coalesce","args":[{"ref":["L","localized","descr"]},{"ref":["L","descr"]}],"as":"descr"}]}},"elements":{"name":{"@Core.Computed":true,"@title":"{i18n>Name}","localized":true,"type":"cds.String","length":255},"descr":{"@Core.Computed":true,"@title":"{i18n>Description}","localized":true,"type":"cds.String","length":1000},"code":{"@title":"{i18n>CountryCode}","key":true,"type":"cds.String","length":3},"texts":{"type":"cds.Composition","cardinality":{"max":"*"},"target":"sap.common.Countries_texts","on":[{"ref":["texts","code"]},"=",{"ref":["code"]}]},"localized":{"type":"cds.Association","target":"sap.common.Countries_texts","on":[{"ref":["localized","code"]},"=",{"ref":["code"]},"and",{"ref":["localized","locale"]},"=",{"ref":["$user","locale"]}]}}},"localized.sap.common.Currencies":{"kind":"entity","@UI.Identification":[{"=":"name"}],"@cds.autoexpose":true,"@cds.odata.valuelist":true,"@cds.persistence.skip":"if-unused","@odata.draft.enabled":false,"query":{"SELECT":{"from":{"ref":["sap.common.Currencies"],"as":"L"},"columns":["*",{"func":"coalesce","args":[{"ref":["L","localized","name"]},{"ref":["L","name"]}],"as":"name"},{"func":"coalesce","args":[{"ref":["L","localized","descr"]},{"ref":["L","descr"]}],"as":"descr"}]}},"elements":{"name":{"@Core.Computed":true,"@title":"{i18n>Name}","localized":true,"type":"cds.String","length":255},"descr":{"@Core.Computed":true,"@title":"{i18n>Description}","localized":true,"type":"cds.String","length":1000},"code":{"@title":"{i18n>CurrencyCode}","key":true,"type":"cds.String","length":3},"symbol":{"@title":"{i18n>CurrencySymbol}","type":"cds.String","length":5},"texts":{"type":"cds.Composition","cardinality":{"max":"*"},"target":"sap.common.Currencies_texts","on":[{"ref":["texts","code"]},"=",{"ref":["code"]}]},"localized":{"type":"cds.Association","target":"sap.common.Currencies_texts","on":[{"ref":["localized","code"]},"=",{"ref":["code"]},"and",{"ref":["localized","locale"]},"=",{"ref":["$user","locale"]}]}}},"localized.sap.common.Languages":{"kind":"entity","@UI.Identification":[{"=":"name"}],"@cds.autoexpose":true,"@cds.odata.valuelist":true,"@cds.persistence.skip":"if-unused","@odata.draft.enabled":false,"query":{"SELECT":{"from":{"ref":["sap.common.Languages"],"as":"L"},"columns":["*",{"func":"coalesce","args":[{"ref":["L","localized","name"]},{"ref":["L","name"]}],"as":"name"},{"func":"coalesce","args":[{"ref":["L","localized","descr"]},{"ref":["L","descr"]}],"as":"descr"}]}},"elements":{"name":{"@Core.Computed":true,"@title":"{i18n>Name}","localized":true,"type":"cds.String","length":255},"descr":{"@Core.Computed":true,"@title":"{i18n>Description}","localized":true,"type":"cds.String","length":1000},"code":{"@title":"{i18n>LanguageCode}","key":true,"type":"cds.String","length":14},"texts":{"type":"cds.Composition","cardinality":{"max":"*"},"target":"sap.common.Languages_texts","on":[{"ref":["texts","code"]},"=",{"ref":["code"]}]},"localized":{"type":"cds.Association","target":"sap.common.Languages_texts","on":[{"ref":["localized","code"]},"=",{"ref":["code"]},"and",{"ref":["localized","locale"]},"=",{"ref":["$user","locale"]}]}}},"managed":{"kind":"type","elements":{"modifiedAt":{"@Core.Immutable":true,"@UI.HiddenFilter":true,"@cds.on.update":{"=":"$now"},"@odata.on.update":{"#":"now"},"@readonly":true,"@title":"{i18n>ChangedAt}","type":"cds.DateTime"},"createdAt":{"@Core.Immutable":true,"@UI.HiddenFilter":true,"@cds.on.insert":{"=":"$now"},"@odata.on.insert":{"#":"now"},"@readonly":true,"@title":"{i18n>CreatedAt}","type":"cds.DateTime"},"createdBy":{"@Core.Immutable":true,"@UI.HiddenFilter":true,"@cds.on.insert":{"=":"$user"},"@description":"{i18n>UserID.Description}","@odata.on.insert":{"#":"user"},"@readonly":true,"@title":"{i18n>CreatedBy}","type":"User","length":255},"modifiedBy":{"@Core.Immutable":true,"@UI.HiddenFilter":true,"@cds.on.update":{"=":"$user"},"@description":"{i18n>UserID.Description}","@odata.on.update":{"#":"user"},"@readonly":true,"@title":"{i18n>ChangedBy}","type":"User","length":255}}},"sap.common":{"kind":"context"},"sap.common.CodeList":{"kind":"type","@UI.Identification":[{"=":"name"}],"@cds.autoexpose":true,"@cds.odata.valuelist":true,"@cds.persistence.skip":"if-unused","elements":{"name":{"@title":"{i18n>Name}","localized":true,"type":"cds.String","length":255},"descr":{"@title":"{i18n>Description}","localized":true,"type":"cds.String","length":1000}}},"sap.common.Countries":{"kind":"entity","@UI.Identification":[{"=":"name"}],"@cds.autoexpose":true,"@cds.odata.valuelist":true,"@cds.persistence.skip":"if-unused","includes":["sap.common.CodeList"],"elements":{"name":{"@title":"{i18n>Name}","localized":true,"type":"cds.String","length":255},"descr":{"@title":"{i18n>Description}","localized":true,"type":"cds.String","length":1000},"code":{"@title":"{i18n>CountryCode}","key":true,"type":"cds.String","length":3},"texts":{"type":"cds.Composition","cardinality":{"max":"*"},"target":"sap.common.Countries_texts","on":[{"ref":["texts","code"]},"=",{"ref":["code"]}]},"localized":{"type":"cds.Association","target":"sap.common.Countries_texts","on":[{"ref":["localized","code"]},"=",{"ref":["code"]},"and",{"ref":["localized","locale"]},"=",{"ref":["$user","locale"]}]}}},"sap.common.Countries_texts":{"kind":"entity","@cds.autoexpose":true,"@odata.draft.enabled":false,"elements":{"locale":{"key":true,"type":"cds.String","length":5},"name":{"@title":"{i18n>Name}","localized":false,"type":"cds.String","length":255},"descr":{"@title":"{i18n>Description}","localized":false,"type":"cds.String","length":1000},"code":{"@cds.odata.v4.ignore":true,"@title":"{i18n>CountryCode}","key":true,"type":"cds.String","length":3}}},"sap.common.Currencies":{"kind":"entity","@UI.Identification":[{"=":"name"}],"@cds.autoexpose":true,"@cds.odata.valuelist":true,"@cds.persistence.skip":"if-unused","includes":["sap.common.CodeList"],"elements":{"name":{"@title":"{i18n>Name}","localized":true,"type":"cds.String","length":255},"descr":{"@title":"{i18n>Description}","localized":true,"type":"cds.String","length":1000},"code":{"@title":"{i18n>CurrencyCode}","key":true,"type":"cds.String","length":3},"symbol":{"@title":"{i18n>CurrencySymbol}","type":"cds.String","length":5},"texts":{"type":"cds.Composition","cardinality":{"max":"*"},"target":"sap.common.Currencies_texts","on":[{"ref":["texts","code"]},"=",{"ref":["code"]}]},"localized":{"type":"cds.Association","target":"sap.common.Currencies_texts","on":[{"ref":["localized","code"]},"=",{"ref":["code"]},"and",{"ref":["localized","locale"]},"=",{"ref":["$user","locale"]}]}}},"sap.common.Currencies_texts":{"kind":"entity","@cds.autoexpose":true,"@odata.draft.enabled":false,"elements":{"locale":{"key":true,"type":"cds.String","length":5},"name":{"@title":"{i18n>Name}","localized":false,"type":"cds.String","length":255},"descr":{"@title":"{i18n>Description}","localized":false,"type":"cds.String","length":1000},"code":{"@cds.odata.v4.ignore":true,"@title":"{i18n>CurrencyCode}","key":true,"type":"cds.String","length":3}}},"sap.common.Languages":{"kind":"entity","@UI.Identification":[{"=":"name"}],"@cds.autoexpose":true,"@cds.odata.valuelist":true,"@cds.persistence.skip":"if-unused","includes":["sap.common.CodeList"],"elements":{"name":{"@title":"{i18n>Name}","localized":true,"type":"cds.String","length":255},"descr":{"@title":"{i18n>Description}","localized":true,"type":"cds.String","length":1000},"code":{"@title":"{i18n>LanguageCode}","key":true,"type":"cds.String","length":14},"texts":{"type":"cds.Composition","cardinality":{"max":"*"},"target":"sap.common.Languages_texts","on":[{"ref":["texts","code"]},"=",{"ref":["code"]}]},"localized":{"type":"cds.Association","target":"sap.common.Languages_texts","on":[{"ref":["localized","code"]},"=",{"ref":["code"]},"and",{"ref":["localized","locale"]},"=",{"ref":["$user","locale"]}]}}},"sap.common.Languages_texts":{"kind":"entity","@cds.autoexpose":true,"@odata.draft.enabled":false,"elements":{"locale":{"key":true,"type":"cds.String","length":5},"name":{"@title":"{i18n>Name}","localized":false,"type":"cds.String","length":255},"descr":{"@title":"{i18n>Description}","localized":false,"type":"cds.String","length":1000},"code":{"@cds.odata.v4.ignore":true,"@title":"{i18n>LanguageCode}","key":true,"type":"cds.String","length":14}}},"temporal":{"kind":"type","elements":{"validFrom":{"@cds.valid.from":true,"type":"cds.DateTime"},"validTo":{"@cds.valid.to":true,"type":"cds.DateTime"}}}},"meta":{"creator":"CDS Compiler v1.21.1"},"$version":"1.0"}
+{
+    "definitions": {
+        "Country": {
+            "kind": "type",
+            "@description": "{i18n>CountryCode.Description}",
+            "@title": "{i18n>Country}",
+            "type": "cds.Association",
+            "target": "sap.common.Countries",
+            "keys": [{ "ref": ["code"] }]
+        },
+        "Currency": {
+            "kind": "type",
+            "@description": "{i18n>CurrencyCode.Description}",
+            "@title": "{i18n>Currency}",
+            "type": "cds.Association",
+            "target": "sap.common.Currencies",
+            "keys": [{ "ref": ["code"] }]
+        },
+        "Language": {
+            "kind": "type",
+            "@description": "{i18n>LanguageCode.Description}",
+            "@title": "{i18n>Language}",
+            "type": "cds.Association",
+            "target": "sap.common.Languages",
+            "keys": [{ "ref": ["code"] }]
+        },
+        "TestService": { "kind": "service", "@source": "service.cds" },
+        "TestService.EnumTest": {
+            "kind": "type",
+            "type": "cds.String",
+            "enum": { "one": {}, "two": {} }
+        },
+        "TestService.Foo": {
+            "kind": "entity",
+            "includes": ["managed"],
+            "elements": {
+                "modifiedAt": {
+                    "@Core.Immutable": true,
+                    "@UI.HiddenFilter": true,
+                    "@cds.on.update": { "=": "$now" },
+                    "@odata.on.update": { "#": "now" },
+                    "@readonly": true,
+                    "@title": "{i18n>ChangedAt}",
+                    "type": "cds.DateTime"
+                },
+                "createdAt": {
+                    "@Core.Immutable": true,
+                    "@UI.HiddenFilter": true,
+                    "@cds.on.insert": { "=": "$now" },
+                    "@odata.on.insert": { "#": "now" },
+                    "@readonly": true,
+                    "@title": "{i18n>CreatedAt}",
+                    "type": "cds.DateTime"
+                },
+                "createdBy": {
+                    "@Core.Immutable": true,
+                    "@UI.HiddenFilter": true,
+                    "@cds.on.insert": { "=": "$user" },
+                    "@description": "{i18n>UserID.Description}",
+                    "@odata.on.insert": { "#": "user" },
+                    "@readonly": true,
+                    "@title": "{i18n>CreatedBy}",
+                    "type": "User",
+                    "length": 255
+                },
+                "modifiedBy": {
+                    "@Core.Immutable": true,
+                    "@UI.HiddenFilter": true,
+                    "@cds.on.update": { "=": "$user" },
+                    "@description": "{i18n>UserID.Description}",
+                    "@odata.on.update": { "#": "user" },
+                    "@readonly": true,
+                    "@title": "{i18n>ChangedBy}",
+                    "type": "User",
+                    "length": 255
+                },
+                "FooId": { "key": true, "type": "cds.UUID" },
+                "FooInlineEnum": {
+                    "type": "cds.Integer",
+                    "enum": {
+                        "BarOne": { "val": 1 },
+                        "BarTwo": { "val": 2 },
+                        "BarThree": { "val": 3 }
+                    }
+                },
+                "FooBool": { "type": "cds.Boolean" },
+                "FooEnum": { "type": "TestService.Gender" },
+                "FooDate": { "type": "cds.Date" },
+                "FooTimestamp": { "type": "cds.Timestamp" },
+                "FooDateTime": { "type": "cds.DateTime" },
+                "FooString": { "type": "cds.String" },
+                "FooStringArray": { "items": { "type": "cds.String" } },
+                "FooDouble": { "type": "cds.Double" },
+                "FooInteger": { "type": "cds.Integer" },
+                "FooDecimal": {
+                    "@Core.Computed": true,
+                    "virtual": true,
+                    "type": "cds.Decimal",
+                    "precision": 10,
+                    "scale": 3
+                }
+            }
+        },
+        "TestService.Gender": {
+            "kind": "type",
+            "type": "cds.String",
+            "enum": { "male": { "val": "male" }, "female": { "val": "female" } }
+        },
+        "TestService.bar": {
+            "kind": "action",
+            "params": { "foo": { "type": "cds.String" } }
+        },
+        "TestService.foo": {
+            "kind": "function",
+            "params": { "bar": { "type": "cds.String" } },
+            "returns": { "type": "cds.String" }
+        },
+        "User": {
+            "kind": "type",
+            "@description": "{i18n>UserID.Description}",
+            "@title": "{i18n>UserID}",
+            "type": "cds.String",
+            "length": 255
+        },
+        "cuid": {
+            "kind": "entity",
+            "abstract": true,
+            "elements": { "ID": { "key": true, "type": "cds.UUID" } }
+        },
+        "localized.sap.common.Countries": {
+            "kind": "entity",
+            "@UI.Identification": [{ "=": "name" }],
+            "@cds.autoexpose": true,
+            "@cds.odata.valuelist": true,
+            "@cds.persistence.skip": "if-unused",
+            "@odata.draft.enabled": false,
+            "query": {
+                "SELECT": {
+                    "from": { "ref": ["sap.common.Countries"], "as": "L" },
+                    "columns": [
+                        "*",
+                        {
+                            "func": "coalesce",
+                            "args": [
+                                { "ref": ["L", "localized", "name"] },
+                                { "ref": ["L", "name"] }
+                            ],
+                            "as": "name"
+                        },
+                        {
+                            "func": "coalesce",
+                            "args": [
+                                { "ref": ["L", "localized", "descr"] },
+                                { "ref": ["L", "descr"] }
+                            ],
+                            "as": "descr"
+                        }
+                    ]
+                }
+            },
+            "elements": {
+                "name": {
+                    "@Core.Computed": true,
+                    "@title": "{i18n>Name}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@Core.Computed": true,
+                    "@title": "{i18n>Description}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@title": "{i18n>CountryCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 3
+                },
+                "texts": {
+                    "type": "cds.Composition",
+                    "cardinality": { "max": "*" },
+                    "target": "sap.common.Countries_texts",
+                    "on": [
+                        { "ref": ["texts", "code"] },
+                        "=",
+                        { "ref": ["code"] }
+                    ]
+                },
+                "localized": {
+                    "type": "cds.Association",
+                    "target": "sap.common.Countries_texts",
+                    "on": [
+                        { "ref": ["localized", "code"] },
+                        "=",
+                        { "ref": ["code"] },
+                        "and",
+                        { "ref": ["localized", "locale"] },
+                        "=",
+                        { "ref": ["$user", "locale"] }
+                    ]
+                }
+            }
+        },
+        "localized.sap.common.Currencies": {
+            "kind": "entity",
+            "@UI.Identification": [{ "=": "name" }],
+            "@cds.autoexpose": true,
+            "@cds.odata.valuelist": true,
+            "@cds.persistence.skip": "if-unused",
+            "@odata.draft.enabled": false,
+            "query": {
+                "SELECT": {
+                    "from": { "ref": ["sap.common.Currencies"], "as": "L" },
+                    "columns": [
+                        "*",
+                        {
+                            "func": "coalesce",
+                            "args": [
+                                { "ref": ["L", "localized", "name"] },
+                                { "ref": ["L", "name"] }
+                            ],
+                            "as": "name"
+                        },
+                        {
+                            "func": "coalesce",
+                            "args": [
+                                { "ref": ["L", "localized", "descr"] },
+                                { "ref": ["L", "descr"] }
+                            ],
+                            "as": "descr"
+                        }
+                    ]
+                }
+            },
+            "elements": {
+                "name": {
+                    "@Core.Computed": true,
+                    "@title": "{i18n>Name}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@Core.Computed": true,
+                    "@title": "{i18n>Description}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@title": "{i18n>CurrencyCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 3
+                },
+                "symbol": {
+                    "@title": "{i18n>CurrencySymbol}",
+                    "type": "cds.String",
+                    "length": 5
+                },
+                "texts": {
+                    "type": "cds.Composition",
+                    "cardinality": { "max": "*" },
+                    "target": "sap.common.Currencies_texts",
+                    "on": [
+                        { "ref": ["texts", "code"] },
+                        "=",
+                        { "ref": ["code"] }
+                    ]
+                },
+                "localized": {
+                    "type": "cds.Association",
+                    "target": "sap.common.Currencies_texts",
+                    "on": [
+                        { "ref": ["localized", "code"] },
+                        "=",
+                        { "ref": ["code"] },
+                        "and",
+                        { "ref": ["localized", "locale"] },
+                        "=",
+                        { "ref": ["$user", "locale"] }
+                    ]
+                }
+            }
+        },
+        "localized.sap.common.Languages": {
+            "kind": "entity",
+            "@UI.Identification": [{ "=": "name" }],
+            "@cds.autoexpose": true,
+            "@cds.odata.valuelist": true,
+            "@cds.persistence.skip": "if-unused",
+            "@odata.draft.enabled": false,
+            "query": {
+                "SELECT": {
+                    "from": { "ref": ["sap.common.Languages"], "as": "L" },
+                    "columns": [
+                        "*",
+                        {
+                            "func": "coalesce",
+                            "args": [
+                                { "ref": ["L", "localized", "name"] },
+                                { "ref": ["L", "name"] }
+                            ],
+                            "as": "name"
+                        },
+                        {
+                            "func": "coalesce",
+                            "args": [
+                                { "ref": ["L", "localized", "descr"] },
+                                { "ref": ["L", "descr"] }
+                            ],
+                            "as": "descr"
+                        }
+                    ]
+                }
+            },
+            "elements": {
+                "name": {
+                    "@Core.Computed": true,
+                    "@title": "{i18n>Name}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@Core.Computed": true,
+                    "@title": "{i18n>Description}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@title": "{i18n>LanguageCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 14
+                },
+                "texts": {
+                    "type": "cds.Composition",
+                    "cardinality": { "max": "*" },
+                    "target": "sap.common.Languages_texts",
+                    "on": [
+                        { "ref": ["texts", "code"] },
+                        "=",
+                        { "ref": ["code"] }
+                    ]
+                },
+                "localized": {
+                    "type": "cds.Association",
+                    "target": "sap.common.Languages_texts",
+                    "on": [
+                        { "ref": ["localized", "code"] },
+                        "=",
+                        { "ref": ["code"] },
+                        "and",
+                        { "ref": ["localized", "locale"] },
+                        "=",
+                        { "ref": ["$user", "locale"] }
+                    ]
+                }
+            }
+        },
+        "managed": {
+            "kind": "type",
+            "elements": {
+                "modifiedAt": {
+                    "@Core.Immutable": true,
+                    "@UI.HiddenFilter": true,
+                    "@cds.on.update": { "=": "$now" },
+                    "@odata.on.update": { "#": "now" },
+                    "@readonly": true,
+                    "@title": "{i18n>ChangedAt}",
+                    "type": "cds.DateTime"
+                },
+                "createdAt": {
+                    "@Core.Immutable": true,
+                    "@UI.HiddenFilter": true,
+                    "@cds.on.insert": { "=": "$now" },
+                    "@odata.on.insert": { "#": "now" },
+                    "@readonly": true,
+                    "@title": "{i18n>CreatedAt}",
+                    "type": "cds.DateTime"
+                },
+                "createdBy": {
+                    "@Core.Immutable": true,
+                    "@UI.HiddenFilter": true,
+                    "@cds.on.insert": { "=": "$user" },
+                    "@description": "{i18n>UserID.Description}",
+                    "@odata.on.insert": { "#": "user" },
+                    "@readonly": true,
+                    "@title": "{i18n>CreatedBy}",
+                    "type": "User",
+                    "length": 255
+                },
+                "modifiedBy": {
+                    "@Core.Immutable": true,
+                    "@UI.HiddenFilter": true,
+                    "@cds.on.update": { "=": "$user" },
+                    "@description": "{i18n>UserID.Description}",
+                    "@odata.on.update": { "#": "user" },
+                    "@readonly": true,
+                    "@title": "{i18n>ChangedBy}",
+                    "type": "User",
+                    "length": 255
+                }
+            }
+        },
+        "sap.common": { "kind": "context" },
+        "sap.common.CodeList": {
+            "kind": "type",
+            "@UI.Identification": [{ "=": "name" }],
+            "@cds.autoexpose": true,
+            "@cds.odata.valuelist": true,
+            "@cds.persistence.skip": "if-unused",
+            "elements": {
+                "name": {
+                    "@title": "{i18n>Name}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@title": "{i18n>Description}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 1000
+                }
+            }
+        },
+        "sap.common.Countries": {
+            "kind": "entity",
+            "@UI.Identification": [{ "=": "name" }],
+            "@cds.autoexpose": true,
+            "@cds.odata.valuelist": true,
+            "@cds.persistence.skip": "if-unused",
+            "includes": ["sap.common.CodeList"],
+            "elements": {
+                "name": {
+                    "@title": "{i18n>Name}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@title": "{i18n>Description}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@title": "{i18n>CountryCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 3
+                },
+                "texts": {
+                    "type": "cds.Composition",
+                    "cardinality": { "max": "*" },
+                    "target": "sap.common.Countries_texts",
+                    "on": [
+                        { "ref": ["texts", "code"] },
+                        "=",
+                        { "ref": ["code"] }
+                    ]
+                },
+                "localized": {
+                    "type": "cds.Association",
+                    "target": "sap.common.Countries_texts",
+                    "on": [
+                        { "ref": ["localized", "code"] },
+                        "=",
+                        { "ref": ["code"] },
+                        "and",
+                        { "ref": ["localized", "locale"] },
+                        "=",
+                        { "ref": ["$user", "locale"] }
+                    ]
+                }
+            }
+        },
+        "sap.common.Countries_texts": {
+            "kind": "entity",
+            "@cds.autoexpose": true,
+            "@odata.draft.enabled": false,
+            "elements": {
+                "locale": { "key": true, "type": "cds.String", "length": 5 },
+                "name": {
+                    "@title": "{i18n>Name}",
+                    "localized": false,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@title": "{i18n>Description}",
+                    "localized": false,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@cds.odata.v4.ignore": true,
+                    "@title": "{i18n>CountryCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 3
+                }
+            }
+        },
+        "sap.common.Currencies": {
+            "kind": "entity",
+            "@UI.Identification": [{ "=": "name" }],
+            "@cds.autoexpose": true,
+            "@cds.odata.valuelist": true,
+            "@cds.persistence.skip": "if-unused",
+            "includes": ["sap.common.CodeList"],
+            "elements": {
+                "name": {
+                    "@title": "{i18n>Name}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@title": "{i18n>Description}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@title": "{i18n>CurrencyCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 3
+                },
+                "symbol": {
+                    "@title": "{i18n>CurrencySymbol}",
+                    "type": "cds.String",
+                    "length": 5
+                },
+                "texts": {
+                    "type": "cds.Composition",
+                    "cardinality": { "max": "*" },
+                    "target": "sap.common.Currencies_texts",
+                    "on": [
+                        { "ref": ["texts", "code"] },
+                        "=",
+                        { "ref": ["code"] }
+                    ]
+                },
+                "localized": {
+                    "type": "cds.Association",
+                    "target": "sap.common.Currencies_texts",
+                    "on": [
+                        { "ref": ["localized", "code"] },
+                        "=",
+                        { "ref": ["code"] },
+                        "and",
+                        { "ref": ["localized", "locale"] },
+                        "=",
+                        { "ref": ["$user", "locale"] }
+                    ]
+                }
+            }
+        },
+        "sap.common.Currencies_texts": {
+            "kind": "entity",
+            "@cds.autoexpose": true,
+            "@odata.draft.enabled": false,
+            "elements": {
+                "locale": { "key": true, "type": "cds.String", "length": 5 },
+                "name": {
+                    "@title": "{i18n>Name}",
+                    "localized": false,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@title": "{i18n>Description}",
+                    "localized": false,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@cds.odata.v4.ignore": true,
+                    "@title": "{i18n>CurrencyCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 3
+                }
+            }
+        },
+        "sap.common.Languages": {
+            "kind": "entity",
+            "@UI.Identification": [{ "=": "name" }],
+            "@cds.autoexpose": true,
+            "@cds.odata.valuelist": true,
+            "@cds.persistence.skip": "if-unused",
+            "includes": ["sap.common.CodeList"],
+            "elements": {
+                "name": {
+                    "@title": "{i18n>Name}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@title": "{i18n>Description}",
+                    "localized": true,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@title": "{i18n>LanguageCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 14
+                },
+                "texts": {
+                    "type": "cds.Composition",
+                    "cardinality": { "max": "*" },
+                    "target": "sap.common.Languages_texts",
+                    "on": [
+                        { "ref": ["texts", "code"] },
+                        "=",
+                        { "ref": ["code"] }
+                    ]
+                },
+                "localized": {
+                    "type": "cds.Association",
+                    "target": "sap.common.Languages_texts",
+                    "on": [
+                        { "ref": ["localized", "code"] },
+                        "=",
+                        { "ref": ["code"] },
+                        "and",
+                        { "ref": ["localized", "locale"] },
+                        "=",
+                        { "ref": ["$user", "locale"] }
+                    ]
+                }
+            }
+        },
+        "sap.common.Languages_texts": {
+            "kind": "entity",
+            "@cds.autoexpose": true,
+            "@odata.draft.enabled": false,
+            "elements": {
+                "locale": { "key": true, "type": "cds.String", "length": 5 },
+                "name": {
+                    "@title": "{i18n>Name}",
+                    "localized": false,
+                    "type": "cds.String",
+                    "length": 255
+                },
+                "descr": {
+                    "@title": "{i18n>Description}",
+                    "localized": false,
+                    "type": "cds.String",
+                    "length": 1000
+                },
+                "code": {
+                    "@cds.odata.v4.ignore": true,
+                    "@title": "{i18n>LanguageCode}",
+                    "key": true,
+                    "type": "cds.String",
+                    "length": 14
+                }
+            }
+        },
+        "temporal": {
+            "kind": "type",
+            "elements": {
+                "validFrom": {
+                    "@cds.valid.from": true,
+                    "type": "cds.DateTime"
+                },
+                "validTo": { "@cds.valid.to": true, "type": "cds.DateTime" }
+            }
+        }
+    },
+    "meta": { "creator": "CDS Compiler v1.21.1" },
+    "$version": "1.0"
+}
