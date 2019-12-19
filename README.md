@@ -115,6 +115,10 @@ export interface IFoo {
     FooInteger: number;
     FooDecimal?: number;
 }
+
+export enum Entities {
+    Foo = "TestService.Foo",
+}
 ```
 
 ## 3. Bugs and Features

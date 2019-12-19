@@ -1,14 +1,4 @@
 /**
- * CDS Cardinality.
- *
- * @enum {number}
- */
-export enum CDSCardinality {
-    many = "*",
-    one = 1,
-}
-
-/**
  * CDS Type.
  *
  * @enum {number}
@@ -45,14 +35,42 @@ export enum CDSKind {
     action = "action",
 }
 
+/**
+ * CDS Cardinality.
+ *
+ * @enum {number}
+ */
+export enum CDSCardinality {
+    many = "*",
+    one = 1,
+}
+
+/**
+ * Enum value.
+ *
+ * @export
+ * @interface IEnumValue
+ */
 export interface IEnumValue {
     val: any;
 }
 
+/**
+ * CDS function or action import parameter type.
+ *
+ * @export
+ * @interface IParamType
+ */
 export interface IParamType {
     type: CDSType;
 }
 
+/**
+ * CDS inline enum.
+ *
+ * @export
+ * @interface IEnum
+ */
 export interface IEnum {
     type: CDSType;
     enum: Map<string, IEnumValue>;

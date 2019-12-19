@@ -2,7 +2,14 @@ import * as cds from "@sap/cds";
 import * as fs from "fs-extra";
 import * as path from "path";
 import { Command } from "commander";
-import { CDSKind, IService } from "./utils/cds";
+import {
+    CDSKind,
+    IService,
+    IDefinition,
+    CDSType,
+    IParamType,
+    IEnumValue,
+} from "./utils/cds";
 import { Entity } from "./types/entity";
 import { Enum } from "./types/enum";
 import { ActionFunction } from "./types/action.func";
@@ -16,7 +23,7 @@ import { CDSParser } from "./cds.parser";
  */
 export default class Program {
     /**
-     *
+     * Blacklist of entities, types and enums that should not be generated.
      *
      * @private
      * @type {string[]}
@@ -31,7 +38,7 @@ export default class Program {
     ];
 
     /**
-     *
+     * CDS entities.
      *
      * @private
      * @type {Entity[]}
@@ -40,7 +47,7 @@ export default class Program {
     private entities: Entity[] = [];
 
     /**
-     *
+     * CDS action and function imports.
      *
      * @private
      * @
@@ -50,7 +57,7 @@ export default class Program {
     private actionFunctions: ActionFunction[] = [];
 
     /**
-     *
+     * CDS enums.
      *
      * @private
      * @type {Enum[]}
@@ -59,7 +66,7 @@ export default class Program {
     private enums: Enum[] = [];
 
     /**
-     *
+     * Interface prefix.
      *
      * @private
      * @type {string}
@@ -77,18 +84,18 @@ export default class Program {
         this.interfacePrefix = command.prefix;
 
         const jsonObj = await this.loadCdsAndConvertToJSON(command.cds);
-        fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
-
         const service = new CDSParser().parse(jsonObj);
+
         this.extractTypes(service);
-        this.writeTypes(command.output);
+        const contents = this.generateTypes();
+        this.writeTypes(command.output, contents);
     }
 
     /**
-     *
+     * Loads a given CDS file and parses the compiled JSON to a object.
      *
      * @private
-     * @param {string} path
+     * @param {string} path Path to load the CDS file from.
      * @returns {Promise<any>}
      * @memberof Program
      */
@@ -97,27 +104,17 @@ export default class Program {
         return JSON.parse(cds.compile.to.json(csn));
     }
 
-    private wilcardTest(wildcard: string, str: string): boolean {
-        const re = new RegExp(
-            `^${wildcard.replace(/\*/g, ".*").replace(/\?/g, ".")}$`,
-            "i"
-        );
-        return re.test(str);
-    }
-
     /**
-     *
+     * Extracts the types from a parsed service.
      *
      * @private
-     * @param {string} json
+     * @param {IService} service Parsed service to extract types from.
      * @returns {IService}
      * @memberof Program
      */
     private extractTypes(service: IService): void {
         for (const [key, value] of service.definitions) {
-            if (
-                this.blacklist.map(b => this.wilcardTest(b, key)).includes(true)
-            ) {
+            if (this.blacklist.map(b => this.wilcard(b, key)).includes(true)) {
                 continue;
             }
 
@@ -146,25 +143,75 @@ export default class Program {
         }
     }
 
-    private writeTypes(filepath: string): void {
+    /**
+     * Generates all types.
+     *
+     * @private
+     * @returns {string} Types in form of Typescript code
+     * @memberof Program
+     */
+    private generateTypes(): string {
+        let result = "";
+
         const actionFuncCode = this.actionFunctions
             .map(f => f.toType())
             .join("\n\n");
         const enumCode = this.enums.map(e => e.toType()).join("\n\n");
         const entityCode = this.entities.map(e => e.toType()).join("\n\n");
 
-        let contents = "";
-        const code = [actionFuncCode, enumCode, entityCode];
+        const code = [
+            actionFuncCode,
+            enumCode,
+            entityCode,
+            this.generateEntitiesEnum().toType(),
+        ];
+
         for (const c of code) {
             if (c && c !== "") {
-                if (contents !== "") {
-                    contents = contents + c + "\n\n";
+                if (result !== "") {
+                    result = result + c + "\n\n";
                 } else {
-                    contents = c + "\n\n";
+                    result = c + "\n\n";
                 }
             }
         }
 
+        return result;
+    }
+
+    /**
+     * Generates the entities enum.
+     *
+     * @private
+     * @returns {Enum} Generated enum.
+     * @memberof Program
+     */
+    private generateEntitiesEnum(): Enum {
+        const definition: IDefinition = {
+            kind: CDSKind.type,
+            type: CDSType.string,
+            enum: new Map<string, IEnumValue>(),
+        };
+
+        if (definition.enum) {
+            for (const entity of this.entities) {
+                definition.enum.set(entity.getSanitizedName(), {
+                    val: entity.getModelName(),
+                });
+            }
+        }
+
+        return new Enum("Entities", definition);
+    }
+
+    /**
+     * Writes the types to disk.
+     *
+     * @private
+     * @param {string} filepath File path to save the types at
+     * @memberof Program
+     */
+    private writeTypes(filepath: string, contents: string): void {
         const dir = path.dirname(filepath);
         if (fs.existsSync(dir)) {
             fs.writeFileSync(filepath, contents);
@@ -175,5 +222,22 @@ export default class Program {
             );
             process.exit(-1);
         }
+    }
+
+    /**
+     * Tests a wildcard string.
+     *
+     * @private
+     * @param {string} wildcard Wilcard to test
+     * @param {string} str  String to test against
+     * @returns {boolean} Flag, wheter the test was successfull or not
+     * @memberof Program
+     */
+    private wilcard(wildcard: string, str: string): boolean {
+        const re = new RegExp(
+            `^${wildcard.replace(/\*/g, ".*").replace(/\?/g, ".")}$`,
+            "i"
+        );
+        return re.test(str);
     }
 }

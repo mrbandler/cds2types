@@ -6,10 +6,22 @@ import {
     CDSCardinality,
     IEnumValue,
     IParamType,
-    IEnum,
 } from "./utils/cds";
 
+/**
+ * Parses a compiled CDS JSON object.
+ *
+ * @export
+ * @class CDSParser
+ */
 export class CDSParser {
+    /**
+     * Parses a given service object to a service.
+     *
+     * @param {*} obj Object to parse
+     * @returns {IService} Parsed service
+     * @memberof CDSParser
+     */
     public parse(obj: any): IService {
         let definitions: Map<string, IDefinition> = new Map<
             string,
@@ -44,6 +56,14 @@ export class CDSParser {
         };
     }
 
+    /**
+     * Parses elements from a entity.
+     *
+     * @private
+     * @param {*} obj Object to parse from
+     * @returns {Map<string, IElement>} Parsed elements
+     * @memberof CDSParser
+     */
     private parseElements(obj: any): Map<string, IElement> {
         let result: Map<string, IElement> = new Map<string, IElement>();
 
@@ -79,6 +99,14 @@ export class CDSParser {
         return result;
     }
 
+    /**
+     * Parses a enum.
+     *
+     * @private
+     * @param {*} obj Object to parse from
+     * @returns {Map<string, IEnumValue>} Parsed enum values
+     * @memberof CDSParser
+     */
     private parseEnum(obj: any): Map<string, IEnumValue> {
         let result = new Map<string, IEnumValue>();
 
@@ -94,6 +122,14 @@ export class CDSParser {
         return result;
     }
 
+    /**
+     * Parses function and action import parameters
+     *
+     * @private
+     * @param {*} obj Object to parse from
+     * @returns {Map<string, IParamType>} Parsed parameters
+     * @memberof CDSParser
+     */
     private parseParams(obj: any): Map<string, IParamType> {
         let result: Map<string, IParamType> = new Map<string, IParamType>();
 
