@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "lib": ["es6", "es2015", "dom"],
+        "outDir": "./bin",
+        "rootDir": "./src",
+        "downlevelIteration": true,
+        "strict": true,
+        "types": ["node"],
+        "noImplicitAny": false,
+        "esModuleInterop": true
+    }
+}

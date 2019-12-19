@@ -1,0 +1,14 @@
+{
+    "eslint.validate": ["javascript", "typescript"],
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/.mta": true
+    },
+    "files.eol": "\n",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "eslint.packageManager": "yarn"
+}
