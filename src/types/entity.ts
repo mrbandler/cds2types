@@ -20,23 +20,14 @@ import { Enum } from "./enum";
  */
 export class Entity extends BaseType {
     /**
-     * Prefix for the generated interface.
-     *
-     * @private
-     * @type {string}
-     * @memberof Entity
-     */
-    private prefix: string;
-
-    /**
      * Default constructor.
      * @param {string} name Name of the entity
      * @param {IDefinition} definition CDS entity definition
+     * @param {string} [prefix=""] Interface prefix
      * @memberof Entity
      */
     constructor(name: string, definition: IDefinition, prefix: string = "") {
-        super(name, definition);
-        this.prefix = prefix;
+        super(name, definition, prefix);
     }
 
     /**
@@ -50,7 +41,7 @@ export class Entity extends BaseType {
 
         let code: string[] = [];
         let enumCode: string[] = [];
-        code.push(this.createInterface(this.prefix));
+        code.push(this.createInterface());
         if (this.definition.elements) {
             for (const [key, value] of this.definition.elements) {
                 if (value.enum) {
@@ -83,5 +74,25 @@ export class Entity extends BaseType {
                 ? enumCode.join("\n") + "\n\n" + code.join("\n")
                 : code.join("\n");
         return result;
+    }
+
+    /**
+     * Returns the sanitized name of the entity.
+     *
+     * @returns {string} Sanitized name of the entity
+     * @memberof Entity
+     */
+    public getSanitizedName(): string {
+        return this.sanitizeName(this.sanitizeTarget(this.name));
+    }
+
+    /**
+     * Returns the model name of the entity.
+     *
+     * @returns {string} Model name of the entity
+     * @memberof Entity
+     */
+    public getModelName(): string {
+        return this.name;
     }
 }

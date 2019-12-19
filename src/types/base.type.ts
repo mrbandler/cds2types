@@ -10,6 +10,15 @@ import { TypeToken } from "../utils/type.constants";
  */
 export abstract class BaseType {
     /**
+     * Interface prefix.
+     *
+     * @protected
+     * @type {string}
+     * @memberof BaseType
+     */
+    protected prefix: string;
+
+    /**
      * Name of the entity.
      *
      * @private
@@ -33,7 +42,8 @@ export abstract class BaseType {
      * @param {IDefinition} definition CDS entity definition
      * @memberof BaseType
      */
-    constructor(name: string, definition: IDefinition) {
+    constructor(name: string, definition: IDefinition, prefix: string = "") {
+        this.prefix = prefix;
         this.name = name;
         this.definition = definition;
     }
@@ -56,9 +66,9 @@ export abstract class BaseType {
      * @returns {string} Create interface declaration
      * @memberof BaseType
      */
-    protected createInterface(prefix: string = ""): string {
+    protected createInterface(): string {
         const sanitizedName = this.sanitizeName(this.sanitizeTarget(this.name));
-        return `${TypeToken.export} ${TypeToken.interface} ${prefix}${sanitizedName} ${TypeToken.curlyBraceLeft}`;
+        return `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.curlyBraceLeft}`;
     }
 
     /**

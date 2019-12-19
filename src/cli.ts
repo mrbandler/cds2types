@@ -4,7 +4,7 @@ import * as commander from "commander";
 import Program from "./program";
 
 /**
- *
+ * Main function of the program.
  *
  */
 function main() {

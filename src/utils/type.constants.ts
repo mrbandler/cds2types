@@ -1,5 +1,5 @@
 /**
- *
+ * Type tokens.
  *
  * @export
  * @enum {number}
