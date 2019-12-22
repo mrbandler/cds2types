@@ -163,7 +163,7 @@ export default class Program {
             actionFuncCode,
             enumCode,
             entityCode,
-            this.generateEntitiesEnum().toType(),
+            this.generateEntityEnum().toType(),
         ];
 
         for (const c of code) {
@@ -186,7 +186,7 @@ export default class Program {
      * @returns {Enum} Generated enum.
      * @memberof Program
      */
-    private generateEntitiesEnum(): Enum {
+    private generateEntityEnum(): Enum {
         const definition: IDefinition = {
             kind: CDSKind.type,
             type: CDSType.string,
@@ -201,7 +201,7 @@ export default class Program {
             }
         }
 
-        return new Enum("Entities", definition);
+        return new Enum("Entity", definition);
     }
 
     /**
