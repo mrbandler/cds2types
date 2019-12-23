@@ -79,7 +79,10 @@ export class CDSParser {
                         isArray = true;
                     }
 
-                    let canBeNull = value["@Core.Computed"] || value.virtual;
+                    let canBeNull =
+                        value["@Core.Computed"] ||
+                        value["@Core.Immutable"] ||
+                        value.virtual;
 
                     result.set(key, {
                         type: value.type,
