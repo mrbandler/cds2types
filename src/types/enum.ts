@@ -11,7 +11,7 @@ import { BaseType } from "./base.type";
  * @class Enum
  * @extends {BaseType}
  */
-export class Enum extends BaseType {
+export class Enum extends BaseType<Enum> {
     /**
      * Fields of the enum.
      *

@@ -45,6 +45,7 @@ export class CDSParser {
             definitions.set(key, {
                 kind: value.kind,
                 type: value.type,
+                includes: value.includes ? value.includes : undefined,
                 elements: elements.size <= 0 ? undefined : elements,
                 enum: _enum.size <= 0 ? undefined : _enum,
                 params: params.size <= 0 ? undefined : params,

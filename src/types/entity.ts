@@ -8,6 +8,7 @@ import {
 } from "../utils/cds";
 import { BaseType } from "./base.type";
 import { Enum } from "./enum";
+import { fork } from "cluster";
 
 /**
  * Type that represents a CDS entity.
@@ -18,7 +19,7 @@ import { Enum } from "./enum";
  * @class Entity
  * @extends {BaseType}
  */
-export class Entity extends BaseType {
+export class Entity extends BaseType<Entity> {
     /**
      * Default constructor.
      * @param {string} name Name of the entity
@@ -36,12 +37,16 @@ export class Entity extends BaseType {
      * @returns {string}
      * @memberof Entity
      */
-    public toType(): string {
+    public toType(types: Entity[]): string {
         let result = "";
+
+        const ext = this.getExtensionInterfaces(types);
+        const extFields = this.getExtensionInterfaceFields(types);
 
         let code: string[] = [];
         let enumCode: string[] = [];
-        code.push(this.createInterface());
+
+        code.push(this.createInterface(ext));
         if (this.definition.elements) {
             for (const [key, value] of this.definition.elements) {
                 if (value.enum) {
@@ -61,9 +66,11 @@ export class Entity extends BaseType {
                         this.createInterfaceField(key, value, this.prefix)
                     );
                 } else {
-                    code.push(
-                        this.createInterfaceField(key, value, this.prefix)
-                    );
+                    if (!extFields.includes(key)) {
+                        code.push(
+                            this.createInterfaceField(key, value, this.prefix)
+                        );
+                    }
                 }
             }
         }
@@ -94,5 +101,76 @@ export class Entity extends BaseType {
      */
     public getModelName(): string {
         return this.name;
+    }
+
+    /**
+     * Returns the fields of the entity.
+     *
+     * @returns {string[]} List of all field names
+     * @memberof Entity
+     */
+    public getFields(): string[] {
+        let result: string[] = [];
+
+        if (this.definition.elements) {
+            result = Array.from(this.definition.elements.keys());
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns all interfaces that this entity extends from
+     *
+     * @private
+     * @param {Entity[]} types All other entity types
+     * @returns {(string[] | undefined)} List of all extended types
+     * @memberof Entity
+     */
+    private getExtensionInterfaces(types: Entity[]): string[] | undefined {
+        let result: string[] | undefined = undefined;
+
+        if (this.definition.includes) {
+            const ext = this.definition.includes[0];
+            const entities = types.filter(e =>
+                this.definition.includes
+                    ? this.definition.includes.includes(e.name)
+                    : false
+            );
+
+            if (entities) {
+                result = entities.map(e => e.getSanitizedName());
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns all fields from the extended interfaces.
+     *
+     * @private
+     * @param {Entity[]} types All other entity types
+     * @returns {string[]} List of all fields
+     * @memberof Entity
+     */
+    private getExtensionInterfaceFields(types: Entity[]): string[] {
+        let result: string[] = [];
+
+        if (this.definition.includes) {
+            const ext = this.definition.includes;
+            const entities = types.filter(e =>
+                this.definition.includes
+                    ? this.definition.includes.includes(e.name)
+                    : false
+            );
+            if (entities) {
+                for (const entity of entities) {
+                    result.push(...entity.getFields());
+                }
+            }
+        }
+
+        return result;
     }
 }

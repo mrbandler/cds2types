@@ -8,7 +8,7 @@ import { TypeToken } from "../utils/type.constants";
  * @abstract
  * @class BaseType
  */
-export abstract class BaseType {
+export abstract class BaseType<T> {
     /**
      * Interface prefix.
      *
@@ -55,7 +55,7 @@ export abstract class BaseType {
      * @returns {string}
      * @memberof BaseType
      */
-    public abstract toType(): string;
+    public abstract toType(types?: T[]): string;
 
     /**
      * Creates a interface declaration.
@@ -66,9 +66,26 @@ export abstract class BaseType {
      * @returns {string} Create interface declaration
      * @memberof BaseType
      */
-    protected createInterface(): string {
+    protected createInterface(ext?: string[]): string {
         const sanitizedName = this.sanitizeName(this.sanitizeTarget(this.name));
-        return `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.curlyBraceLeft}`;
+
+        if (ext) {
+            if (ext.length > 1) {
+                let result = `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.extends}`;
+                for (const e of ext) {
+                    result = `${result} ${this.prefix}${e}${TypeToken.comma}`;
+                }
+
+                const lastCommaIndex = result.lastIndexOf(TypeToken.comma);
+                result = result.substring(0, lastCommaIndex);
+
+                return `${result} ${TypeToken.curlyBraceLeft}`;
+            } else {
+                return `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.extends} ${this.prefix}${ext} ${TypeToken.curlyBraceLeft}`;
+            }
+        } else {
+            return `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.curlyBraceLeft}`;
+        }
     }
 
     /**
