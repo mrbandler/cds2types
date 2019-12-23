@@ -24,5 +24,10 @@ service TestService {
         FooDouble: Double;
         FooInteger: Integer;
         virtual FooDecimal: Decimal(10,3);
+        Bar: Association to one Bar on Bar.BarString = $self.FooString;
     };
+
+    entity Bar: managed {
+        BarString: String;
+    }
 }

@@ -86,7 +86,10 @@ export abstract class BaseType {
         element: IElement,
         prefix: string = ""
     ): string {
-        let fieldName = element.canBeNull ? `${name}?` : name;
+        let fieldName =
+            element.canBeNull || element.type === CDSType.association
+                ? `${name}?`
+                : name;
 
         let fieldType = "unknown";
         if (element.enum) {
