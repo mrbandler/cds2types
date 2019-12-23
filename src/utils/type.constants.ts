@@ -14,6 +14,7 @@ export enum TypeToken {
     semiColon = ";",
     equals = "=",
     comma = ",",
+    questionMark = "?",
     squareBracketsLeft = "[",
     squareBracketsRight = "]",
 }
