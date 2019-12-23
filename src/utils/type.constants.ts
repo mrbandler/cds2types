@@ -7,6 +7,7 @@
 export enum TypeToken {
     export = "export",
     interface = "interface",
+    extends = "extends",
     enum = "enum",
     curlyBraceLeft = "{",
     curlyBraceRight = "}",

@@ -98,6 +98,7 @@ export interface IElement {
 export interface IDefinition {
     kind: CDSKind;
     type: CDSType;
+    includes?: string[];
     elements?: Map<string, IElement>;
     enum?: Map<string, IEnumValue>;
     params?: Map<string, IParamType>;

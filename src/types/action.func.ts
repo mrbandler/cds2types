@@ -9,7 +9,7 @@ import { BaseType } from "./base.type";
  * @class Function
  * @extends {BaseType}
  */
-export class ActionFunction extends BaseType {
+export class ActionFunction extends BaseType<ActionFunction> {
     /**
      * Function prefix.
      *

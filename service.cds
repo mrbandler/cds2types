@@ -30,4 +30,12 @@ service TestService {
     entity Bar: managed {
         BarString: String;
     }
+
+    entity Test: managed, Inher {
+        Test: String;
+    }
+
+    entity Inher {
+        InherTest: String;
+    }
 }
