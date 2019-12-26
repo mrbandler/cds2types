@@ -1,11 +1,22 @@
 using { managed } from '@sap/cds/common';
 
 service TestService {
+    function greet() returns String;
     function foo(bar: String) returns String;
     action bar(foo: String);
 
     type Gender: String enum { male = 'male'; female = 'female' };
     type EnumTest: String enum { one; two; };
+
+    type UserContext {
+        Username: String;
+        Email: String;
+        Firstname: String;
+        Lastname: String;
+        Fullname: String;
+        Roles: array of String;
+        Scopes: array of String;
+    }
 
     entity Foo: managed {
         key FooId: UUID;

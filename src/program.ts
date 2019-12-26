@@ -35,6 +35,7 @@ export default class Program {
         "Language",
         "cuid",
         "*sap.common*",
+        "User",
     ];
 
     /**
@@ -84,7 +85,7 @@ export default class Program {
         this.interfacePrefix = command.prefix;
 
         const jsonObj = await this.loadCdsAndConvertToJSON(command.cds);
-        fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
+        // fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
         const service = new CDSParser().parse(jsonObj);
 
         this.extractTypes(service);
@@ -148,7 +149,7 @@ export default class Program {
                 case CDSKind.type:
                     if (value.enum) {
                         this.enums.push(new Enum(key, value));
-                    } else if (key === "managed") {
+                    } else {
                         this.entities.push(
                             new Entity(key, value, this.interfacePrefix)
                         );
