@@ -1,4 +1,4 @@
-import { TypeToken } from "../utils/type.constants";
+import { Token } from "../utils/type.constants";
 import {
     IDefinition,
     CDSType,
@@ -70,11 +70,25 @@ export class Entity extends BaseType<Entity> {
                         code.push(
                             this.createInterfaceField(key, value, this.prefix)
                         );
+
+                        if (
+                            value.cardinality &&
+                            value.cardinality.max === CDSCardinality.one
+                        ) {
+                            code.push(
+                                ...this.getAssociationRefField(
+                                    types,
+                                    key,
+                                    "_",
+                                    value
+                                )
+                            );
+                        }
                     }
                 }
             }
         }
-        code.push(`${TypeToken.curlyBraceRight}`);
+        code.push(`${Token.curlyBraceRight}`);
 
         result =
             enumCode.length > 0
@@ -167,6 +181,37 @@ export class Entity extends BaseType<Entity> {
             if (entities) {
                 for (const entity of entities) {
                     result.push(...entity.getFields());
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private getAssociationRefField(
+        types: Entity[],
+        name: string,
+        suffix: string,
+        element: IElement
+    ): string[] {
+        let result: string[] = [];
+
+        if (element.target && element.keys) {
+            const entity = types.find(t => element.target === t.getModelName());
+            if (entity && entity.definition.elements) {
+                for (const key of element.keys) {
+                    for (const [k, v] of entity.definition.elements) {
+                        if (k === key.ref[0]) {
+                            const line = `    ${name}${suffix}${k}${
+                                Token.questionMark
+                            }${Token.colon} ${this.cdsTypeToType(v.type)}${
+                                Token.semiColon
+                            }`;
+                            result.push(line);
+
+                            break;
+                        }
+                    }
                 }
             }
         }

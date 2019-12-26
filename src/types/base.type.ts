@@ -1,5 +1,5 @@
 import { IDefinition, IElement, CDSType, CDSCardinality } from "../utils/cds";
-import { TypeToken } from "../utils/type.constants";
+import { Token } from "../utils/type.constants";
 
 /**
  * Base type that represents a part of CDS domain.
@@ -77,20 +77,20 @@ export abstract class BaseType<T> {
 
         if (ext) {
             if (ext.length > 1) {
-                let result = `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.extends}`;
+                let result = `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends}`;
                 for (const e of ext) {
-                    result = `${result} ${this.prefix}${e}${TypeToken.comma}`;
+                    result = `${result} ${this.prefix}${e}${Token.comma}`;
                 }
 
-                const lastCommaIndex = result.lastIndexOf(TypeToken.comma);
+                const lastCommaIndex = result.lastIndexOf(Token.comma);
                 result = result.substring(0, lastCommaIndex);
 
-                return `${result} ${TypeToken.curlyBraceLeft}`;
+                return `${result} ${Token.curlyBraceLeft}`;
             } else {
-                return `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.extends} ${this.prefix}${ext} ${TypeToken.curlyBraceLeft}`;
+                return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends} ${this.prefix}${ext} ${Token.curlyBraceLeft}`;
             }
         } else {
-            return `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.curlyBraceLeft}`;
+            return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.curlyBraceLeft}`;
         }
     }
 
@@ -123,7 +123,7 @@ export abstract class BaseType<T> {
             fieldType = this.cdsElementToType(element, prefix);
         }
 
-        return `    ${fieldName}${TypeToken.colon} ${fieldType}${TypeToken.semiColon}`;
+        return `    ${fieldName}${Token.colon} ${fieldType}${Token.semiColon}`;
     }
 
     /**
@@ -135,7 +135,7 @@ export abstract class BaseType<T> {
      */
     protected createEnum(prefix: string = ""): string {
         const name = prefix + this.sanitizeName(this.sanitizeTarget(this.name));
-        return `${TypeToken.export} ${TypeToken.enum} ${name} ${TypeToken.curlyBraceLeft}`;
+        return `${Token.export} ${Token.enum} ${name} ${Token.curlyBraceLeft}`;
     }
 
     /**
@@ -154,9 +154,9 @@ export abstract class BaseType<T> {
     ): string {
         if (value) {
             const fieldValue = isStringType ? `"${value}"` : `${value}`;
-            return `    ${name} ${TypeToken.equals} ${fieldValue}${TypeToken.comma}`;
+            return `    ${name} ${Token.equals} ${fieldValue}${Token.comma}`;
         } else {
-            return `    ${name}${TypeToken.comma}`;
+            return `    ${name}${Token.comma}`;
         }
     }
 
@@ -287,7 +287,7 @@ export abstract class BaseType<T> {
                     const target = this.sanitizeTarget(element.target);
                     let suffix = "";
                     if (element.cardinality.max === CDSCardinality.many) {
-                        suffix = `${TypeToken.squareBracketsLeft}${TypeToken.squareBracketsRight}`;
+                        suffix = `${Token.squareBracketsLeft}${Token.squareBracketsRight}`;
                     }
 
                     result = prefix + target + suffix;
@@ -300,7 +300,7 @@ export abstract class BaseType<T> {
         }
 
         if (element.type !== CDSType.association && element.isArray) {
-            result = `${result}${TypeToken.squareBracketsLeft}${TypeToken.squareBracketsRight}`;
+            result = `${result}${Token.squareBracketsLeft}${Token.squareBracketsRight}`;
         }
 
         return result;

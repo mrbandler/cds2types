@@ -95,6 +95,7 @@ export class CDSParser {
                                 : { max: CDSCardinality.one },
                         target: value.target,
                         enum: _enum.size <= 0 ? undefined : _enum,
+                        keys: value.keys,
                     });
                 }
             }
