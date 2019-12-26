@@ -33,11 +33,22 @@ Let's look at a CDS example:
 using { managed } from '@sap/cds/common';
 
 service TestService {
+    function greet() returns String;
     function foo(bar: String) returns String;
     action bar(foo: String);
 
     type Gender: String enum { male = 'male'; female = 'female' };
     type EnumTest: String enum { one; two; };
+
+    type UserContext {
+        Username: String;
+        Email: String;
+        Firstname: String;
+        Lastname: String;
+        Fullname: String;
+        Roles: array of String;
+        Scopes: array of String;
+    }
 
     entity Foo: managed {
         key FooId: UUID;
@@ -103,6 +114,10 @@ export interface IFuncFooParams {
     bar: string;
 }
 
+export enum FuncGreet {
+    name = "greet",
+}
+
 export enum EnumTest {
     one,
     two,
@@ -149,6 +164,16 @@ export interface ITest extends IInher, IManaged {
     Test: string;
 }
 
+export interface IUserContext {
+    Username: string;
+    Email: string;
+    Firstname: string;
+    Lastname: string;
+    Fullname: string;
+    Roles: string[];
+    Scopes: string[];
+}
+
 export interface IManaged {
     modifiedAt?: Date;
     createdAt?: Date;
@@ -156,12 +181,19 @@ export interface IManaged {
     modifiedBy?: string;
 }
 
+export interface ITemporal {
+    validFrom: Date;
+    validTo: Date;
+}
+
 export enum Entity {
     Bar = "TestService.Bar",
     Foo = "TestService.Foo",
     Inher = "TestService.Inher",
     Test = "TestService.Test",
+    UserContext = "TestService.UserContext",
     Managed = "managed",
+    Temporal = "temporal",
 }
 ```
 

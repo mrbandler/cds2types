@@ -95,8 +95,10 @@ export class ActionFunction extends BaseType<ActionFunction> {
         enumCode.push(`${Token.curlyBraceRight}`);
 
         let interfaceCode: string[] = [];
-        interfaceCode.push(this.createInterface(undefined, prefix, "Params"));
-        if (this.definition.params) {
+        if (this.definition.params && this.definition.params.size > 0) {
+            interfaceCode.push(
+                this.createInterface(undefined, prefix, "Params")
+            );
             for (const [key, value] of this.definition.params) {
                 interfaceCode.push(
                     `    ${key}${Token.colon} ${this.cdsTypeToType(
@@ -104,10 +106,13 @@ export class ActionFunction extends BaseType<ActionFunction> {
                     )}${Token.semiColon}`
                 );
             }
+            interfaceCode.push(`${Token.curlyBraceRight}`);
         }
-        interfaceCode.push(`${Token.curlyBraceRight}`);
 
-        result = enumCode.join("\n") + "\n\n" + interfaceCode.join("\n");
+        result =
+            interfaceCode.length > 0
+                ? enumCode.join("\n") + "\n\n" + interfaceCode.join("\n")
+                : enumCode.join("\n");
         return result;
     }
 }
