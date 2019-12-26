@@ -9,7 +9,7 @@ service TestService {
 
     entity Foo: managed {
         key FooId: UUID;
-        FooInlineEnum: Integer enum {
+        VInlineEnum: Integer enum {
             BarOne = 1;
             BarTwo = 2;
             BarThree = 3;
@@ -29,6 +29,7 @@ service TestService {
 
     entity Bar: managed {
         BarString: String;
+        Foo: Association to Foo;
     }
 
     entity Test: managed, Inher {

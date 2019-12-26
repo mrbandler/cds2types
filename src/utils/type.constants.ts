@@ -4,7 +4,7 @@
  * @export
  * @enum {number}
  */
-export enum TypeToken {
+export enum Token {
     export = "export",
     interface = "interface",
     extends = "extends",

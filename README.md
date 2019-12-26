@@ -41,7 +41,7 @@ service TestService {
 
     entity Foo: managed {
         key FooId: UUID;
-        FooInlineEnum: Integer enum {
+        VInlineEnum: Integer enum {
             BarOne = 1;
             BarTwo = 2;
             BarThree = 3;
@@ -56,7 +56,21 @@ service TestService {
         FooDouble: Double;
         FooInteger: Integer;
         virtual FooDecimal: Decimal(10,3);
+        Bar: Association to one Bar on Bar.BarString = $self.FooString;
     };
+
+    entity Bar: managed {
+        BarString: String;
+        Foo: Association to Foo;
+    }
+
+    entity Test: managed, Inher {
+        Test: String;
+    }
+
+    entity Inher {
+        InherTest: String;
+    }
 }
 ```
 
@@ -76,9 +90,17 @@ export enum ActionBar {
     paramFoo = "foo",
 }
 
+export interface IActionBarParams {
+    foo: string;
+}
+
 export enum FuncFoo {
     name = "foo",
     paramBar = "bar",
+}
+
+export interface IFuncFooParams {
+    bar: string;
 }
 
 export enum EnumTest {
@@ -91,19 +113,21 @@ export enum Gender {
     female = "female",
 }
 
-export enum FooFooInlineEnum {
+export interface IBar extends IManaged {
+    BarString: string;
+    Foo?: IFoo;
+    Foo_FooId?: string;
+}
+
+export enum FooVInlineEnum {
     BarOne = 1,
     BarTwo = 2,
     BarThree = 3,
 }
 
-export interface IFoo {
-    modifiedAt: Date;
-    createdAt: Date;
-    createdBy: string;
-    modifiedBy: string;
+export interface IFoo extends IManaged {
     FooId: string;
-    FooInlineEnum: FooFooInlineEnum;
+    VInlineEnum: FooVInlineEnum;
     FooBool: boolean;
     FooEnum: unknown;
     FooDate: Date;
@@ -114,10 +138,30 @@ export interface IFoo {
     FooDouble: number;
     FooInteger: number;
     FooDecimal?: number;
+    Bar?: IBar;
 }
 
-export enum Entities {
+export interface IInher {
+    InherTest: string;
+}
+
+export interface ITest extends IInher, IManaged {
+    Test: string;
+}
+
+export interface IManaged {
+    modifiedAt?: Date;
+    createdAt?: Date;
+    createdBy?: string;
+    modifiedBy?: string;
+}
+
+export enum Entity {
+    Bar = "TestService.Bar",
     Foo = "TestService.Foo",
+    Inher = "TestService.Inher",
+    Test = "TestService.Test",
+    Managed = "managed",
 }
 ```
 

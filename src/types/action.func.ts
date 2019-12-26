@@ -1,5 +1,5 @@
 import { IDefinition, CDSType, CDSKind } from "../utils/cds";
-import { TypeToken } from "../utils/type.constants";
+import { Token } from "../utils/type.constants";
 import { BaseType } from "./base.type";
 
 /**
@@ -92,20 +92,20 @@ export class ActionFunction extends BaseType<ActionFunction> {
                 enumCode.push(this.createEnumField(fieldName, key, true));
             }
         }
-        enumCode.push(`${TypeToken.curlyBraceRight}`);
+        enumCode.push(`${Token.curlyBraceRight}`);
 
         let interfaceCode: string[] = [];
         interfaceCode.push(this.createInterface(undefined, prefix, "Params"));
         if (this.definition.params) {
             for (const [key, value] of this.definition.params) {
                 interfaceCode.push(
-                    `    ${key}${TypeToken.colon} ${this.cdsTypeToType(
+                    `    ${key}${Token.colon} ${this.cdsTypeToType(
                         value.type
-                    )}${TypeToken.semiColon}`
+                    )}${Token.semiColon}`
                 );
             }
         }
-        interfaceCode.push(`${TypeToken.curlyBraceRight}`);
+        interfaceCode.push(`${Token.curlyBraceRight}`);
 
         result = enumCode.join("\n") + "\n\n" + interfaceCode.join("\n");
         return result;
