@@ -66,8 +66,14 @@ export abstract class BaseType<T> {
      * @returns {string} Create interface declaration
      * @memberof BaseType
      */
-    protected createInterface(ext?: string[]): string {
-        const sanitizedName = this.sanitizeName(this.sanitizeTarget(this.name));
+    protected createInterface(
+        ext?: string[],
+        prefix: string = "",
+        suffix: string = ""
+    ): string {
+        const sanitizedName = `${prefix}${this.sanitizeName(
+            this.sanitizeTarget(this.name)
+        )}${suffix}`;
 
         if (ext) {
             if (ext.length > 1) {
@@ -187,31 +193,10 @@ export abstract class BaseType<T> {
         return parts[parts.length - 1];
     }
 
-    /**
-     * Converts a given element to a Typescript type.
-     *
-     * @protected
-     * @param {IElement} element
-     * @param {string} [prefix=""]
-     * @returns {string}
-     * @memberof BaseType
-     */
-    protected cdsElementToType(element: IElement, prefix: string = ""): string {
+    protected cdsTypeToType(type: CDSType): string {
         let result: string = "unknown";
 
-        switch (element.type) {
-            case CDSType.association:
-                if (element.target && element.cardinality) {
-                    const target = this.sanitizeTarget(element.target);
-                    let suffix = "";
-                    if (element.cardinality.max === CDSCardinality.many) {
-                        suffix = `${TypeToken.squareBracketsLeft}${TypeToken.squareBracketsRight}`;
-                    }
-
-                    result = prefix + target + suffix;
-                }
-                break;
-
+        switch (type) {
             case CDSType.uuid:
                 result = "string";
                 break;
@@ -278,6 +263,39 @@ export abstract class BaseType<T> {
 
             case CDSType.largeBinary:
                 result = "Buffer";
+                break;
+        }
+
+        return result;
+    }
+
+    /**
+     * Converts a given element to a Typescript type.
+     *
+     * @protected
+     * @param {IElement} element
+     * @param {string} [prefix=""]
+     * @returns {string}
+     * @memberof BaseType
+     */
+    protected cdsElementToType(element: IElement, prefix: string = ""): string {
+        let result: string = "unknown";
+
+        switch (element.type) {
+            case CDSType.association:
+                if (element.target && element.cardinality) {
+                    const target = this.sanitizeTarget(element.target);
+                    let suffix = "";
+                    if (element.cardinality.max === CDSCardinality.many) {
+                        suffix = `${TypeToken.squareBracketsLeft}${TypeToken.squareBracketsRight}`;
+                    }
+
+                    result = prefix + target + suffix;
+                }
+                break;
+
+            default:
+                result = this.cdsTypeToType(element.type);
                 break;
         }
 
