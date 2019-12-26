@@ -127,12 +127,22 @@ export default class Program {
                     break;
                 case CDSKind.function:
                     this.actionFunctions.push(
-                        new ActionFunction(key, value, value.kind)
+                        new ActionFunction(
+                            key,
+                            value,
+                            value.kind,
+                            this.interfacePrefix
+                        )
                     );
                     break;
                 case CDSKind.action:
                     this.actionFunctions.push(
-                        new ActionFunction(key, value, value.kind)
+                        new ActionFunction(
+                            key,
+                            value,
+                            value.kind,
+                            this.interfacePrefix
+                        )
                     );
                     break;
                 case CDSKind.type:

@@ -45,14 +45,16 @@ export class Enum extends BaseType<Enum> {
     public toType(): string {
         let result = "";
 
-        let code: string[] = [];
-        code.push(this.createEnum());
+        let enumCode: string[] = [];
+        enumCode.push(this.createEnum());
         for (const [key, value] of this.fields) {
-            code.push(this.createEnumField(key, value, this.isStringType()));
+            enumCode.push(
+                this.createEnumField(key, value, this.isStringType())
+            );
         }
-        code.push(`${TypeToken.curlyBraceRight}`);
+        enumCode.push(`${TypeToken.curlyBraceRight}`);
 
-        result = code.join("\n");
+        result = enumCode.join("\n");
         return result;
     }
 

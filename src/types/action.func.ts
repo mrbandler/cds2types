@@ -52,8 +52,13 @@ export class ActionFunction extends BaseType<ActionFunction> {
      * @param {IDefinition} definition
      * @memberof Function
      */
-    constructor(name: string, definition: IDefinition, kind: CDSKind) {
-        super(name, definition);
+    constructor(
+        name: string,
+        definition: IDefinition,
+        kind: CDSKind,
+        interfacePrefix?: string
+    ) {
+        super(name, definition, interfacePrefix);
         this.kind = kind;
         if (this.definition && this.definition.params) {
             for (const [key, _] of this.definition.params) {
@@ -76,20 +81,33 @@ export class ActionFunction extends BaseType<ActionFunction> {
                 ? this.FUNC_PREFIX
                 : this.ACTION_PREFIX;
 
-        let code: string[] = [];
-        code.push(this.createEnum(prefix));
-        code.push(
+        let enumCode: string[] = [];
+        enumCode.push(this.createEnum(prefix));
+        enumCode.push(
             this.createEnumField("name", this.sanitizeTarget(this.name), true)
         );
-        if (this.params) {
-            for (const param of this.params) {
-                const fieldName = "param" + this.sanitizeName(param);
-                code.push(this.createEnumField(fieldName, param, true));
+        if (this.definition.params) {
+            for (const [key, _] of this.definition.params) {
+                const fieldName = "param" + this.sanitizeName(key);
+                enumCode.push(this.createEnumField(fieldName, key, true));
             }
         }
-        code.push(`${TypeToken.curlyBraceRight}`);
+        enumCode.push(`${TypeToken.curlyBraceRight}`);
 
-        result = code.join("\n");
+        let interfaceCode: string[] = [];
+        interfaceCode.push(this.createInterface(undefined, prefix, "Params"));
+        if (this.definition.params) {
+            for (const [key, value] of this.definition.params) {
+                interfaceCode.push(
+                    `    ${key}${TypeToken.colon} ${this.cdsTypeToType(
+                        value.type
+                    )}${TypeToken.semiColon}`
+                );
+            }
+        }
+        interfaceCode.push(`${TypeToken.curlyBraceRight}`);
+
+        result = enumCode.join("\n") + "\n\n" + interfaceCode.join("\n");
         return result;
     }
 }
