@@ -164,6 +164,7 @@ export default class Program {
             enumCode,
             entityCode,
             this.generateEntitiesEnum().toType(),
+            this.generateEntitiesEnum(true).toType(),
         ];
 
         for (const c of code) {
@@ -186,7 +187,7 @@ export default class Program {
      * @returns {Enum} Generated enum.
      * @memberof Program
      */
-    private generateEntitiesEnum(): Enum {
+    private generateEntitiesEnum(sanitized: boolean = false): Enum {
         const definition: IDefinition = {
             kind: CDSKind.type,
             type: CDSType.string,
@@ -196,12 +197,16 @@ export default class Program {
         if (definition.enum) {
             for (const entity of this.entities) {
                 definition.enum.set(entity.getSanitizedName(), {
-                    val: entity.getModelName(),
+                    val: sanitized
+                        ? entity.getSanitizedName()
+                        : entity.getModelName(),
                 });
             }
         }
 
-        return new Enum("Entities", definition);
+        return sanitized
+            ? new Enum("SanitizedEntities", definition)
+            : new Enum("Entities", definition);
     }
 
     /**
