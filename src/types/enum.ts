@@ -1,5 +1,5 @@
 import { IDefinition, CDSType } from "../utils/cds";
-import { TypeToken } from "../utils/type.constants";
+import { Token } from "../utils/type.constants";
 import { BaseType } from "./base.type";
 
 /**
@@ -11,7 +11,7 @@ import { BaseType } from "./base.type";
  * @class Enum
  * @extends {BaseType}
  */
-export class Enum extends BaseType {
+export class Enum extends BaseType<Enum> {
     /**
      * Fields of the enum.
      *
@@ -45,14 +45,16 @@ export class Enum extends BaseType {
     public toType(): string {
         let result = "";
 
-        let code: string[] = [];
-        code.push(this.createEnum());
+        let enumCode: string[] = [];
+        enumCode.push(this.createEnum());
         for (const [key, value] of this.fields) {
-            code.push(this.createEnumField(key, value, this.isStringType()));
+            enumCode.push(
+                this.createEnumField(key, value, this.isStringType())
+            );
         }
-        code.push(`${TypeToken.curlyBraceRight}`);
+        enumCode.push(`${Token.curlyBraceRight}`);
 
-        result = code.join("\n");
+        result = enumCode.join("\n");
         return result;
     }
 

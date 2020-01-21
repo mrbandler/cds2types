@@ -9,8 +9,10 @@ import Program from "./program";
  */
 function main() {
     const cli = new commander.Command();
-    cli.version("0.1.0")
-        .description("CLI to convert CDS to Typescript types")
+    cli.version("0.8.0")
+        .description(
+            "CLI to convert CDS models to Typescript interfaces and enumerations"
+        )
         .option("-c, --cds <file.cds>", "CDS file to convert")
         .option(
             "-o, --output <file.ts>",

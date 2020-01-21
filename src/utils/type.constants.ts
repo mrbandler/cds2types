@@ -4,9 +4,10 @@
  * @export
  * @enum {number}
  */
-export enum TypeToken {
+export enum Token {
     export = "export",
     interface = "interface",
+    extends = "extends",
     enum = "enum",
     curlyBraceLeft = "{",
     curlyBraceRight = "}",
@@ -14,6 +15,7 @@ export enum TypeToken {
     semiColon = ";",
     equals = "=",
     comma = ",",
+    questionMark = "?",
     squareBracketsLeft = "[",
     squareBracketsRight = "]",
 }

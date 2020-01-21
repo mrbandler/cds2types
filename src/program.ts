@@ -35,6 +35,7 @@ export default class Program {
         "Language",
         "cuid",
         "*sap.common*",
+        "User",
     ];
 
     /**
@@ -84,6 +85,7 @@ export default class Program {
         this.interfacePrefix = command.prefix;
 
         const jsonObj = await this.loadCdsAndConvertToJSON(command.cds);
+        // fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
         const service = new CDSParser().parse(jsonObj);
 
         this.extractTypes(service);
@@ -126,17 +128,31 @@ export default class Program {
                     break;
                 case CDSKind.function:
                     this.actionFunctions.push(
-                        new ActionFunction(key, value, value.kind)
+                        new ActionFunction(
+                            key,
+                            value,
+                            value.kind,
+                            this.interfacePrefix
+                        )
                     );
                     break;
                 case CDSKind.action:
                     this.actionFunctions.push(
-                        new ActionFunction(key, value, value.kind)
+                        new ActionFunction(
+                            key,
+                            value,
+                            value.kind,
+                            this.interfacePrefix
+                        )
                     );
                     break;
                 case CDSKind.type:
                     if (value.enum) {
                         this.enums.push(new Enum(key, value));
+                    } else {
+                        this.entities.push(
+                            new Entity(key, value, this.interfacePrefix)
+                        );
                     }
                     break;
             }
@@ -157,7 +173,9 @@ export default class Program {
             .map(f => f.toType())
             .join("\n\n");
         const enumCode = this.enums.map(e => e.toType()).join("\n\n");
-        const entityCode = this.entities.map(e => e.toType()).join("\n\n");
+        const entityCode = this.entities
+            .map(e => e.toType(this.entities))
+            .join("\n\n");
 
         const code = [
             actionFuncCode,

@@ -66,6 +66,16 @@ export interface IParamType {
 }
 
 /**
+ * CDS element key of an association.
+ *
+ * @export
+ * @interface IElementKey
+ */
+export interface IElementKey {
+    ref: string[];
+}
+
+/**
  * CDS inline enum.
  *
  * @export
@@ -88,6 +98,7 @@ export interface IElement {
     cardinality?: { max: CDSCardinality };
     target?: string;
     enum?: Map<string, IEnumValue>;
+    keys?: IElementKey[];
 }
 
 /**
@@ -98,6 +109,7 @@ export interface IElement {
 export interface IDefinition {
     kind: CDSKind;
     type: CDSType;
+    includes?: string[];
     elements?: Map<string, IElement>;
     enum?: Map<string, IEnumValue>;
     params?: Map<string, IParamType>;

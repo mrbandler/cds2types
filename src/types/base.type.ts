@@ -1,5 +1,5 @@
 import { IDefinition, IElement, CDSType, CDSCardinality } from "../utils/cds";
-import { TypeToken } from "../utils/type.constants";
+import { Token } from "../utils/type.constants";
 
 /**
  * Base type that represents a part of CDS domain.
@@ -8,7 +8,7 @@ import { TypeToken } from "../utils/type.constants";
  * @abstract
  * @class BaseType
  */
-export abstract class BaseType {
+export abstract class BaseType<T> {
     /**
      * Interface prefix.
      *
@@ -55,7 +55,7 @@ export abstract class BaseType {
      * @returns {string}
      * @memberof BaseType
      */
-    public abstract toType(): string;
+    public abstract toType(types?: T[]): string;
 
     /**
      * Creates a interface declaration.
@@ -66,9 +66,32 @@ export abstract class BaseType {
      * @returns {string} Create interface declaration
      * @memberof BaseType
      */
-    protected createInterface(): string {
-        const sanitizedName = this.sanitizeName(this.sanitizeTarget(this.name));
-        return `${TypeToken.export} ${TypeToken.interface} ${this.prefix}${sanitizedName} ${TypeToken.curlyBraceLeft}`;
+    protected createInterface(
+        ext?: string[],
+        prefix: string = "",
+        suffix: string = ""
+    ): string {
+        const sanitizedName = `${prefix}${this.sanitizeName(
+            this.sanitizeTarget(this.name)
+        )}${suffix}`;
+
+        if (ext) {
+            if (ext.length > 1) {
+                let result = `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends}`;
+                for (const e of ext) {
+                    result = `${result} ${this.prefix}${e}${Token.comma}`;
+                }
+
+                const lastCommaIndex = result.lastIndexOf(Token.comma);
+                result = result.substring(0, lastCommaIndex);
+
+                return `${result} ${Token.curlyBraceLeft}`;
+            } else {
+                return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends} ${this.prefix}${ext} ${Token.curlyBraceLeft}`;
+            }
+        } else {
+            return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.curlyBraceLeft}`;
+        }
     }
 
     /**
@@ -86,7 +109,10 @@ export abstract class BaseType {
         element: IElement,
         prefix: string = ""
     ): string {
-        let fieldName = element.canBeNull ? `${name}?` : name;
+        let fieldName =
+            element.canBeNull || element.type === CDSType.association
+                ? `${name}?`
+                : name;
 
         let fieldType = "unknown";
         if (element.enum) {
@@ -97,7 +123,7 @@ export abstract class BaseType {
             fieldType = this.cdsElementToType(element, prefix);
         }
 
-        return `    ${fieldName}${TypeToken.colon} ${fieldType}${TypeToken.semiColon}`;
+        return `    ${fieldName}${Token.colon} ${fieldType}${Token.semiColon}`;
     }
 
     /**
@@ -109,7 +135,7 @@ export abstract class BaseType {
      */
     protected createEnum(prefix: string = ""): string {
         const name = prefix + this.sanitizeName(this.sanitizeTarget(this.name));
-        return `${TypeToken.export} ${TypeToken.enum} ${name} ${TypeToken.curlyBraceLeft}`;
+        return `${Token.export} ${Token.enum} ${name} ${Token.curlyBraceLeft}`;
     }
 
     /**
@@ -128,9 +154,9 @@ export abstract class BaseType {
     ): string {
         if (value) {
             const fieldValue = isStringType ? `"${value}"` : `${value}`;
-            return `    ${name} ${TypeToken.equals} ${fieldValue}${TypeToken.comma}`;
+            return `    ${name} ${Token.equals} ${fieldValue}${Token.comma}`;
         } else {
-            return `    ${name}${TypeToken.comma}`;
+            return `    ${name}${Token.comma}`;
         }
     }
 
@@ -167,31 +193,10 @@ export abstract class BaseType {
         return parts[parts.length - 1];
     }
 
-    /**
-     * Converts a given element to a Typescript type.
-     *
-     * @protected
-     * @param {IElement} element
-     * @param {string} [prefix=""]
-     * @returns {string}
-     * @memberof BaseType
-     */
-    protected cdsElementToType(element: IElement, prefix: string = ""): string {
+    protected cdsTypeToType(type: CDSType): string {
         let result: string = "unknown";
 
-        switch (element.type) {
-            case CDSType.association:
-                if (element.target && element.cardinality) {
-                    const target = this.sanitizeTarget(element.target);
-                    let suffix = "";
-                    if (element.cardinality.max === CDSCardinality.many) {
-                        suffix = `${TypeToken.squareBracketsLeft}${TypeToken.squareBracketsRight}`;
-                    }
-
-                    result = prefix + target + suffix;
-                }
-                break;
-
+        switch (type) {
             case CDSType.uuid:
                 result = "string";
                 break;
@@ -261,8 +266,41 @@ export abstract class BaseType {
                 break;
         }
 
+        return result;
+    }
+
+    /**
+     * Converts a given element to a Typescript type.
+     *
+     * @protected
+     * @param {IElement} element
+     * @param {string} [prefix=""]
+     * @returns {string}
+     * @memberof BaseType
+     */
+    protected cdsElementToType(element: IElement, prefix: string = ""): string {
+        let result: string = "unknown";
+
+        switch (element.type) {
+            case CDSType.association:
+                if (element.target && element.cardinality) {
+                    const target = this.sanitizeTarget(element.target);
+                    let suffix = "";
+                    if (element.cardinality.max === CDSCardinality.many) {
+                        suffix = `${Token.squareBracketsLeft}${Token.squareBracketsRight}`;
+                    }
+
+                    result = prefix + target + suffix;
+                }
+                break;
+
+            default:
+                result = this.cdsTypeToType(element.type);
+                break;
+        }
+
         if (element.type !== CDSType.association && element.isArray) {
-            result = `${result}${TypeToken.squareBracketsLeft}${TypeToken.squareBracketsRight}`;
+            result = `${result}${Token.squareBracketsLeft}${Token.squareBracketsRight}`;
         }
 
         return result;
