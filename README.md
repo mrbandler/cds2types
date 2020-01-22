@@ -195,6 +195,16 @@ export enum Entity {
     Managed = "managed",
     Temporal = "temporal",
 }
+
+export enum SanitizedEntity {
+    Bar = "Bar",
+    Foo = "Foo",
+    Inher = "Inher",
+    Test = "Test",
+    UserContext = "UserContext",
+    Managed = "Managed",
+    Temporal = "Temporal",
+}
 ```
 
 ## 3. Bugs and Features
