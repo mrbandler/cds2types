@@ -223,8 +223,8 @@ export default class Program {
         }
 
         return sanitized
-            ? new Enum("SanitizedEntities", definition)
-            : new Enum("Entities", definition);
+            ? new Enum("SanitizedEntity", definition)
+            : new Enum("Entity", definition);
     }
 
     /**
