@@ -85,7 +85,7 @@ export default class Program {
         this.interfacePrefix = command.prefix;
 
         const jsonObj = await this.loadCdsAndConvertToJSON(command.cds);
-        fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
+        // fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
         const service = new CDSParser().parse(jsonObj);
 
         this.extractTypes(service);
