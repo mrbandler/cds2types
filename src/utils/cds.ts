@@ -1,4 +1,17 @@
 /**
+ * Managed attributes.
+ *
+ * @export
+ * @enum {number}
+ */
+export enum Managed {
+    CreatedAt = "createdAt",
+    CreatedBy = "createdBy",
+    ModifiedAt = "modifiedAt",
+    ModifiedBy = "modifiedBy",
+}
+
+/**
  * CDS Type.
  *
  * @enum {number}
