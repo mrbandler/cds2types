@@ -41,7 +41,7 @@ service TestService {
     type EnumTest: String enum { one; two; };
 
     type UserContext {
-        Username: String;
+        Username: String default 'Embo';
         Email: String;
         Firstname: String;
         Lastname: String;
@@ -165,7 +165,7 @@ export interface ITest extends IInher, IManaged {
 }
 
 export interface IUserContext {
-    Username: string;
+    Username?: string;
     Email: string;
     Firstname: string;
     Lastname: string;

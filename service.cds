@@ -9,7 +9,7 @@ service TestService {
     type EnumTest: String enum { one; two; };
 
     type UserContext {
-        Username: String;
+        Username: String default 'Embo';
         Email: String;
         Firstname: String;
         Lastname: String;

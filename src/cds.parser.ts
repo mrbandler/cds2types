@@ -85,10 +85,13 @@ export class CDSParser {
                         value["@Core.Computed"] ||
                         value["@Core.Immutable"] ||
                         value.virtual ||
-                        key === Managed.CreatedAt ||
-                        key === Managed.CreatedBy ||
-                        key === Managed.ModifiedAt ||
-                        key === Managed.ModifiedBy;
+                        value.default
+                            ? true
+                            : false ||
+                              key === Managed.CreatedAt ||
+                              key === Managed.CreatedBy ||
+                              key === Managed.ModifiedAt ||
+                              key === Managed.ModifiedBy;
 
                     result.set(key, {
                         type: value.type,
