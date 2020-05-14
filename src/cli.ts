@@ -9,7 +9,7 @@ import Program from "./program";
  */
 function main() {
     const cli = new commander.Command();
-    cli.version("1.1.3")
+    cli.version("2.0.0")
         .description(
             "CLI to convert CDS models to Typescript interfaces and enumerations"
         )
@@ -19,6 +19,10 @@ function main() {
             "Output location for the *.ts file(s)"
         )
         .option("-p, --prefix <I>", "Interface prefix", "")
+        .option(
+            "-j, --json",
+            "Prints the compiled JSON representation of the CDS sources"
+        )
         .parse(process.argv);
 
     if (!process.argv.slice(2).length) {

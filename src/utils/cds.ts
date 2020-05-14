@@ -46,6 +46,8 @@ export enum CDSKind {
     entity = "entity",
     function = "function",
     action = "action",
+    service = "service",
+    association = "cds.Association",
 }
 
 /**
@@ -129,11 +131,34 @@ export interface IDefinition {
 }
 
 /**
+ * CDS namespaces.
+ *
+ * @export
+ * @interface INamespace
+ */
+export interface INamespace {
+    name: string;
+    definitions: Map<string, IDefinition>;
+}
+
+/**
  * CDS service definition.
  *
  * @interface IService
  */
 export interface IService {
-    name?: string;
+    name: string;
     definitions: Map<string, IDefinition>;
+}
+
+/**
+ * Parsed CDS source.
+ *
+ * @export
+ * @interface IParsed
+ */
+export interface IParsed {
+    services?: IService[];
+    namespaces?: INamespace[];
+    definitions?: Map<string, IDefinition>;
 }

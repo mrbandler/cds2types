@@ -1,3 +1,4 @@
+import _ from "lodash";
 import {
     IService,
     IDefinition,
@@ -7,6 +8,9 @@ import {
     IEnumValue,
     IParamType,
     Managed,
+    IParsed,
+    INamespace,
+    CDSType,
 } from "./utils/cds";
 
 /**
@@ -17,44 +21,57 @@ import {
  */
 export class CDSParser {
     /**
+     *
+     *
+     * @private
+     * @type {string[]}
+     * @memberof CDSParser
+     */
+    private services: IService[] = [];
+    private namespaces: INamespace[] = [];
+    private definitions: Map<string, IDefinition> = new Map<
+        string,
+        IDefinition
+    >();
+
+    /**
      * Parses a given service object to a service.
      *
      * @param {*} obj Object to parse
      * @returns {IService} Parsed service
      * @memberof CDSParser
      */
-    public parse(obj: any): IService {
-        let definitions: Map<string, IDefinition> = new Map<
-            string,
-            IDefinition
-        >();
-
+    public parse(obj: any): IParsed {
         for (const key in obj.definitions) {
             const value = obj.definitions[key];
-            if (
-                value.kind !== CDSKind.entity &&
-                value.kind !== CDSKind.type &&
-                value.kind !== CDSKind.function &&
-                value.kind !== CDSKind.action
-            )
-                continue;
+            if (this.isValid(key, value)) {
+                if (value.kind === CDSKind.service) {
+                    this.addService(key);
 
-            const elements = this.parseElements(value);
-            const _enum = this.parseEnum(value);
-            const params = this.parseParams(value);
+                    continue;
+                }
 
-            definitions.set(key, {
-                kind: value.kind,
-                type: value.type,
-                includes: value.includes ? value.includes : undefined,
-                elements: elements.size <= 0 ? undefined : elements,
-                enum: _enum.size <= 0 ? undefined : _enum,
-                params: params.size <= 0 ? undefined : params,
-            });
+                let definitions = this.getDefinitions(key);
+
+                const elements = this.parseElements(value);
+                const _enum = this.parseEnum(value);
+                const params = this.parseParams(value);
+
+                definitions.set(key, {
+                    kind: value.kind,
+                    type: value.type,
+                    includes: value.includes ? value.includes : undefined,
+                    elements: elements.size <= 0 ? undefined : elements,
+                    enum: _enum.size <= 0 ? undefined : _enum,
+                    params: params.size <= 0 ? undefined : params,
+                });
+            }
         }
 
         return {
-            definitions: definitions,
+            services: this.services,
+            namespaces: this.namespaces,
+            definitions: this.definitions,
         };
     }
 
@@ -73,6 +90,9 @@ export class CDSParser {
             for (const key in obj.elements) {
                 if (obj.elements.hasOwnProperty(key)) {
                     const value = obj.elements[key];
+
+                    if (this.isLocalizationField(value)) continue;
+
                     const _enum = this.parseEnum(value);
 
                     let isArray = false;
@@ -156,5 +176,76 @@ export class CDSParser {
         }
 
         return result;
+    }
+
+    private isValid(key: string, value: any): boolean {
+        if (
+            value.kind !== CDSKind.entity &&
+            value.kind !== CDSKind.type &&
+            value.kind !== CDSKind.function &&
+            value.kind !== CDSKind.action &&
+            value.kind !== CDSKind.service
+        )
+            return false;
+
+        if (value.type === CDSType.association) return false;
+
+        if (key.includes("_texts") || key.startsWith("localized."))
+            return false;
+
+        return true;
+    }
+
+    private isLocalizationField(obj: any): boolean {
+        let result = false;
+
+        if (obj && obj.target) {
+            const target = obj.target as string;
+            result = target.includes("_texts");
+        }
+
+        return result;
+    }
+
+    private addService(name: string): void {
+        const service: IService = {
+            name: name,
+            definitions: new Map<string, IDefinition>(),
+        };
+
+        this.services.push(service);
+    }
+
+    private addNamespace(name: string): INamespace {
+        const namespace: INamespace = {
+            name: name,
+            definitions: new Map<string, IDefinition>(),
+        };
+
+        this.namespaces.push(namespace);
+
+        return namespace;
+    }
+
+    private getDefinitions(key: string): Map<string, IDefinition> {
+        const service = this.services.find(s => key.includes(s.name));
+        if (service) {
+            return service.definitions;
+        }
+
+        const namespace = this.namespaces.find(n => key.includes(n.name));
+        if (namespace) {
+            return namespace.definitions;
+        } else {
+            const split = key.split(".");
+            if (split.length > 1) {
+                const entity = _.last(split);
+                const name = key.replace(`.${entity}`, "");
+
+                return this.addNamespace(name).definitions;
+            } else {
+                return this.definitions;
+            }
+        }
     }
 }

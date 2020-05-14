@@ -1,19 +1,12 @@
+import _ from "lodash";
+import ts from "typescript";
 import * as cds from "@sap/cds";
 import * as fs from "fs-extra";
 import * as path from "path";
 import { Command } from "commander";
-import {
-    CDSKind,
-    IService,
-    IDefinition,
-    CDSType,
-    IParamType,
-    IEnumValue,
-} from "./utils/cds";
-import { Entity } from "./types/entity";
-import { Enum } from "./types/enum";
-import { ActionFunction } from "./types/action.func";
+import { IParsed } from "./utils/cds";
 import { CDSParser } from "./cds.parser";
+import { Namespace } from "./types/namespace";
 
 /**
  * Main porgram class.
@@ -30,41 +23,13 @@ export default class Program {
      * @memberof Program
      */
     private readonly blacklist: string[] = [
-        "Country",
-        "Currency",
-        "Language",
-        "cuid",
-        "*sap.common*",
-        "User",
+        // "Country",
+        // "Currency",
+        // "Language",
+        // "cuid",
+        // "*sap.common*",
+        // "User",
     ];
-
-    /**
-     * CDS entities.
-     *
-     * @private
-     * @type {Entity[]}
-     * @memberof Program
-     */
-    private entities: Entity[] = [];
-
-    /**
-     * CDS action and function imports.
-     *
-     * @private
-     * @
-     * @type {Function[]}
-     * @memberof Program
-     */
-    private actionFunctions: ActionFunction[] = [];
-
-    /**
-     * CDS enums.
-     *
-     * @private
-     * @type {Enum[]}
-     * @memberof Program
-     */
-    private enums: Enum[] = [];
 
     /**
      * Interface prefix.
@@ -85,11 +50,13 @@ export default class Program {
         this.interfacePrefix = command.prefix;
 
         const jsonObj = await this.loadCdsAndConvertToJSON(command.cds);
-        // fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
-        const service = new CDSParser().parse(jsonObj);
 
-        this.extractTypes(service);
-        const contents = this.generateTypes();
+        if (command.json) {
+            fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
+        }
+
+        const parsed = new CDSParser().parse(jsonObj);
+        const contents = this.generateCode(parsed);
         this.writeTypes(command.output, contents);
     }
 
@@ -114,78 +81,54 @@ export default class Program {
      * @returns {IService}
      * @memberof Program
      */
-    private extractTypes(service: IService): void {
-        for (const [key, value] of service.definitions) {
-            if (this.blacklist.map(b => this.wilcard(b, key)).includes(true)) {
-                continue;
-            }
+    private generateCode(parsed: IParsed): string {
+        let result = "";
+        let generatedCode: string[] = [];
+        let namespaces: Namespace[] = [];
 
-            switch (value.kind) {
-                case CDSKind.entity:
-                    this.entities.push(
-                        new Entity(key, value, this.interfacePrefix)
-                    );
-                    break;
-                case CDSKind.function:
-                    this.actionFunctions.push(
-                        new ActionFunction(
-                            key,
-                            value,
-                            value.kind,
-                            this.interfacePrefix
-                        )
-                    );
-                    break;
-                case CDSKind.action:
-                    this.actionFunctions.push(
-                        new ActionFunction(
-                            key,
-                            value,
-                            value.kind,
-                            this.interfacePrefix
-                        )
-                    );
-                    break;
-                case CDSKind.type:
-                    if (value.enum) {
-                        this.enums.push(new Enum(key, value));
-                    } else {
-                        this.entities.push(
-                            new Entity(key, value, this.interfacePrefix)
-                        );
-                    }
-                    break;
+        if (parsed.namespaces) {
+            for (let namespace of parsed.namespaces) {
+                const ns = new Namespace(
+                    namespace.definitions,
+                    this.blacklist,
+                    this.interfacePrefix,
+                    namespace.name
+                );
+
+                namespaces.push(ns);
             }
         }
-    }
 
-    /**
-     * Generates all types.
-     *
-     * @private
-     * @returns {string} Types in form of Typescript code
-     * @memberof Program
-     */
-    private generateTypes(): string {
-        let result = "";
+        if (parsed.services) {
+            for (const service of parsed.services) {
+                const ns = new Namespace(
+                    service.definitions,
+                    this.blacklist,
+                    this.interfacePrefix,
+                    service.name
+                );
 
-        const actionFuncCode = this.actionFunctions
-            .map(f => f.toType())
-            .join("\n\n");
-        const enumCode = this.enums.map(e => e.toType()).join("\n\n");
-        const entityCode = this.entities
-            .map(e => e.toType(this.entities))
-            .join("\n\n");
+                namespaces.push(ns);
+            }
+        }
 
-        const code = [
-            actionFuncCode,
-            enumCode,
-            entityCode,
-            this.generateEntitiesEnum().toType(),
-            this.generateEntitiesEnum(true).toType(),
-        ];
+        if (parsed.definitions) {
+            const ns = new Namespace(
+                parsed.definitions,
+                this.blacklist,
+                this.interfacePrefix
+            );
 
-        for (const c of code) {
+            namespaces.push(ns);
+        }
+
+        for (const namespace of namespaces) {
+            const entities = _.flatten(namespaces.map(n => n.getEntities()));
+            const code = namespace.generateCode(entities);
+            generatedCode.push(code);
+        }
+
+        for (const c of generatedCode) {
             if (c && c !== "") {
                 if (result !== "") {
                     result = result + c + "\n\n";
@@ -199,35 +142,6 @@ export default class Program {
     }
 
     /**
-     * Generates the entities enum.
-     *
-     * @private
-     * @returns {Enum} Generated enum.
-     * @memberof Program
-     */
-    private generateEntitiesEnum(sanitized: boolean = false): Enum {
-        const definition: IDefinition = {
-            kind: CDSKind.type,
-            type: CDSType.string,
-            enum: new Map<string, IEnumValue>(),
-        };
-
-        if (definition.enum) {
-            for (const entity of this.entities) {
-                definition.enum.set(entity.getSanitizedName(), {
-                    val: sanitized
-                        ? entity.getSanitizedName()
-                        : entity.getModelName(),
-                });
-            }
-        }
-
-        return sanitized
-            ? new Enum("SanitizedEntity", definition)
-            : new Enum("Entity", definition);
-    }
-
-    /**
      * Writes the types to disk.
      *
      * @private
@@ -237,7 +151,20 @@ export default class Program {
     private writeTypes(filepath: string, contents: string): void {
         const dir = path.dirname(filepath);
         if (fs.existsSync(dir)) {
-            fs.writeFileSync(filepath, contents);
+            const source = ts.createSourceFile(
+                filepath,
+                contents,
+                ts.ScriptTarget.Latest,
+                false,
+                ts.ScriptKind.TS
+            );
+
+            const printer = ts.createPrinter({
+                newLine: ts.NewLineKind.LineFeed,
+                noEmitHelpers: false,
+            });
+
+            fs.writeFileSync(filepath, printer.printFile(source));
             console.log(`Wrote types to '${filepath}'`);
         } else {
             console.log(
@@ -245,22 +172,5 @@ export default class Program {
             );
             process.exit(-1);
         }
-    }
-
-    /**
-     * Tests a wildcard string.
-     *
-     * @private
-     * @param {string} wildcard Wilcard to test
-     * @param {string} str  String to test against
-     * @returns {boolean} Flag, wheter the test was successfull or not
-     * @memberof Program
-     */
-    private wilcard(wildcard: string, str: string): boolean {
-        const re = new RegExp(
-            `^${wildcard.replace(/\*/g, ".*").replace(/\?/g, ".")}$`,
-            "i"
-        );
-        return re.test(str);
     }
 }

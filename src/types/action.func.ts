@@ -56,9 +56,10 @@ export class ActionFunction extends BaseType<ActionFunction> {
         name: string,
         definition: IDefinition,
         kind: CDSKind,
-        interfacePrefix?: string
+        interfacePrefix?: string,
+        namespace?: string
     ) {
-        super(name, definition, interfacePrefix);
+        super(name, definition, interfacePrefix, namespace);
         this.kind = kind;
         if (this.definition && this.definition.params) {
             for (const [key, _] of this.definition.params) {
@@ -111,8 +112,11 @@ export class ActionFunction extends BaseType<ActionFunction> {
 
         result =
             interfaceCode.length > 0
-                ? enumCode.join("\n") + "\n\n" + interfaceCode.join("\n")
-                : enumCode.join("\n");
-        return result;
+                ? enumCode.join(this.joiner) +
+                  this.joiner +
+                  interfaceCode.join(this.joiner)
+                : enumCode.join(this.joiner);
+
+        return this.joiner + result;
     }
 }

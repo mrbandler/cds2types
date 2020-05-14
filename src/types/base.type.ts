@@ -19,6 +19,15 @@ export abstract class BaseType<T> {
     protected prefix: string;
 
     /**
+     *
+     *
+     * @protected
+     * @type {string}
+     * @memberof BaseType
+     */
+    protected namespace: string;
+
+    /**
      * Name of the entity.
      *
      * @private
@@ -37,13 +46,31 @@ export abstract class BaseType<T> {
     protected definition: IDefinition;
 
     /**
+     *
+     *
+     * @readonly
+     * @protected
+     * @type {string}
+     * @memberof BaseType
+     */
+    protected get joiner(): string {
+        return this.namespace ? "\n\t" : "\n";
+    }
+
+    /**
      * Default constructor.
      * @param {string} name Name of the entity
      * @param {IDefinition} definition CDS entity definition
      * @memberof BaseType
      */
-    constructor(name: string, definition: IDefinition, prefix: string = "") {
+    constructor(
+        name: string,
+        definition: IDefinition,
+        prefix: string = "",
+        namespace: string = ""
+    ) {
         this.prefix = prefix;
+        this.namespace = namespace;
         this.name = name;
         this.definition = definition;
     }
@@ -79,7 +106,7 @@ export abstract class BaseType<T> {
             if (ext.length > 1) {
                 let result = `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends}`;
                 for (const e of ext) {
-                    result = `${result} ${this.prefix}${e}${Token.comma}`;
+                    result = `${result} ${e}${Token.comma}`;
                 }
 
                 const lastCommaIndex = result.lastIndexOf(Token.comma);
@@ -87,7 +114,7 @@ export abstract class BaseType<T> {
 
                 return `${result} ${Token.curlyBraceLeft}`;
             } else {
-                return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends} ${this.prefix}${ext} ${Token.curlyBraceLeft}`;
+                return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends} ${ext} ${Token.curlyBraceLeft}`;
             }
         } else {
             return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.curlyBraceLeft}`;

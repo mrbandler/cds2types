@@ -27,8 +27,13 @@ export class Entity extends BaseType<Entity> {
      * @param {string} [prefix=""] Interface prefix
      * @memberof Entity
      */
-    constructor(name: string, definition: IDefinition, prefix: string = "") {
-        super(name, definition, prefix);
+    constructor(
+        name: string,
+        definition: IDefinition,
+        prefix: string = "",
+        namespace: string = ""
+    ) {
+        super(name, definition, prefix, namespace);
     }
 
     /**
@@ -92,9 +97,12 @@ export class Entity extends BaseType<Entity> {
 
         result =
             enumCode.length > 0
-                ? enumCode.join("\n") + "\n\n" + code.join("\n")
-                : code.join("\n");
-        return result;
+                ? enumCode.join(this.joiner) +
+                  this.joiner +
+                  code.join(this.joiner)
+                : code.join(this.joiner);
+
+        return this.joiner + result;
     }
 
     /**
@@ -103,8 +111,21 @@ export class Entity extends BaseType<Entity> {
      * @returns {string} Sanitized name of the entity
      * @memberof Entity
      */
-    public getSanitizedName(): string {
-        return this.sanitizeName(this.sanitizeTarget(this.name));
+    public getSanitizedName(
+        withPrefix: boolean = false,
+        withNamespace: boolean = false
+    ): string {
+        let name = this.sanitizeName(this.sanitizeTarget(this.name));
+
+        if (withPrefix) {
+            name = this.prefix + name;
+        }
+
+        if (withNamespace && (this.namespace || this.namespace !== "")) {
+            name = this.namespace + "." + name;
+        }
+
+        return name;
     }
 
     /**
@@ -145,7 +166,6 @@ export class Entity extends BaseType<Entity> {
         let result: string[] | undefined = undefined;
 
         if (this.definition.includes) {
-            const ext = this.definition.includes[0];
             const entities = types.filter(e =>
                 this.definition.includes
                     ? this.definition.includes.includes(e.name)
@@ -153,7 +173,7 @@ export class Entity extends BaseType<Entity> {
             );
 
             if (entities) {
-                result = entities.map(e => e.getSanitizedName());
+                result = entities.map(e => e.getSanitizedName(true, true));
             }
         }
 
@@ -172,7 +192,6 @@ export class Entity extends BaseType<Entity> {
         let result: string[] = [];
 
         if (this.definition.includes) {
-            const ext = this.definition.includes;
             const entities = types.filter(e =>
                 this.definition.includes
                     ? this.definition.includes.includes(e.name)
