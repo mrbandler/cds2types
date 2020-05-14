@@ -39,9 +39,11 @@
         "typescript": "^3.6.4"
     },
     "dependencies": {
-        "@sap/cds": "^3.31.1",
+        "@sap/cds": "^3.34.1",
+        "@types/lodash": "^4.14.150",
         "commander": "^4.0.1",
-        "fs-extra": "^8.1.0"
+        "fs-extra": "^8.1.0",
+        "lodash": "^4.17.15"
     },
     "husky": {
         "hooks": {

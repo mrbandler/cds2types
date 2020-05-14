@@ -27,8 +27,8 @@ export class Enum extends BaseType<Enum> {
      * @param {IDefinition} definition CDS definition of the enum
      * @memberof Enum
      */
-    constructor(name: string, definition: IDefinition) {
-        super(name, definition);
+    constructor(name: string, definition: IDefinition, namespace?: string) {
+        super(name, definition, undefined, namespace);
         if (this.definition.enum) {
             for (const [key, value] of this.definition.enum) {
                 this.fields.set(key, value.val);
@@ -54,8 +54,8 @@ export class Enum extends BaseType<Enum> {
         }
         enumCode.push(`${Token.curlyBraceRight}`);
 
-        result = enumCode.join("\n");
-        return result;
+        result = enumCode.join(this.joiner);
+        return this.joiner + result;
     }
 
     /**

@@ -19,6 +19,10 @@ function main() {
             "Output location for the *.ts file(s)"
         )
         .option("-p, --prefix <I>", "Interface prefix", "")
+        .option(
+            "-j, --json",
+            "Prints the compiled JSON representation of the CDS sources"
+        )
         .parse(process.argv);
 
     if (!process.argv.slice(2).length) {

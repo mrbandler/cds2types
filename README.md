@@ -28,60 +28,52 @@ $ yarn add cds2types
 Let's look at a CDS example:
 
 ```cds
+// schema.cds
+
+using { Currency, managed, sap } from '@sap/cds/common';
+namespace sap.capire.bookshop;
+
+entity Books : managed {
+  key ID : Integer;
+  title  : localized String(111);
+  descr  : localized String(1111);
+  author : Association to Authors;
+  genre  : Association to Genres;
+  stock  : Integer;
+  price  : Decimal(9,2);
+  currency : Currency;
+}
+
+entity Authors : managed {
+  key ID : Integer;
+  name   : String(111);
+  dateOfBirth  : Date;
+  dateOfDeath  : Date;
+  placeOfBirth : String;
+  placeOfDeath : String;
+  books  : Association to many Books on books.author = $self;
+}
+
+/** Hierarchically organized Code List for Genres */
+entity Genres : sap.common.CodeList {
+  key ID   : Integer;
+  parent   : Association to Genres;
+  children : Composition of many Genres on children.parent = $self;
+}
+```
+
+```cds
 // service.cds
 
-using { managed } from '@sap/cds/common';
+using { sap.capire.bookshop as my } from './schema';
+service CatalogService @(path:'/browse') {
 
-service TestService {
-    function greet() returns String;
-    function foo(bar: String) returns String;
-    action bar(foo: String);
+  @readonly entity Books as SELECT from my.Books {*,
+    author.name as author
+  } excluding { createdBy, modifiedBy };
 
-    type Gender: String enum { male = 'male'; female = 'female' };
-    type EnumTest: String enum { one; two; };
-
-    type UserContext {
-        Username: String default 'Embo';
-        Email: String;
-        Firstname: String;
-        Lastname: String;
-        Fullname: String;
-        Roles: array of String;
-        Scopes: array of String;
-    }
-
-    entity Foo: managed {
-        key FooId: UUID;
-        VInlineEnum: Integer enum {
-            BarOne = 1;
-            BarTwo = 2;
-            BarThree = 3;
-        };
-        FooBool: Boolean;
-        FooEnum: Gender;
-        FooDate: Date;
-        FooTimestamp: Timestamp;
-        FooDateTime: DateTime;
-        FooString: String;
-        FooStringArray: array of String;
-        FooDouble: Double;
-        FooInteger: Integer;
-        virtual FooDecimal: Decimal(10,3);
-        Bar: Association to one Bar on Bar.BarString = $self.FooString;
-    };
-
-    entity Bar: managed {
-        BarString: String;
-        Foo: Association to Foo;
-    }
-
-    entity Test: managed, Inher {
-        Test: String;
-    }
-
-    entity Inher {
-        InherTest: String;
-    }
+  @requires_: 'authenticated-user'
+  action submitOrder (book : Books.ID, amount: Integer);
 }
 ```
 
@@ -95,113 +87,146 @@ We get the following output:
 
 ```typescript
 // service.ts
-
-export enum ActionBar {
-    name = "bar",
-    paramFoo = "foo",
+namespace sap.capire.bookshop {
+    export interface IAuthors extends IManaged {
+        ID: number;
+        name: string;
+        dateOfBirth: Date;
+        dateOfDeath: Date;
+        placeOfBirth: string;
+        placeOfDeath: string;
+        books?: IBooks[];
+    }
+    export interface IBooks extends IManaged {
+        ID: number;
+        title: string;
+        descr: string;
+        author?: IAuthors;
+        author_ID?: number;
+        genre?: IGenres;
+        genre_ID?: number;
+        stock: number;
+        price: number;
+        currency: unknown;
+        currency_code?: string;
+    }
+    export interface IGenres extends sap.common.ICodeList {
+        ID: number;
+        parent?: IGenres;
+        parent_ID?: number;
+        children: unknown;
+    }
+    export enum Entity {
+        Authors = "sap.capire.bookshop.Authors",
+        Books = "sap.capire.bookshop.Books",
+        Genres = "sap.capire.bookshop.Genres",
+    }
+    export enum SanitizedEntity {
+        Authors = "Authors",
+        Books = "Books",
+        Genres = "Genres",
+    }
 }
-
-export interface IActionBarParams {
-    foo: string;
+namespace sap.common {
+    export interface ICodeList {
+        name: string;
+        descr: string;
+    }
+    export interface ICountries extends sap.common.ICodeList {
+        code: string;
+    }
+    export interface ICurrencies extends sap.common.ICodeList {
+        code: string;
+        symbol: string;
+    }
+    export interface ILanguages extends sap.common.ICodeList {
+        code: string;
+    }
+    export enum Entity {
+        CodeList = "sap.common.CodeList",
+        Countries = "sap.common.Countries",
+        Currencies = "sap.common.Currencies",
+        Languages = "sap.common.Languages",
+    }
+    export enum SanitizedEntity {
+        CodeList = "CodeList",
+        Countries = "Countries",
+        Currencies = "Currencies",
+        Languages = "Languages",
+    }
 }
-
-export enum FuncFoo {
-    name = "foo",
-    paramBar = "bar",
+namespace CatalogService {
+    export enum ActionSubmitOrder {
+        name = "submitOrder",
+        paramBook = "book",
+        paramAmount = "amount",
+    }
+    export interface IActionSubmitOrderParams {
+        book: unknown;
+        amount: number;
+    }
+    export interface IBooks {
+        createdAt?: Date;
+        modifiedAt?: Date;
+        ID: number;
+        title: string;
+        descr: string;
+        author: string;
+        genre?: IGenres;
+        genre_ID?: number;
+        stock: number;
+        price: number;
+        currency: unknown;
+        currency_code?: string;
+    }
+    export interface ICurrencies {
+        name: string;
+        descr: string;
+        code: string;
+        symbol: string;
+    }
+    export interface IGenres {
+        name: string;
+        descr: string;
+        ID: number;
+        parent?: IGenres;
+        parent_ID?: number;
+        children: unknown;
+    }
+    export enum Entity {
+        Books = "CatalogService.Books",
+        Currencies = "CatalogService.Currencies",
+        Genres = "CatalogService.Genres",
+    }
+    export enum SanitizedEntity {
+        Books = "Books",
+        Currencies = "Currencies",
+        Genres = "Genres",
+    }
 }
-
-export interface IFuncFooParams {
-    bar: string;
+export interface IUser {}
+export interface ICuid {
+    ID: string;
 }
-
-export enum FuncGreet {
-    name = "greet",
-}
-
-export enum EnumTest {
-    one,
-    two,
-}
-
-export enum Gender {
-    male = "male",
-    female = "female",
-}
-
-export interface IBar extends IManaged {
-    BarString: string;
-    Foo?: IFoo;
-    Foo_FooId?: string;
-}
-
-export enum FooVInlineEnum {
-    BarOne = 1,
-    BarTwo = 2,
-    BarThree = 3,
-}
-
-export interface IFoo extends IManaged {
-    FooId: string;
-    VInlineEnum: FooVInlineEnum;
-    FooBool: boolean;
-    FooEnum: unknown;
-    FooDate: Date;
-    FooTimestamp: Date;
-    FooDateTime: Date;
-    FooString: string;
-    FooStringArray: string[];
-    FooDouble: number;
-    FooInteger: number;
-    FooDecimal?: number;
-    Bar?: IBar;
-}
-
-export interface IInher {
-    InherTest: string;
-}
-
-export interface ITest extends IInher, IManaged {
-    Test: string;
-}
-
-export interface IUserContext {
-    Username?: string;
-    Email: string;
-    Firstname: string;
-    Lastname: string;
-    Fullname: string;
-    Roles: string[];
-    Scopes: string[];
-}
-
 export interface IManaged {
     createdAt?: Date;
     createdBy?: string;
     modifiedAt?: Date;
     modifiedBy?: string;
 }
-
 export interface ITemporal {
     validFrom: Date;
     validTo: Date;
 }
-
 export enum Entity {
-    Bar = "TestService.Bar",
-    Foo = "TestService.Foo",
-    Inher = "TestService.Inher",
-    Test = "TestService.Test",
-    UserContext = "TestService.UserContext",
+    User = "User",
+    Cuid = "cuid",
     Managed = "managed",
     Temporal = "temporal",
 }
-
 export enum SanitizedEntity {
-    Bar = "Bar",
-    Foo = "Foo",
-    Inher = "Inher",
-    Test = "Test",
-    UserContext = "UserContext",
+    User = "User",
+    Cuid = "Cuid",
     Managed = "Managed",
     Temporal = "Temporal",
 }
