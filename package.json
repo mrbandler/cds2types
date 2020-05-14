@@ -1,6 +1,6 @@
 {
     "name": "cds2types",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "CLI to convert CDS models to Typescript interfaces and enumerations",
     "main": "./bin/cli.js",
     "repository": "git@github.com:mrbandler/cds2types.git",
@@ -32,6 +32,7 @@
         "eslint": "^6.8.0",
         "eslint-config-prettier": "^6.10.1",
         "eslint-plugin-prettier": "^3.1.2",
+        "express": "^4.17.1",
         "husky": "^3.1.0",
         "lint-staged": "^9.5.0",
         "prettier": "^1.19.1",
