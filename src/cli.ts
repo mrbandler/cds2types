@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import * as commander from "commander";
+
 import Program from "./program";
 
 /**
@@ -9,7 +10,7 @@ import Program from "./program";
  */
 function main() {
     const cli = new commander.Command();
-    cli.version("2.0.1")
+    cli.version("2.1.1")
         .description(
             "CLI to convert CDS models to Typescript interfaces and enumerations"
         )
