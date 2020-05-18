@@ -87,7 +87,8 @@ We get the following output:
 
 ```typescript
 // service.ts
-namespace sap.capire.bookshop {
+
+export namespace sap.capire.bookshop {
     export interface IAuthors extends IManaged {
         ID: number;
         name: string;
@@ -127,7 +128,7 @@ namespace sap.capire.bookshop {
         Genres = "Genres",
     }
 }
-namespace sap.common {
+export namespace sap.common {
     export interface ICodeList {
         name: string;
         descr: string;
@@ -155,7 +156,7 @@ namespace sap.common {
         Languages = "Languages",
     }
 }
-namespace CatalogService {
+export namespace CatalogService {
     export enum ActionSubmitOrder {
         name = "submitOrder",
         paramBook = "book",

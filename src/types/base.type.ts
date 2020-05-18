@@ -1,4 +1,5 @@
-import { IDefinition, IElement, CDSType, CDSCardinality } from "../utils/cds";
+import { CDSCardinality, CDSType, IDefinition, IElement } from "../utils/cds";
+
 import { Token } from "../utils/type.constants";
 
 /**
@@ -19,7 +20,7 @@ export abstract class BaseType<T> {
     protected prefix: string;
 
     /**
-     *
+     * Namespace this type is confined in.
      *
      * @protected
      * @type {string}
@@ -61,6 +62,14 @@ export abstract class BaseType<T> {
      * Default constructor.
      * @param {string} name Name of the entity
      * @param {IDefinition} definition CDS entity definition
+     * @memberof BaseType
+     */
+    /**
+     * Default constructor.
+     * @param {string} name Name of the entity
+     * @param {IDefinition} definition CDS entity definition
+     * @param {string} [prefix=""] Prefix
+     * @param {string} [namespace=""] Namespace
      * @memberof BaseType
      */
     constructor(
