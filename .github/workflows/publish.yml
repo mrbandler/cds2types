@@ -1,0 +1,60 @@
+name: publish
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Clone repo
+              uses: actions/checkout@v2
+
+            - name: Setup node environment
+              uses: actions/setup-node@v1.4.2
+              with:
+                  node-version: 12
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Download cache
+              uses: actions/cache@v2.0.0
+              with:
+                  key: cds2types-cache
+                  path: node_modules/*
+
+            - name: Install and build
+              run: |
+                  yarn install
+                  yarn build
+
+            - name: Upload a build artifact
+              uses: actions/upload-artifact@v2
+              with:
+                  name: cds2types-artifacts
+                  path: bin/*
+
+    publish:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Clone repo
+              uses: actions/checkout@v2
+
+            - name: Download build artifacts
+              uses: actions/download-artifact@v2
+              with:
+                  name: cds2types-artifacts
+                  path: bin/*
+
+            - name: Setup node environment
+              uses: actions/setup-node@v1.4.2
+              with:
+                  node-version: 12
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Publish to npm
+              uses: JS-DevTools/npm-publish@v1
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}

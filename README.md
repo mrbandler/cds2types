@@ -1,6 +1,6 @@
 # cds2types
 
-[![npm version](https://badge.fury.io/js/cds2types.svg)](https://badge.fury.io/js/cds2types) [![pipeline status](https://gitlab.com/mrbandler/cds2types/badges/master/pipeline.svg)](https://gitlab.com/mrbandler/cds2types/commits/master) [![GitHub License](https://img.shields.io/github/license/mrbandler/cds2types)](https://github.com/mrbandler/cds2types/blob/master/LICENSE)
+[![npm version](https://badge.fury.io/js/cds2types.svg)](https://badge.fury.io/js/cds2types) [![Actions Status](https://github.com/mrbandler/cds2types/workflows/build/badge.svg)](https://github.com/mrbandler/cds2types/actions) [![GitHub License](https://img.shields.io/github/license/mrbandler/cds2types)](https://github.com/mrbandler/cds2types/blob/master/LICENSE)
 
 **CLI to convert CDS definitions to native Typescript types.**
 

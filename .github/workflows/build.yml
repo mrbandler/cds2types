@@ -1,0 +1,37 @@
+name: build
+
+on:
+    push:
+        branches: [master, develop]
+    pull_request:
+        branches: [master]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Clone repo
+              uses: actions/checkout@v2
+
+            - name: Setup node environment
+              uses: actions/setup-node@v1.4.2
+              with:
+                  node-version: 12
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Download cache
+              uses: actions/cache@v2.0.0
+              with:
+                  key: cds2types-cache
+                  path: node_modules/*
+
+            - name: Install and build
+              run: |
+                  yarn install
+                  yarn build
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v2
+              with:
+                  name: cds2types-artifacts
+                  path: bin/*
