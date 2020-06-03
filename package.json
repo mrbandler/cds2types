@@ -1,6 +1,6 @@
 {
     "name": "cds2types",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "description": "CLI to convert CDS models to Typescript interfaces and enumerations",
     "main": "./bin/cli.js",
     "repository": "git@github.com:mrbandler/cds2types.git",
