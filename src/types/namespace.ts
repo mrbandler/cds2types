@@ -1,18 +1,23 @@
-import _ from "lodash";
-import { IDefinition, CDSKind, IEnumValue, CDSType } from "../utils/cds";
+import { CDSKind, CDSType, IDefinition, IEnumValue } from "../utils/cds";
+
 import { ActionFunction } from "./action.func";
-import { Enum } from "./enum";
 import { Entity } from "./entity";
+import { Enum } from "./enum";
+import { Token } from "../utils/type.constants";
+import _ from "lodash";
 
 /**
+ * Type that represents a namespace.
  *
+ * Namespaces are used to generate the type definition in it.
+ * So it is possible to create a namespace that represents the file itself, hence a namespaces without a name.
  *
  * @export
  * @class Namespace
  */
 export class Namespace {
     /**
-     *
+     * Namespace name.
      *
      * @private
      * @type {string}
@@ -21,7 +26,7 @@ export class Namespace {
     private _name?: string;
 
     /**
-     *
+     * Namespaces type definitions.
      *
      * @private
      * @type {Map<string, IDefinition>}
@@ -34,7 +39,7 @@ export class Namespace {
      *
      * @private
      * @type {Entity[]}
-     * @memberof Program
+     * @memberof Namespace
      */
     private entities: Entity[] = [];
 
@@ -44,7 +49,7 @@ export class Namespace {
      * @private
      * @
      * @type {Function[]}
-     * @memberof Program
+     * @memberof Namespace
      */
     private actionFunctions: ActionFunction[] = [];
 
@@ -53,16 +58,23 @@ export class Namespace {
      *
      * @private
      * @type {Enum[]}
-     * @memberof Program
+     * @memberof Namespace
      */
     private enums: Enum[] = [];
 
+    /**
+     * Name of the namespace.
+     *
+     * @readonly
+     * @type {string}
+     * @memberof Namespace
+     */
     public get name(): string {
         return this._name ? this._name : "";
     }
 
     /**
-     *Creates an instance of Namespace.
+     * Default constructor.
      * @param {Map<string, IDefinition>} definitions
      * @memberof Namespace
      */
@@ -77,10 +89,23 @@ export class Namespace {
         this.extractTypes(blacklist, interfacePrefix);
     }
 
+    /**
+     * Returns the entities in this namespace.
+     *
+     * @returns {Entity[]}
+     * @memberof Namespace
+     */
     public getEntities(): Entity[] {
         return this.entities;
     }
 
+    /**
+     *  Generates the code for the type definitions in the namespace.
+     *
+     * @param {Entity[]} otherEntities Other entities from the file namespace or all other namespaces.
+     * @returns {string} Typescript code.
+     * @memberof Namespace
+     */
     public generateCode(otherEntities: Entity[]): string {
         let result = "";
 
@@ -98,7 +123,9 @@ export class Namespace {
         let code: string[] = [];
 
         if (this.name && this.name !== "")
-            code.push(`namespace ${this.name} {`);
+            code.push(
+                `${Token.export} ${Token.namespace} ${this.name} ${Token.curlyBraceLeft}`
+            );
 
         if (!_.isEmpty(actionFuncCode)) code.push(actionFuncCode);
         if (!_.isEmpty(enumCode)) code.push(enumCode);
@@ -106,7 +133,8 @@ export class Namespace {
         if (!_.isEmpty(entityEnum)) code.push(entityEnum);
         if (!_.isEmpty(sanitizedEntityEnum)) code.push(sanitizedEntityEnum);
 
-        if (this.name && this.name !== "") code.push("}");
+        if (this.name && this.name !== "")
+            code.push(`${Token.curlyBraceRight}`);
 
         for (const c of code) {
             if (c && c !== "") {
@@ -122,12 +150,11 @@ export class Namespace {
     }
 
     /**
-     *
+     * Extracts the types from the namespace definitions.
      *
      * @private
-     * @param {Map<string, IDefinition>} definitions
-     * @param {string[]} blacklist
-     * @param {string} [interfacePrefix=""]
+     * @param {string[]} blacklist Blacklist an definition keys that should not be generated.
+     * @param {string} [interfacePrefix=""] Interface prefix.
      * @memberof Namespace
      */
     private extractTypes(
@@ -196,12 +223,12 @@ export class Namespace {
     }
 
     /**
-     *
+     * Checks a given string for a given GLOB wildcard.
      *
      * @private
-     * @param {string} wildcard
-     * @param {string} str
-     * @returns {boolean}
+     * @param {string} wildcard Wildcard to check against
+     * @param {string} str String to check the wildcard against
+     * @returns {boolean} Flag, whether the check was succsessful
      * @memberof Namespace
      */
     private wilcard(wildcard: string, str: string): boolean {
@@ -212,6 +239,14 @@ export class Namespace {
         return re.test(str);
     }
 
+    /**
+     * Generates the entities enumerations.
+     *
+     * @private
+     * @param {boolean} [sanitized=false] Flag, whether the enum should represent sanitized entities
+     * @returns {Enum} Generates enum
+     * @memberof Namespace
+     */
     private generateEntitiesEnum(sanitized: boolean = false): Enum {
         const definition: IDefinition = {
             kind: CDSKind.type,
