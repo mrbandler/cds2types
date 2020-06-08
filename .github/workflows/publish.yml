@@ -22,7 +22,7 @@ jobs:
               uses: actions/cache@v2.0.0
               with:
                   key: cds2types-cache
-                  path: node_modules/*
+                  path: node_modules
 
             - name: Install and build
               run: |
@@ -33,7 +33,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: cds2types-artifacts
-                  path: bin/*
+                  path: bin
 
     publish:
         needs: build
@@ -46,7 +46,7 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: cds2types-artifacts
-                  path: bin/*
+                  path: bin
 
             - name: Setup node environment
               uses: actions/setup-node@v1.4.2
