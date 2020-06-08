@@ -15,7 +15,8 @@
                 "-o",
                 "./service.ts",
                 "-p",
-                "I"
+                "I",
+                "-j"
             ],
             "runtimeArgs": ["-r", "ts-node/register"],
             "cwd": "${workspaceRoot}",

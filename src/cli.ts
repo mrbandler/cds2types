@@ -10,7 +10,7 @@ import Program from "./program";
  */
 function main() {
     const cli = new commander.Command();
-    cli.version("2.1.2")
+    cli.version("2.2.0")
         .description(
             "CLI to convert CDS models to Typescript interfaces and enumerations"
         )
@@ -29,7 +29,10 @@ function main() {
     if (!process.argv.slice(2).length) {
         cli.outputHelp();
     } else {
-        new Program().run(cli).catch(error => console.log("Error: ", error));
+        new Program().run(cli).catch(error => {
+            console.error(`Unable to write types to '${cli.output}'`);
+            console.error("Error:", error.message);
+        });
     }
 }
 

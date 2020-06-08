@@ -1,17 +1,18 @@
-import _ from "lodash";
 import {
-    IService,
-    IDefinition,
-    CDSKind,
-    IElement,
     CDSCardinality,
-    IEnumValue,
-    IParamType,
-    Managed,
-    IParsed,
-    INamespace,
+    CDSKind,
     CDSType,
+    IDefinition,
+    IElement,
+    IEnumValue,
+    INamespace,
+    IParamType,
+    IParsed,
+    IService,
+    Managed,
 } from "./utils/cds";
+
+import _ from "lodash";
 
 /**
  * Parses a compiled CDS JSON object.
@@ -53,7 +54,7 @@ export class CDSParser {
 
                 let definitions = this.getDefinitions(key);
 
-                const elements = this.parseElements(value);
+                const elements = this.parseElements(key, value);
                 const _enum = this.parseEnum(value);
                 const params = this.parseParams(value);
 
@@ -83,7 +84,7 @@ export class CDSParser {
      * @returns {Map<string, IElement>} Parsed elements
      * @memberof CDSParser
      */
-    private parseElements(obj: any): Map<string, IElement> {
+    private parseElements(objKey: string, obj: any): Map<string, IElement> {
         let result: Map<string, IElement> = new Map<string, IElement>();
 
         if (obj.elements) {
@@ -97,6 +98,12 @@ export class CDSParser {
 
                     let isArray = false;
                     if (!value.type) {
+                        if (value.type === undefined) {
+                            throw new Error(
+                                `Unable to parse element '${key}' on entity '${objKey}'. It seems to be a CDS expression without a type definition, please add a type to it.`
+                            );
+                        }
+
                         value.type = value.items.type;
                         isArray = true;
                     }
