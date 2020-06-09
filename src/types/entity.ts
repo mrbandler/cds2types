@@ -1,14 +1,26 @@
-import { Token } from "../utils/type.constants";
+import * as morph from "ts-morph";
+
 import {
-    IDefinition,
-    CDSType,
-    IElement,
     CDSCardinality,
     CDSKind,
+    CDSType,
+    IDefinition,
+    IElement,
 } from "../utils/cds";
+
 import { BaseType } from "./base.type";
 import { Enum } from "./enum";
-import { fork } from "cluster";
+
+/**
+ * Entity toType return type.
+ *
+ * @export
+ * @interface IEntityDeclarationStructure
+ */
+export interface IEntityDeclarationStructure {
+    interfaceDeclarationStructure: morph.InterfaceDeclarationStructure;
+    enumDeclarationStructures: morph.EnumDeclarationStructure[];
+}
 
 /**
  * Type that represents a CDS entity.
@@ -19,12 +31,14 @@ import { fork } from "cluster";
  * @class Entity
  * @extends {BaseType}
  */
-export class Entity extends BaseType<Entity> {
+export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
     /**
      * Default constructor.
+     *
      * @param {string} name Name of the entity
      * @param {IDefinition} definition CDS entity definition
      * @param {string} [prefix=""] Interface prefix
+     * @param {string} [namespace=""] Namespace this entity belongs to
      * @memberof Entity
      */
     constructor(
@@ -42,67 +56,58 @@ export class Entity extends BaseType<Entity> {
      * @returns {string}
      * @memberof Entity
      */
-    public toType(types: Entity[]): string {
-        let result = "";
-
+    public toType(types: Entity[]): IEntityDeclarationStructure {
         const ext = this.getExtensionInterfaces(types);
         const extFields = this.getExtensionInterfaceFields(types);
 
-        let code: string[] = [];
-        let enumCode: string[] = [];
+        let result: IEntityDeclarationStructure = {
+            interfaceDeclarationStructure: this.createInterface("", "", ext),
+            enumDeclarationStructures: [],
+        };
 
-        code.push(this.createInterface(ext));
         if (this.definition.elements) {
             for (const [key, value] of this.definition.elements) {
                 if (value.enum) {
-                    const enumName =
-                        this.sanitizeName(this.sanitizeTarget(this.name)) +
-                        this.sanitizeName(key);
-                    const definition: IDefinition = {
-                        kind: CDSKind.type,
-                        type: value.type,
-                        enum: value.enum,
-                    };
+                    result.enumDeclarationStructures.push(
+                        this.createEnumDeclaration(key, value)
+                    );
 
-                    const enumType = new Enum(enumName, definition);
-                    enumCode.push(enumType.toType());
-
-                    code.push(
-                        this.createInterfaceField(key, value, this.prefix)
+                    result.interfaceDeclarationStructure.properties?.push(
+                        this.createInterfaceField(
+                            key,
+                            value,
+                            this.prefix
+                        ) as morph.PropertySignatureStructure
                     );
                 } else {
                     if (!extFields.includes(key)) {
-                        code.push(
-                            this.createInterfaceField(key, value, this.prefix)
+                        result.interfaceDeclarationStructure.properties?.push(
+                            this.createInterfaceField(
+                                key,
+                                value,
+                                this.prefix
+                            ) as morph.PropertySignatureStructure
                         );
 
                         if (
                             value.cardinality &&
                             value.cardinality.max === CDSCardinality.one
                         ) {
-                            code.push(
-                                ...this.getAssociationRefField(
+                            result.interfaceDeclarationStructure.properties?.push(
+                                ...(this.getAssociationRefField(
                                     types,
                                     key,
                                     "_",
                                     value
-                                )
+                                ) as morph.PropertySignatureStructure[])
                             );
                         }
                     }
                 }
             }
         }
-        code.push(`${Token.curlyBraceRight}`);
 
-        result =
-            enumCode.length > 0
-                ? enumCode.join(this.joiner) +
-                  this.joiner +
-                  code.join(this.joiner)
-                : code.join(this.joiner);
-
-        return this.joiner + result;
+        return result;
     }
 
     /**
@@ -155,7 +160,44 @@ export class Entity extends BaseType<Entity> {
     }
 
     /**
-     * Returns all interfaces that this entity extends from
+     * Returns a element by name.
+     *
+     * @param {string} name Name of the element to return
+     * @returns {(IElement | undefined)} Found element
+     * @memberof Entity
+     */
+    public getElement(name: string): IElement | undefined {
+        return this.definition.elements?.get(name);
+    }
+
+    /**
+     * Creates a enum declaration from a given enum interface element.
+     *
+     * @private
+     * @param {string} key Key of the element
+     * @param {*} value Value of the element
+     * @returns {morph.EnumDeclarationStructure} Created enum declaration
+     * @memberof Entity
+     */
+    private createEnumDeclaration(
+        key: string,
+        value: any
+    ): morph.EnumDeclarationStructure {
+        const enumName =
+            this.sanitizeName(this.sanitizeTarget(this.name)) +
+            this.sanitizeName(key);
+        const definition: IDefinition = {
+            kind: CDSKind.type,
+            type: value.type,
+            enum: value.enum,
+        };
+
+        const enumType = new Enum(enumName, definition);
+        return enumType.toType();
+    }
+
+    /**
+     * Returns all interfaces that this entity extends from.
      *
      * @private
      * @param {Entity[]} types All other entity types
@@ -207,13 +249,24 @@ export class Entity extends BaseType<Entity> {
         return result;
     }
 
+    /**
+     * Returns all association reference field.
+     *
+     * @private
+     * @param {Entity[]} types Types to check for
+     * @param {string} name Name of the field
+     * @param {string} suffix Name suffix
+     * @param {IElement} element Element which represents the field
+     * @returns {morph.InterfaceMemberStructures[]} Created association ref field
+     * @memberof Entity
+     */
     private getAssociationRefField(
         types: Entity[],
         name: string,
         suffix: string,
         element: IElement
-    ): string[] {
-        let result: string[] = [];
+    ): morph.InterfaceMemberStructures[] {
+        let result: morph.InterfaceMemberStructures[] = [];
 
         if (element.target && element.keys) {
             const entity = types.find(t => element.target === t.getModelName());
@@ -221,12 +274,12 @@ export class Entity extends BaseType<Entity> {
                 for (const key of element.keys) {
                     for (const [k, v] of entity.definition.elements) {
                         if (k === key.ref[0]) {
-                            const line = `    ${name}${suffix}${k}${
-                                Token.questionMark
-                            }${Token.colon} ${this.cdsTypeToType(v.type)}${
-                                Token.semiColon
-                            }`;
-                            result.push(line);
+                            result.push({
+                                kind: morph.StructureKind.PropertySignature,
+                                name: `${name}${suffix}${k}`,
+                                hasQuestionToken: true,
+                                type: this.cdsTypeToType(v.type),
+                            });
 
                             break;
                         }

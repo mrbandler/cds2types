@@ -1,12 +1,13 @@
-import _ from "lodash";
-import ts from "typescript";
 import * as cds from "@sap/cds";
 import * as fs from "fs-extra";
+import * as morph from "ts-morph";
 import * as path from "path";
+
+import { CDSParser } from "./cds.parser";
 import { Command } from "commander";
 import { IParsed } from "./utils/cds";
-import { CDSParser } from "./cds.parser";
 import { Namespace } from "./types/namespace";
+import _ from "lodash";
 
 /**
  * Main porgram class.
@@ -22,14 +23,7 @@ export default class Program {
      * @type {string[]}
      * @memberof Program
      */
-    private readonly blacklist: string[] = [
-        // "Country",
-        // "Currency",
-        // "Language",
-        // "cuid",
-        // "*sap.common*",
-        // "User",
-    ];
+    private readonly blacklist: string[] = [];
 
     /**
      * Interface prefix.
@@ -43,21 +37,28 @@ export default class Program {
     /**
      * Main method.
      *
-     * @param {Command} command Parsed CLI options.
+     * @param {Command} options Parsed CLI options.
      * @memberof Program
      */
-    public async run(command: Command): Promise<void> {
-        this.interfacePrefix = command.prefix;
+    public async run(options: Command): Promise<void> {
+        this.interfacePrefix = options.prefix;
 
-        const jsonObj = await this.loadCdsAndConvertToJSON(command.cds);
+        const jsonObj = await this.loadCdsAndConvertToJSON(options.cds);
+        const parsed = new CDSParser().parse(jsonObj);
 
-        if (command.json) {
-            fs.writeFileSync(command.output + ".json", JSON.stringify(jsonObj));
+        if (options.json) {
+            fs.writeFileSync(options.output + ".json", JSON.stringify(jsonObj));
         }
 
-        const parsed = new CDSParser().parse(jsonObj);
-        const contents = this.generateCode(parsed);
-        this.writeTypes(command.output, contents);
+        if (fs.existsSync(options.output)) {
+            fs.removeSync(options.output);
+        }
+
+        const project = new morph.Project();
+        const source = project.createSourceFile(options.output);
+
+        this.generateCode(source, parsed);
+        this.writeTypes(options.output, source);
     }
 
     /**
@@ -74,42 +75,42 @@ export default class Program {
     }
 
     /**
-     * Extracts the types from a parsed service.
+     * Extracts the types from a parsed service and generates the Typescript code.
      *
      * @private
-     * @param {IService} service Parsed service to extract types from.
-     * @returns {IService}
+     * @param {morph.SourceFile} source Source file to generate the typescript code in
+     * @param {IParsed} parsed Parsed definitions, services and namespaces
      * @memberof Program
      */
-    private generateCode(parsed: IParsed): string {
-        let result = "";
-        let generatedCode: string[] = [];
+    private generateCode(source: morph.SourceFile, parsed: IParsed): void {
         let namespaces: Namespace[] = [];
 
         if (parsed.namespaces) {
-            for (let namespace of parsed.namespaces) {
-                const ns = new Namespace(
-                    namespace.definitions,
-                    this.blacklist,
-                    this.interfacePrefix,
-                    namespace.name
-                );
+            const ns = parsed.namespaces.map(
+                n =>
+                    new Namespace(
+                        n.definitions,
+                        this.blacklist,
+                        this.interfacePrefix,
+                        n.name
+                    )
+            );
 
-                namespaces.push(ns);
-            }
+            namespaces.push(...ns);
         }
 
         if (parsed.services) {
-            for (const service of parsed.services) {
-                const ns = new Namespace(
-                    service.definitions,
-                    this.blacklist,
-                    this.interfacePrefix,
-                    service.name
-                );
+            const ns = parsed.services.map(
+                s =>
+                    new Namespace(
+                        s.definitions,
+                        this.blacklist,
+                        this.interfacePrefix,
+                        s.name
+                    )
+            );
 
-                namespaces.push(ns);
-            }
+            namespaces.push(...ns);
         }
 
         if (parsed.definitions) {
@@ -124,21 +125,8 @@ export default class Program {
 
         for (const namespace of namespaces) {
             const entities = _.flatten(namespaces.map(n => n.getEntities()));
-            const code = namespace.generateCode(entities);
-            generatedCode.push(code);
+            namespace.generateCode(source, entities);
         }
-
-        for (const c of generatedCode) {
-            if (c && c !== "") {
-                if (result !== "") {
-                    result = result + c + "\n\n";
-                } else {
-                    result = c + "\n\n";
-                }
-            }
-        }
-
-        return result;
     }
 
     /**
@@ -148,28 +136,17 @@ export default class Program {
      * @param {string} filepath File path to save the types at
      * @memberof Program
      */
-    private writeTypes(filepath: string, contents: string): void {
+    private writeTypes(filepath: string, source: morph.SourceFile): void {
         const dir = path.dirname(filepath);
         if (fs.existsSync(dir)) {
-            const source = ts.createSourceFile(
-                filepath,
-                contents,
-                ts.ScriptTarget.Latest,
-                false,
-                ts.ScriptKind.TS
-            );
-
-            const printer = ts.createPrinter({
-                newLine: ts.NewLineKind.LineFeed,
-                noEmitHelpers: false,
-            });
-
-            fs.writeFileSync(filepath, printer.printFile(source));
-            console.log(`Wrote types to '${filepath}'`);
+            source
+                .save()
+                .then(() => console.log(`Wrote types to '${filepath}'`));
         } else {
-            console.log(
+            console.error(
                 `Unable to write types: '${dir}' is not a valid directory`
             );
+
             process.exit(-1);
         }
     }

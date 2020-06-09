@@ -71,13 +71,23 @@ export interface IEnumValue {
 }
 
 /**
+ * CDS type reference.
+ *
+ * @export
+ * @interface IRef
+ */
+export interface IRef {
+    ref: string[];
+}
+
+/**
  * CDS function or action import parameter type.
  *
  * @export
  * @interface IParamType
  */
 export interface IParamType {
-    type: CDSType;
+    type: CDSType | IRef;
 }
 
 /**

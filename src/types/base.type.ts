@@ -1,6 +1,6 @@
-import { CDSCardinality, CDSType, IDefinition, IElement } from "../utils/cds";
+import * as morph from "ts-morph";
 
-import { Token } from "../utils/type.constants";
+import { CDSCardinality, CDSType, IDefinition, IElement } from "../utils/cds";
 
 /**
  * Base type that represents a part of CDS domain.
@@ -8,8 +8,10 @@ import { Token } from "../utils/type.constants";
  * @export
  * @abstract
  * @class BaseType
+ * @template I Input type for the toType method
+ * @template O Return type for the toType method
  */
-export abstract class BaseType<T> {
+export abstract class BaseType<I, O> {
     /**
      * Interface prefix.
      *
@@ -29,47 +31,30 @@ export abstract class BaseType<T> {
     protected namespace: string;
 
     /**
-     * Name of the entity.
+     * Name of the type.
      *
      * @private
      * @type {string}
-     * @memberof Entity
+     * @memberof BaseType
      */
     protected name: string;
 
     /**
-     * CDS definition which represents the entity.
+     * CDS definition which represents the type.
      *
      * @private
      * @type {IDefinition}
-     * @memberof Entity
+     * @memberof BaseType
      */
     protected definition: IDefinition;
 
     /**
-     *
-     *
-     * @readonly
-     * @protected
-     * @type {string}
-     * @memberof BaseType
-     */
-    protected get joiner(): string {
-        return this.namespace ? "\n\t" : "\n";
-    }
-
-    /**
      * Default constructor.
-     * @param {string} name Name of the entity
-     * @param {IDefinition} definition CDS entity definition
-     * @memberof BaseType
-     */
-    /**
-     * Default constructor.
-     * @param {string} name Name of the entity
-     * @param {IDefinition} definition CDS entity definition
-     * @param {string} [prefix=""] Prefix
-     * @param {string} [namespace=""] Namespace
+     *
+     * @param {string} name Name of the type
+     * @param {IDefinition} definition CDS type definition
+     * @param {string} [prefix=""] Interface prefix
+     * @param {string} [namespace=""] Namespace this type belongs to
      * @memberof BaseType
      */
     constructor(
@@ -85,49 +70,41 @@ export abstract class BaseType<T> {
     }
 
     /**
-     * To Typescript type.
+     * Generates the Typescript type code.
      *
      * @abstract
-     * @returns {string}
+     * @param {I[]} [types] Input type, for cross type resolution
+     * @returns {O} Output type
      * @memberof BaseType
      */
-    public abstract toType(types?: T[]): string;
+    public abstract toType(types?: I[]): O;
 
     /**
      * Creates a interface declaration.
      *
      * @protected
-     * @param {string} name Name of the interface
-     * @param {string} [prefix=""] Prefix of the interface
-     * @returns {string} Create interface declaration
+     * @param {string} [prefix=""] Name prefix
+     * @param {string} [suffix=""] Name suffix
+     * @param {string[]} [ext] Extension type names
+     * @returns {morph.InterfaceDeclarationStructure} Created interface declaration
      * @memberof BaseType
      */
     protected createInterface(
-        ext?: string[],
         prefix: string = "",
-        suffix: string = ""
-    ): string {
+        suffix: string = "",
+        ext?: string[]
+    ): morph.InterfaceDeclarationStructure {
         const sanitizedName = `${prefix}${this.sanitizeName(
             this.sanitizeTarget(this.name)
         )}${suffix}`;
 
-        if (ext) {
-            if (ext.length > 1) {
-                let result = `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends}`;
-                for (const e of ext) {
-                    result = `${result} ${e}${Token.comma}`;
-                }
-
-                const lastCommaIndex = result.lastIndexOf(Token.comma);
-                result = result.substring(0, lastCommaIndex);
-
-                return `${result} ${Token.curlyBraceLeft}`;
-            } else {
-                return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.extends} ${ext} ${Token.curlyBraceLeft}`;
-            }
-        } else {
-            return `${Token.export} ${Token.interface} ${this.prefix}${sanitizedName} ${Token.curlyBraceLeft}`;
-        }
+        return {
+            kind: morph.StructureKind.Interface,
+            name: this.prefix + sanitizedName,
+            extends: ext,
+            properties: [],
+            isExported: true,
+        };
     }
 
     /**
@@ -137,14 +114,14 @@ export abstract class BaseType<T> {
      * @param {string} name Name of the field
      * @param {IElement} element CDS element which represents the field
      * @param {string} [prefix=""] Prefix of interfaces
-     * @returns {string} Created interface field declaration
+     * @returns {morph.InterfaceMemberStructures} Created interface field declaration
      * @memberof BaseType
      */
     protected createInterfaceField(
         name: string,
         element: IElement,
         prefix: string = ""
-    ): string {
+    ): morph.InterfaceMemberStructures {
         let fieldName =
             element.canBeNull || element.type === CDSType.association
                 ? `${name}?`
@@ -159,19 +136,30 @@ export abstract class BaseType<T> {
             fieldType = this.cdsElementToType(element, prefix);
         }
 
-        return `    ${fieldName}${Token.colon} ${fieldType}${Token.semiColon}`;
+        return {
+            kind: morph.StructureKind.PropertySignature,
+            name: fieldName,
+            type: fieldType,
+        };
     }
 
     /**
      * Creates a enum declaration.
      *
      * @protected
-     * @returns {string} Created enum declaration
+     * @param {string} [prefix=""] Name prefix
+     * @returns {morph.EnumDeclarationStructure} Created enum declaration
      * @memberof BaseType
      */
-    protected createEnum(prefix: string = ""): string {
+    protected createEnum(prefix: string = ""): morph.EnumDeclarationStructure {
         const name = prefix + this.sanitizeName(this.sanitizeTarget(this.name));
-        return `${Token.export} ${Token.enum} ${name} ${Token.curlyBraceLeft}`;
+
+        return {
+            kind: morph.StructureKind.Enum,
+            name: name,
+            members: [],
+            isExported: true,
+        };
     }
 
     /**
@@ -180,20 +168,22 @@ export abstract class BaseType<T> {
      * @protected
      * @param {string} name Name of the field
      * @param {unknown} value Value of the field
-     * @returns {string}
+     * @param {boolean} isStringType Flag, whether the value is a string type
+     * @returns {morph.EnumMemberStructure} Created enum field declaration
      * @memberof BaseType
      */
     protected createEnumField(
         name: string,
         value: unknown,
         isStringType: boolean
-    ): string {
-        if (value) {
-            const fieldValue = isStringType ? `"${value}"` : `${value}`;
-            return `    ${name} ${Token.equals} ${fieldValue}${Token.comma}`;
-        } else {
-            return `    ${name}${Token.comma}`;
-        }
+    ): morph.EnumMemberStructure {
+        const fieldValue = (isStringType ? `${value}` : value) as undefined;
+
+        return {
+            kind: morph.StructureKind.EnumMember,
+            name: name,
+            value: value ? fieldValue : undefined,
+        };
     }
 
     /**
@@ -229,6 +219,14 @@ export abstract class BaseType<T> {
         return parts[parts.length - 1];
     }
 
+    /**
+     * Converts a CDS type to a Typescript type.
+     *
+     * @protected
+     * @param {CDSType} type
+     * @returns {string}
+     * @memberof BaseType
+     */
     protected cdsTypeToType(type: CDSType): string {
         let result: string = "unknown";
 
@@ -309,9 +307,9 @@ export abstract class BaseType<T> {
      * Converts a given element to a Typescript type.
      *
      * @protected
-     * @param {IElement} element
-     * @param {string} [prefix=""]
-     * @returns {string}
+     * @param {IElement} element Element to convert to a type declaration
+     * @param {string} [prefix=""] Prefix of the type declaration
+     * @returns {string} Created type declaration
      * @memberof BaseType
      */
     protected cdsElementToType(element: IElement, prefix: string = ""): string {
@@ -323,7 +321,7 @@ export abstract class BaseType<T> {
                     const target = this.sanitizeTarget(element.target);
                     let suffix = "";
                     if (element.cardinality.max === CDSCardinality.many) {
-                        suffix = `${Token.squareBracketsLeft}${Token.squareBracketsRight}`;
+                        suffix = "[]";
                     }
 
                     result = prefix + target + suffix;
@@ -336,7 +334,7 @@ export abstract class BaseType<T> {
         }
 
         if (element.type !== CDSType.association && element.isArray) {
-            result = `${result}${Token.squareBracketsLeft}${Token.squareBracketsRight}`;
+            result = `${result}[]`;
         }
 
         return result;

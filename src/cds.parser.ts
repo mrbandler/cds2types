@@ -22,24 +22,40 @@ import _ from "lodash";
  */
 export class CDSParser {
     /**
-     *
+     * Parsed services.
      *
      * @private
      * @type {string[]}
      * @memberof CDSParser
      */
     private services: IService[] = [];
+
+    /**
+     * Parsed namespaces.
+     *
+     * @private
+     * @type {INamespace[]}
+     * @memberof CDSParser
+     */
     private namespaces: INamespace[] = [];
+
+    /**
+     * Parsed global definitions.
+     *
+     * @private
+     * @type {Map<string, IDefinition>}
+     * @memberof CDSParser
+     */
     private definitions: Map<string, IDefinition> = new Map<
         string,
         IDefinition
     >();
 
     /**
-     * Parses a given service object to a service.
+     * Parses a given compiled JSON representation of the CDS source.
      *
-     * @param {*} obj Object to parse
-     * @returns {IService} Parsed service
+     * @param {*} obj Compiled JSON CDS source
+     * @returns {IParsed} Parsed service
      * @memberof CDSParser
      */
     public parse(obj: any): IParsed {
@@ -80,6 +96,7 @@ export class CDSParser {
      * Parses elements from a entity.
      *
      * @private
+     * @param {string} objKey Object key
      * @param {*} obj Object to parse from
      * @returns {Map<string, IElement>} Parsed elements
      * @memberof CDSParser
@@ -185,6 +202,15 @@ export class CDSParser {
         return result;
     }
 
+    /**
+     * Checks if a definition is valid.
+     *
+     * @private
+     * @param {string} key Key of the definition
+     * @param {*} value Value of the definition
+     * @returns {boolean} Flag, whether the definition is valid
+     * @memberof CDSParser
+     */
     private isValid(key: string, value: any): boolean {
         if (
             value.kind !== CDSKind.entity &&
@@ -203,6 +229,14 @@ export class CDSParser {
         return true;
     }
 
+    /**
+     * Check if a given object is a localized field.
+     *
+     * @private
+     * @param {*} obj Object that represents the field
+     * @returns {boolean} Flag, whether it is a localized field or not
+     * @memberof CDSParser
+     */
     private isLocalizationField(obj: any): boolean {
         let result = false;
 
@@ -214,15 +248,33 @@ export class CDSParser {
         return result;
     }
 
-    private addService(name: string): void {
+    /**
+     * Adds and creates a new service with a given name.
+     *
+     * @private
+     * @param {string} name Name of the service to create
+     * @returns {IService} Added and created service
+     * @memberof CDSParser
+     */
+    private addService(name: string): IService {
         const service: IService = {
             name: name,
             definitions: new Map<string, IDefinition>(),
         };
 
         this.services.push(service);
+
+        return service;
     }
 
+    /**
+     * Adds and creates a new namespace with a given name.
+     *
+     * @private
+     * @param {string} name Name of the namespace to create
+     * @returns {INamespace} Added and created namespace
+     * @memberof CDSParser
+     */
     private addNamespace(name: string): INamespace {
         const namespace: INamespace = {
             name: name,
@@ -234,6 +286,17 @@ export class CDSParser {
         return namespace;
     }
 
+    /**
+     * Returns the definitions for given key.
+     * The key can correspond to a service, namespace or the global scope.
+     *
+     * NOTE: It also creates a new namespace if the key includes one and it doesn't exist already.
+     *
+     * @private
+     * @param {string} key Key of the definition to get correspondig definitions
+     * @returns {Map<string, IDefinition>} Found definitions
+     * @memberof CDSParser
+     */
     private getDefinitions(key: string): Map<string, IDefinition> {
         const service = this.services.find(s => key.includes(s.name));
         if (service) {

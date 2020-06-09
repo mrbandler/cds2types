@@ -1,9 +1,10 @@
+import * as morph from "ts-morph";
+
 import { CDSKind, CDSType, IDefinition, IEnumValue } from "../utils/cds";
 
 import { ActionFunction } from "./action.func";
 import { Entity } from "./entity";
 import { Enum } from "./enum";
-import { Token } from "../utils/type.constants";
 import _ from "lodash";
 
 /**
@@ -75,7 +76,11 @@ export class Namespace {
 
     /**
      * Default constructor.
-     * @param {Map<string, IDefinition>} definitions
+     *
+     * @param {Map<string, IDefinition>} definitions Namespaces definitions
+     * @param {string[]} blacklist Blacklist
+     * @param {string} [interfacePrefix=""] Interface prefix
+     * @param {string} [name] Name of the namespace
      * @memberof Namespace
      */
     constructor(
@@ -106,47 +111,68 @@ export class Namespace {
      * @returns {string} Typescript code.
      * @memberof Namespace
      */
-    public generateCode(otherEntities: Entity[]): string {
-        let result = "";
+    public generateCode(
+        source: morph.SourceFile,
+        otherEntities: Entity[]
+    ): void {
+        const actionFuncDeclarations = this.actionFunctions.map(f =>
+            f.toType(otherEntities)
+        );
 
-        const actionFuncCode = this.actionFunctions
-            .map(f => f.toType())
-            .join("\n\n");
-        const enumCode = this.enums.map(e => e.toType()).join("\n\n");
-        const entityCode = this.entities
-            .map(e => e.toType(otherEntities))
-            .join("\n\n");
+        const enumDeclarations = this.enums.map(e => e.toType());
+        const entityDeclarations = this.entities.map(e =>
+            e.toType(otherEntities)
+        );
 
-        const entityEnum = this.generateEntitiesEnum().toType();
-        const sanitizedEntityEnum = this.generateEntitiesEnum(true).toType();
+        const entityEnumDeclaration = this.generateEntitiesEnum().toType();
+        const sanitizedEntityEnumDeclaration = this.generateEntitiesEnum(
+            true
+        ).toType();
 
-        let code: string[] = [];
+        if (this.name && this.name !== "") {
+            let namespace = source.addNamespace({
+                name: this.name,
+                isExported: true,
+            });
 
-        if (this.name && this.name !== "")
-            code.push(
-                `${Token.export} ${Token.namespace} ${this.name} ${Token.curlyBraceLeft}`
-            );
-
-        if (!_.isEmpty(actionFuncCode)) code.push(actionFuncCode);
-        if (!_.isEmpty(enumCode)) code.push(enumCode);
-        if (!_.isEmpty(entityCode)) code.push(entityCode);
-        if (!_.isEmpty(entityEnum)) code.push(entityEnum);
-        if (!_.isEmpty(sanitizedEntityEnum)) code.push(sanitizedEntityEnum);
-
-        if (this.name && this.name !== "")
-            code.push(`${Token.curlyBraceRight}`);
-
-        for (const c of code) {
-            if (c && c !== "") {
-                if (result !== "") {
-                    result = result + c + "\n\n";
-                } else {
-                    result = c + "\n\n";
+            actionFuncDeclarations.forEach(afd => {
+                namespace.addEnum(afd.enumDeclarationStructure);
+                if (afd.interfaceDeclarationStructure) {
+                    namespace.addInterface(afd.interfaceDeclarationStructure);
                 }
-            }
-        }
+            });
 
-        return result;
+            enumDeclarations.forEach(ed => namespace.addEnum(ed));
+            entityDeclarations.forEach(ed => {
+                if (!_.isEmpty(ed.enumDeclarationStructures)) {
+                    namespace.addEnums(ed.enumDeclarationStructures);
+                }
+
+                namespace.addInterface(ed.interfaceDeclarationStructure);
+            });
+
+            namespace.addEnum(entityEnumDeclaration);
+            namespace.addEnum(sanitizedEntityEnumDeclaration);
+        } else {
+            actionFuncDeclarations.forEach(afd => {
+                source.addEnum(afd.enumDeclarationStructure);
+                if (afd.interfaceDeclarationStructure) {
+                    source.addInterface(afd.interfaceDeclarationStructure);
+                }
+            });
+
+            enumDeclarations.forEach(ed => source.addEnum(ed));
+            entityDeclarations.forEach(ed => {
+                if (!_.isEmpty(ed.enumDeclarationStructures)) {
+                    source.addEnums(ed.enumDeclarationStructures);
+                }
+
+                source.addInterface(ed.interfaceDeclarationStructure);
+            });
+
+            source.addEnum(entityEnumDeclaration);
+            source.addEnum(sanitizedEntityEnumDeclaration);
+        }
     }
 
     /**

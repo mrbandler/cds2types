@@ -9,6 +9,7 @@
         "strict": true,
         "types": ["node"],
         "noImplicitAny": false,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "removeComments": true
     }
 }

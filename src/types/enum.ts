@@ -1,17 +1,17 @@
-import { IDefinition, CDSType } from "../utils/cds";
-import { Token } from "../utils/type.constants";
+import * as morph from "ts-morph";
+
+import { CDSType, IDefinition } from "../utils/cds";
+
 import { BaseType } from "./base.type";
 
 /**
  * Type that represents a CDS enum.
  *
- * Will be converted into a Typescript enum.
- *
  * @export
  * @class Enum
  * @extends {BaseType}
  */
-export class Enum extends BaseType<Enum> {
+export class Enum extends BaseType<Enum, morph.EnumDeclarationStructure> {
     /**
      * Fields of the enum.
      *
@@ -23,8 +23,10 @@ export class Enum extends BaseType<Enum> {
 
     /**
      * Default constructor.
+     *
      * @param {string} name Name of the enum
      * @param {IDefinition} definition CDS definition of the enum
+     * @param {string} [namespace] Namespace the enum belongs to
      * @memberof Enum
      */
     constructor(name: string, definition: IDefinition, namespace?: string) {
@@ -39,23 +41,19 @@ export class Enum extends BaseType<Enum> {
     /**
      * Converts the type to a Typescript type.
      *
-     * @returns {string}
+     * @returns {morph.EnumDeclarationStructure} Created enum declaration
      * @memberof Enum
      */
-    public toType(): string {
-        let result = "";
+    public toType(): morph.EnumDeclarationStructure {
+        let result = this.createEnum();
 
-        let enumCode: string[] = [];
-        enumCode.push(this.createEnum());
         for (const [key, value] of this.fields) {
-            enumCode.push(
+            result.members?.push(
                 this.createEnumField(key, value, this.isStringType())
             );
         }
-        enumCode.push(`${Token.curlyBraceRight}`);
 
-        result = enumCode.join(this.joiner);
-        return this.joiner + result;
+        return result;
     }
 
     /**
