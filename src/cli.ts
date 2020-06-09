@@ -6,7 +6,6 @@ import Program from "./program";
 
 /**
  * Main function of the program.
- *
  */
 function main() {
     const cli = new commander.Command();
