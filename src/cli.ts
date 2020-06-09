@@ -9,7 +9,7 @@ import Program from "./program";
  */
 function main() {
     const cli = new commander.Command();
-    cli.version("2.2.1")
+    cli.version("2.3.0")
         .description(
             "CLI to convert CDS models to Typescript interfaces and enumerations"
         )
