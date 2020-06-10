@@ -3,6 +3,7 @@ import {
     ICsn,
     ICsnActionDefinition,
     ICsnDefinition,
+    ICsnElement,
     ICsnEntityDefinition,
     ICsnEnumDefinition,
     ICsnFunctionDefinition,
@@ -208,17 +209,19 @@ export class CDSParser {
      * Parses a enum.
      *
      * @private
-     * @param {*} obj Object to parse from
+     * @param {*} definition Object to parse from
      * @returns {Map<string, IEnumValue>} Parsed enum values
      * @memberof CDSParser
      */
-    private parseEnum(obj: any): Map<string, ICsnValue> {
+    private parseEnum(
+        definition: ICsnEnumDefinition | ICsnElement
+    ): Map<string, ICsnValue> {
         let result = new Map<string, ICsnValue>();
 
-        if (obj.enum) {
-            for (const key in obj.enum) {
-                if (obj.enum.hasOwnProperty(key)) {
-                    const value = obj.enum[key];
+        if (definition.enum) {
+            for (const key in definition.enum) {
+                if (definition.enum.hasOwnProperty(key)) {
+                    const value = definition.enum[key];
                     result.set(key, value);
                 }
             }
@@ -231,17 +234,19 @@ export class CDSParser {
      * Parses function and action import parameters
      *
      * @private
-     * @param {*} obj Object to parse from
+     * @param {*} definition Object to parse from
      * @returns {Map<string, IParamType>} Parsed parameters
      * @memberof CDSParser
      */
-    private parseParams(obj: any): Map<string, ICsnParam> {
+    private parseParams(
+        definition: ICsnActionDefinition | ICsnFunctionDefinition
+    ): Map<string, ICsnParam> {
         let result: Map<string, ICsnParam> = new Map<string, ICsnParam>();
 
-        if (obj.params) {
-            for (const key in obj.params) {
-                if (obj.params.hasOwnProperty(key)) {
-                    const value = obj.params[key];
+        if (definition.params) {
+            for (const key in definition.params) {
+                if (definition.params.hasOwnProperty(key)) {
+                    const value = definition.params[key];
                     result.set(key, value as ICsnParam);
                 }
             }

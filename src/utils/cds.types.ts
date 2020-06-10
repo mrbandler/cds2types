@@ -66,6 +66,7 @@ export interface ICsnElement {
     cardinality?: ICsnCardinality;
     virtual?: boolean;
     default?: ICsnValue;
+    enum?: IEnum;
     "@Core.Immutable"?: boolean;
     "@Core.Computed"?: boolean;
 }
