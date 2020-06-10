@@ -3,9 +3,10 @@ import * as fs from "fs-extra";
 import * as morph from "ts-morph";
 import * as path from "path";
 
+import { IOptions, IParsed } from "./utils/types";
+
 import { CDSParser } from "./cds.parser";
-import { Command } from "commander";
-import { IParsed } from "./utils/cds";
+import { ICsn } from "./utils/cds.types";
 import { Namespace } from "./types/namespace";
 import _ from "lodash";
 
@@ -15,7 +16,7 @@ import _ from "lodash";
  * @export
  * @class Program
  */
-export default class Program {
+export class Program {
     /**
      * Blacklist of entities, types and enums that should not be generated.
      *
@@ -40,11 +41,11 @@ export default class Program {
      * @param {Command} options Parsed CLI options.
      * @memberof Program
      */
-    public async run(options: Command): Promise<void> {
+    public async run(options: IOptions): Promise<void> {
         this.interfacePrefix = options.prefix;
 
         const jsonObj = await this.loadCdsAndConvertToJSON(options.cds);
-        const parsed = new CDSParser().parse(jsonObj);
+        const parsed = new CDSParser().parse(jsonObj as ICsn);
 
         if (options.json) {
             fs.writeFileSync(options.output + ".json", JSON.stringify(jsonObj));
@@ -87,7 +88,7 @@ export default class Program {
 
         if (parsed.namespaces) {
             const ns = parsed.namespaces.map(
-                n =>
+                (n) =>
                     new Namespace(
                         n.definitions,
                         this.blacklist,
@@ -101,7 +102,7 @@ export default class Program {
 
         if (parsed.services) {
             const ns = parsed.services.map(
-                s =>
+                (s) =>
                     new Namespace(
                         s.definitions,
                         this.blacklist,
@@ -124,7 +125,7 @@ export default class Program {
         }
 
         for (const namespace of namespaces) {
-            const entities = _.flatten(namespaces.map(n => n.getEntities()));
+            const entities = _.flatten(namespaces.map((n) => n.getEntities()));
             namespace.generateCode(source, entities);
         }
     }

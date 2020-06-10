@@ -1,9 +1,10 @@
 import * as morph from "ts-morph";
 
-import { CDSKind, CDSType, IDefinition, IParamType, IRef } from "../utils/cds";
+import { ICsnTypeRef, Kind, isTypeRef } from "../utils/cds.types";
 
 import { BaseType } from "./base.type";
 import { Entity } from "./entity";
+import { IActionFunctionDefinition } from "../utils/types";
 
 /**
  * Action/Function toType return type.
@@ -52,7 +53,7 @@ export class ActionFunction extends BaseType<
      * @type {CDSType}
      * @memberof ActionFunction
      */
-    private kind: CDSKind;
+    private kind: Kind;
 
     /**
      * Params of the action/ActionFunction.
@@ -62,6 +63,10 @@ export class ActionFunction extends BaseType<
      * @memberof ActionFunction
      */
     private params: string[] = [];
+
+    private get def(): IActionFunctionDefinition {
+        return this.definition as IActionFunctionDefinition;
+    }
 
     /**
      * Default constructor.
@@ -75,15 +80,15 @@ export class ActionFunction extends BaseType<
      */
     constructor(
         name: string,
-        definition: IDefinition,
-        kind: CDSKind,
+        definition: IActionFunctionDefinition,
+        kind: Kind,
         interfacePrefix?: string,
         namespace?: string
     ) {
         super(name, definition, interfacePrefix, namespace);
         this.kind = kind;
-        if (this.definition && this.definition.params) {
-            for (const [key, _] of this.definition.params) {
+        if (this.definition && this.def.params) {
+            for (const [key, _] of this.def.params) {
                 this.params.push(key);
             }
         }
@@ -98,9 +103,7 @@ export class ActionFunction extends BaseType<
      */
     public toType(types: Entity[]): IActionFunctionDeclarationStructure {
         const prefix =
-            this.kind === CDSKind.function
-                ? this.FUNC_PREFIX
-                : this.ACTION_PREFIX;
+            this.kind === Kind.Function ? this.FUNC_PREFIX : this.ACTION_PREFIX;
 
         return {
             enumDeclarationStructure: this.createEnumDeclaration(prefix),
@@ -128,8 +131,8 @@ export class ActionFunction extends BaseType<
             this.createEnumField("name", this.sanitizeTarget(this.name), true)
         );
 
-        if (this.definition.params) {
-            for (const [key, _] of this.definition.params) {
+        if (this.def.params) {
+            for (const [key, _] of this.def.params) {
                 const fieldName = "param" + this.sanitizeName(key);
                 result.members?.push(
                     this.createEnumField(fieldName, key, true)
@@ -155,14 +158,14 @@ export class ActionFunction extends BaseType<
     ): morph.InterfaceDeclarationStructure | undefined {
         let result: morph.InterfaceDeclarationStructure | undefined = undefined;
 
-        if (this.definition.params && this.definition.params.size > 0) {
+        if (this.def.params && this.def.params.size > 0) {
             result = this.createInterface(prefix, "Params");
 
-            for (const [key, value] of this.definition.params) {
-                if (this.isTypeRef(value.type)) {
-                    const typeRef = value.type as IRef;
+            for (const [key, value] of this.def.params) {
+                if (isTypeRef(value.type)) {
+                    const typeRef = value.type as ICsnTypeRef;
                     const entity = types.find(
-                        t => t.getModelName() === typeRef.ref[0]
+                        (t) => t.getModelName() === typeRef.ref[0]
                     );
 
                     if (entity) {
@@ -186,17 +189,5 @@ export class ActionFunction extends BaseType<
         }
 
         return result;
-    }
-
-    /**
-     * Type guard for a action/function parameter type.
-     *
-     * @private
-     * @param {(CDSType | IRef)} type Type of the parameter
-     * @returns {type is IRef} Flag, whether the given parameter type is a ref
-     * @memberof ActionFunction
-     */
-    private isTypeRef(type: CDSType | IRef): type is IRef {
-        return (type as IRef).ref !== undefined;
     }
 }

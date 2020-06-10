@@ -54,7 +54,7 @@
         }
     },
     "lint-staged": {
-        "*.{js,ts,css,json,md,yml}": [
+        "*.{js,ts,css,json,yml}": [
             "prettier --write"
         ],
         "*.{js,ts}": [

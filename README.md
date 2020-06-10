@@ -98,6 +98,7 @@ export namespace sap.capire.bookshop {
         placeOfDeath: string;
         books?: IBooks[];
     }
+
     export interface IBooks extends IManaged {
         ID: number;
         title: string;
@@ -108,47 +109,56 @@ export namespace sap.capire.bookshop {
         genre_ID?: number;
         stock: number;
         price: number;
-        currency: unknown;
+        currency: sap.common.ICurrencies;
         currency_code?: string;
     }
+
     export interface IGenres extends sap.common.ICodeList {
         ID: number;
         parent?: IGenres;
         parent_ID?: number;
-        children: unknown;
+        children: IGenres[];
     }
+
     export enum Entity {
         Authors = "sap.capire.bookshop.Authors",
         Books = "sap.capire.bookshop.Books",
         Genres = "sap.capire.bookshop.Genres",
     }
+
     export enum SanitizedEntity {
         Authors = "Authors",
         Books = "Books",
         Genres = "Genres",
     }
 }
+
 export namespace sap.common {
     export interface ICodeList {
         name: string;
         descr: string;
     }
+
     export interface ICountries extends sap.common.ICodeList {
         code: string;
     }
+
     export interface ICurrencies extends sap.common.ICodeList {
         code: string;
         symbol: string;
     }
+
     export interface ILanguages extends sap.common.ICodeList {
         code: string;
     }
+
     export enum Entity {
         CodeList = "sap.common.CodeList",
         Countries = "sap.common.Countries",
         Currencies = "sap.common.Currencies",
         Languages = "sap.common.Languages",
     }
+
     export enum SanitizedEntity {
         CodeList = "CodeList",
         Countries = "Countries",
@@ -156,16 +166,19 @@ export namespace sap.common {
         Languages = "Languages",
     }
 }
+
 export namespace CatalogService {
     export enum ActionSubmitOrder {
         name = "submitOrder",
         paramBook = "book",
         paramAmount = "amount",
     }
+
     export interface IActionSubmitOrderParams {
-        book: unknown;
+        book: number;
         amount: number;
     }
+
     export interface IBooks {
         createdAt?: Date;
         modifiedAt?: Date;
@@ -177,54 +190,64 @@ export namespace CatalogService {
         genre_ID?: number;
         stock: number;
         price: number;
-        currency: unknown;
+        currency: ICurrencies;
         currency_code?: string;
     }
+
     export interface ICurrencies {
         name: string;
         descr: string;
         code: string;
         symbol: string;
     }
+
     export interface IGenres {
         name: string;
         descr: string;
         ID: number;
         parent?: IGenres;
         parent_ID?: number;
-        children: unknown;
+        children: IGenres[];
     }
+
     export enum Entity {
         Books = "CatalogService.Books",
         Currencies = "CatalogService.Currencies",
         Genres = "CatalogService.Genres",
     }
+
     export enum SanitizedEntity {
         Books = "Books",
         Currencies = "Currencies",
         Genres = "Genres",
     }
 }
+
 export interface IUser {}
+
 export interface ICuid {
     ID: string;
 }
+
 export interface IManaged {
     createdAt?: Date;
     createdBy?: string;
     modifiedAt?: Date;
     modifiedBy?: string;
 }
+
 export interface ITemporal {
     validFrom: Date;
     validTo: Date;
 }
+
 export enum Entity {
     User = "User",
     Cuid = "cuid",
     Managed = "managed",
     Temporal = "temporal",
 }
+
 export enum SanitizedEntity {
     User = "User",
     Cuid = "Cuid",

@@ -1,16 +1,35 @@
 import {
-    CDSCardinality,
-    CDSKind,
-    CDSType,
-    IDefinition,
+    Cardinality,
+    ICsn,
+    ICsnActionDefinition,
+    ICsnDefinition,
+    ICsnEntityDefinition,
+    ICsnEnumDefinition,
+    ICsnFunctionDefinition,
+    ICsnParam,
+    ICsnTypeDefinition,
+    ICsnValue,
+    Kind,
+    Managed,
+    Type,
+    isActionDef,
+    isEntityDef,
+    isEnumDef,
+    isFunctionDef,
+    isServiceDef,
+    isTypeDef,
+} from "./utils/cds.types";
+import {
+    Definition,
+    IActionFunctionDefinition,
     IElement,
-    IEnumValue,
+    IEntityDefinition,
+    IEnumDefinition,
     INamespace,
-    IParamType,
     IParsed,
     IService,
-    Managed,
-} from "./utils/cds";
+    isEntity,
+} from "./utils/types";
 
 import _ from "lodash";
 
@@ -43,12 +62,12 @@ export class CDSParser {
      * Parsed global definitions.
      *
      * @private
-     * @type {Map<string, IDefinition>}
+     * @type {Map<string, Definition>}
      * @memberof CDSParser
      */
-    private definitions: Map<string, IDefinition> = new Map<
+    private definitions: Map<string, Definition> = new Map<
         string,
-        IDefinition
+        Definition
     >();
 
     /**
@@ -58,30 +77,30 @@ export class CDSParser {
      * @returns {IParsed} Parsed service
      * @memberof CDSParser
      */
-    public parse(obj: any): IParsed {
-        for (const key in obj.definitions) {
-            const value = obj.definitions[key];
-            if (this.isValid(key, value)) {
-                if (value.kind === CDSKind.service) {
-                    this.addService(key);
+    public parse(csn: ICsn): IParsed {
+        for (const name in csn.definitions) {
+            const def = csn.definitions[name];
+            if (this.isValid(name, def)) {
+                if (isServiceDef(def)) {
+                    this.addService(name);
 
                     continue;
                 }
 
-                let definitions = this.getDefinitions(key);
+                let definitions = this.getDefinitions(name);
+                if (isEntityDef(def) || isTypeDef(def)) {
+                    const parsedDef = this.parseEntityOrTypeDef(name, def);
 
-                const elements = this.parseElements(key, value);
-                const _enum = this.parseEnum(value);
-                const params = this.parseParams(value);
+                    definitions.set(name, parsedDef);
+                } else if (isEnumDef(def)) {
+                    const parsedDef = this.parseEnumDef(name, def);
 
-                definitions.set(key, {
-                    kind: value.kind,
-                    type: value.type,
-                    includes: value.includes ? value.includes : undefined,
-                    elements: elements.size <= 0 ? undefined : elements,
-                    enum: _enum.size <= 0 ? undefined : _enum,
-                    params: params.size <= 0 ? undefined : params,
-                });
+                    definitions.set(name, parsedDef);
+                } else if (isActionDef(def) || isFunctionDef(def)) {
+                    const parsedDef = this.parseActionFunctionDef(name, def);
+
+                    definitions.set(name, parsedDef);
+                }
             }
         }
 
@@ -92,62 +111,91 @@ export class CDSParser {
         };
     }
 
+    private parseEntityOrTypeDef(
+        name: string,
+        definition: ICsnEntityDefinition | ICsnTypeDefinition
+    ): IEntityDefinition {
+        return {
+            kind: definition.kind,
+            type: isTypeDef(definition) ? definition.type : undefined,
+            elements: this.parseElements(name, definition),
+            includes: isEntityDef(definition) ? definition.includes || [] : [],
+        };
+    }
+
+    private parseEnumDef(
+        name: string,
+        definition: ICsnEnumDefinition
+    ): IEnumDefinition {
+        return {
+            kind: definition.kind,
+            type: definition.type,
+            enum: this.parseEnum(definition),
+        };
+    }
+
+    private parseActionFunctionDef(
+        name: string,
+        definition: ICsnActionDefinition | ICsnFunctionDefinition
+    ): IActionFunctionDefinition {
+        return {
+            kind: definition.kind,
+            params: this.parseParams(definition),
+        };
+    }
+
     /**
      * Parses elements from a entity.
      *
      * @private
-     * @param {string} objKey Object key
-     * @param {*} obj Object to parse from
+     * @param {string} name Entity name
+     * @param {*} def Object to parse from
      * @returns {Map<string, IElement>} Parsed elements
      * @memberof CDSParser
      */
-    private parseElements(objKey: string, obj: any): Map<string, IElement> {
+    private parseElements(
+        name: string,
+        def: ICsnEntityDefinition | ICsnTypeDefinition
+    ): Map<string, IElement> {
         let result: Map<string, IElement> = new Map<string, IElement>();
 
-        if (obj.elements) {
-            for (const key in obj.elements) {
-                if (obj.elements.hasOwnProperty(key)) {
-                    const value = obj.elements[key];
+        if (def.elements) {
+            for (const elementName in def.elements) {
+                if (def.elements.hasOwnProperty(elementName)) {
+                    const element = def.elements[elementName];
+                    if (this.isLocalizationField(element)) continue;
 
-                    if (this.isLocalizationField(value)) continue;
+                    const _enum = this.parseEnum(element);
 
-                    const _enum = this.parseEnum(value);
-
-                    let isArray = false;
-                    if (!value.type) {
-                        if (value.type === undefined) {
+                    if (!element.type) {
+                        if (element.type === undefined) {
                             throw new Error(
-                                `Unable to parse element '${key}' on entity '${objKey}'. It seems to be a CDS expression without a type definition, please add a type to it.`
+                                `Unable to parse element '${elementName}' on entity '${name}'. It seems to be a CDS expression without a type definition, please add a type to it.`
                             );
                         }
-
-                        value.type = value.items.type;
-                        isArray = true;
                     }
 
                     let canBeNull =
-                        value["@Core.Computed"] ||
-                        value["@Core.Immutable"] ||
-                        value.virtual ||
-                        value.default
+                        element["@Core.Computed"] ||
+                        element["@Core.Immutable"] ||
+                        element.virtual ||
+                        element.default
                             ? true
                             : false ||
-                              key === Managed.CreatedAt ||
-                              key === Managed.CreatedBy ||
-                              key === Managed.ModifiedAt ||
-                              key === Managed.ModifiedBy;
+                              elementName === Managed.CreatedAt ||
+                              elementName === Managed.CreatedBy ||
+                              elementName === Managed.ModifiedAt ||
+                              elementName === Managed.ModifiedBy;
 
-                    result.set(key, {
-                        type: value.type,
-                        isArray: isArray,
+                    result.set(elementName, {
+                        type: element.type,
                         canBeNull: canBeNull,
-                        cardinality:
-                            value.cardinality !== undefined
-                                ? value.cardinality
-                                : { max: CDSCardinality.one },
-                        target: value.target,
+                        cardinality: element.cardinality
+                            ? element.cardinality
+                            : { max: Cardinality.one },
+                        target: element.target,
                         enum: _enum.size <= 0 ? undefined : _enum,
-                        keys: value.keys,
+                        keys: element.keys,
                     });
                 }
             }
@@ -164,8 +212,8 @@ export class CDSParser {
      * @returns {Map<string, IEnumValue>} Parsed enum values
      * @memberof CDSParser
      */
-    private parseEnum(obj: any): Map<string, IEnumValue> {
-        let result = new Map<string, IEnumValue>();
+    private parseEnum(obj: any): Map<string, ICsnValue> {
+        let result = new Map<string, ICsnValue>();
 
         if (obj.enum) {
             for (const key in obj.enum) {
@@ -187,14 +235,14 @@ export class CDSParser {
      * @returns {Map<string, IParamType>} Parsed parameters
      * @memberof CDSParser
      */
-    private parseParams(obj: any): Map<string, IParamType> {
-        let result: Map<string, IParamType> = new Map<string, IParamType>();
+    private parseParams(obj: any): Map<string, ICsnParam> {
+        let result: Map<string, ICsnParam> = new Map<string, ICsnParam>();
 
         if (obj.params) {
             for (const key in obj.params) {
                 if (obj.params.hasOwnProperty(key)) {
                     const value = obj.params[key];
-                    result.set(key, value as IParamType);
+                    result.set(key, value as ICsnParam);
                 }
             }
         }
@@ -211,17 +259,19 @@ export class CDSParser {
      * @returns {boolean} Flag, whether the definition is valid
      * @memberof CDSParser
      */
-    private isValid(key: string, value: any): boolean {
+    private isValid(key: string, value: ICsnDefinition): boolean {
         if (
-            value.kind !== CDSKind.entity &&
-            value.kind !== CDSKind.type &&
-            value.kind !== CDSKind.function &&
-            value.kind !== CDSKind.action &&
-            value.kind !== CDSKind.service
+            value.kind !== Kind.Entity &&
+            value.kind !== Kind.Type &&
+            value.kind !== Kind.Function &&
+            value.kind !== Kind.Action &&
+            value.kind !== Kind.Service
         )
             return false;
 
-        if (value.type === CDSType.association) return false;
+        if (isTypeDef(value)) {
+            if (value.type === Type.Association) return false;
+        }
 
         if (key.includes("_texts") || key.startsWith("localized."))
             return false;
@@ -259,7 +309,7 @@ export class CDSParser {
     private addService(name: string): IService {
         const service: IService = {
             name: name,
-            definitions: new Map<string, IDefinition>(),
+            definitions: new Map<string, Definition>(),
         };
 
         this.services.push(service);
@@ -278,7 +328,7 @@ export class CDSParser {
     private addNamespace(name: string): INamespace {
         const namespace: INamespace = {
             name: name,
-            definitions: new Map<string, IDefinition>(),
+            definitions: new Map<string, Definition>(),
         };
 
         this.namespaces.push(namespace);
@@ -294,16 +344,16 @@ export class CDSParser {
      *
      * @private
      * @param {string} key Key of the definition to get correspondig definitions
-     * @returns {Map<string, IDefinition>} Found definitions
+     * @returns {Map<string, ICsnDefinition>} Found definitions
      * @memberof CDSParser
      */
-    private getDefinitions(key: string): Map<string, IDefinition> {
-        const service = this.services.find(s => key.includes(s.name));
+    private getDefinitions(key: string): Map<string, Definition> {
+        const service = this.services.find((s) => key.includes(s.name));
         if (service) {
             return service.definitions;
         }
 
-        const namespace = this.namespaces.find(n => key.includes(n.name));
+        const namespace = this.namespaces.find((n) => key.includes(n.name));
         if (namespace) {
             return namespace.definitions;
         } else {

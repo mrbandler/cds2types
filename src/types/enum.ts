@@ -1,8 +1,8 @@
 import * as morph from "ts-morph";
 
-import { CDSType, IDefinition } from "../utils/cds";
-
 import { BaseType } from "./base.type";
+import { IEnumDefinition } from "../utils/types";
+import { Type } from "../utils/cds.types";
 
 /**
  * Type that represents a CDS enum.
@@ -21,6 +21,10 @@ export class Enum extends BaseType<Enum, morph.EnumDeclarationStructure> {
      */
     private fields: Map<string, unknown> = new Map<string, unknown>();
 
+    private get def(): IEnumDefinition {
+        return this.definition as IEnumDefinition;
+    }
+
     /**
      * Default constructor.
      *
@@ -29,10 +33,10 @@ export class Enum extends BaseType<Enum, morph.EnumDeclarationStructure> {
      * @param {string} [namespace] Namespace the enum belongs to
      * @memberof Enum
      */
-    constructor(name: string, definition: IDefinition, namespace?: string) {
+    constructor(name: string, definition: IEnumDefinition, namespace?: string) {
         super(name, definition, undefined, namespace);
-        if (this.definition.enum) {
-            for (const [key, value] of this.definition.enum) {
+        if (this.def.enum) {
+            for (const [key, value] of this.def.enum) {
                 this.fields.set(key, value.val);
             }
         }
@@ -66,8 +70,8 @@ export class Enum extends BaseType<Enum, morph.EnumDeclarationStructure> {
         let result: boolean = false;
 
         if (
-            this.definition.type === CDSType.string ||
-            this.definition.type === CDSType.largeString
+            this.def.type === Type.String ||
+            this.def.type === Type.LargeString
         ) {
             result = true;
         }
