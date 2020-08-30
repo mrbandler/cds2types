@@ -5,6 +5,10 @@ import { IElement, IEntityDefinition, IEnumDefinition } from "../utils/types";
 
 import { BaseType } from "./base.type";
 import { Enum } from "./enum";
+import {
+    ActionFunction,
+    IActionFunctionDeclarationStructure,
+} from "./action.func";
 
 /**
  * Entity toType return type.
@@ -15,6 +19,7 @@ import { Enum } from "./enum";
 export interface IEntityDeclarationStructure {
     interfaceDeclarationStructure: morph.InterfaceDeclarationStructure;
     enumDeclarationStructures: morph.EnumDeclarationStructure[];
+    actionFuncStructures: IActionFunctionDeclarationStructure[];
 }
 
 /**
@@ -62,6 +67,7 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
         let result: IEntityDeclarationStructure = {
             interfaceDeclarationStructure: this.createInterface("", "", ext),
             enumDeclarationStructures: [],
+            actionFuncStructures: [],
         };
 
         if (this.def.elements) {
@@ -103,6 +109,21 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
                         }
                     }
                 }
+            }
+        }
+
+        if (this.def.actions) {
+            for (const [key, value] of this.def.actions) {
+                const actionFunc = new ActionFunction(
+                    key,
+                    value,
+                    value.kind,
+                    this.prefix,
+                    this.name
+                );
+                const actionFuncDeclaration = actionFunc.toType(types);
+
+                result.actionFuncStructures.push(actionFuncDeclaration);
             }
         }
 

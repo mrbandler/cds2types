@@ -75,10 +75,15 @@ export interface ICsnElements {
     [name: string]: ICsnElement;
 }
 
+export interface ICsnActions {
+    [name: string]: ICsnActionDefinition | ICsnFunctionDefinition;
+}
+
 export interface ICsnEntityDefinition {
     kind: Kind;
     "@readonly": boolean;
     elements: ICsnElements;
+    actions?: ICsnActions;
     includes?: string[];
 }
 

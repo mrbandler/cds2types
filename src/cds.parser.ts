@@ -29,7 +29,6 @@ import {
     INamespace,
     IParsed,
     IService,
-    isEntity,
 } from "./utils/types";
 
 import _ from "lodash";
@@ -74,8 +73,8 @@ export class CDSParser {
     /**
      * Parses a given compiled JSON representation of the CDS source.
      *
-     * @param {*} obj Compiled JSON CDS source
-     * @returns {IParsed} Parsed service
+     * @param {ICsn} csn Compiled JSON CSN source
+     * @return {IParsed} Parsed service
      * @memberof CDSParser
      */
     public parse(csn: ICsn): IParsed {
@@ -94,11 +93,11 @@ export class CDSParser {
 
                     definitions.set(name, parsedDef);
                 } else if (isEnumDef(def)) {
-                    const parsedDef = this.parseEnumDef(name, def);
+                    const parsedDef = this.parseEnumDef(def);
 
                     definitions.set(name, parsedDef);
                 } else if (isActionDef(def) || isFunctionDef(def)) {
-                    const parsedDef = this.parseActionFunctionDef(name, def);
+                    const parsedDef = this.parseActionFunctionDef(def);
 
                     definitions.set(name, parsedDef);
                 }
@@ -112,6 +111,15 @@ export class CDSParser {
         };
     }
 
+    /**
+     * Parses a given entity or type definition.
+     *
+     * @private
+     * @param {string} name Name of the entity or type to parse
+     * @param {(ICsnEntityDefinition | ICsnTypeDefinition)} definition Definition of the entity or type to parse
+     * @return {IEntityDefinition} Parsed entity definition
+     * @memberof CDSParser
+     */
     private parseEntityOrTypeDef(
         name: string,
         definition: ICsnEntityDefinition | ICsnTypeDefinition
@@ -120,14 +128,22 @@ export class CDSParser {
             kind: definition.kind,
             type: isTypeDef(definition) ? definition.type : undefined,
             elements: this.parseElements(name, definition),
+            actions: isEntityDef(definition)
+                ? this.parseBoundActions(definition)
+                : undefined,
             includes: isEntityDef(definition) ? definition.includes || [] : [],
         };
     }
 
-    private parseEnumDef(
-        name: string,
-        definition: ICsnEnumDefinition
-    ): IEnumDefinition {
+    /**
+     * Parses a given enum definition.
+     *
+     * @private
+     * @param {ICsnEnumDefinition} definition Enum definition to parse
+     * @return {IEnumDefinition} Parsed enum definition.
+     * @memberof CDSParser
+     */
+    private parseEnumDef(definition: ICsnEnumDefinition): IEnumDefinition {
         return {
             kind: definition.kind,
             type: definition.type,
@@ -135,8 +151,15 @@ export class CDSParser {
         };
     }
 
+    /**
+     * Parses a given action or function definition.
+     *
+     * @private
+     * @param {(ICsnActionDefinition | ICsnFunctionDefinition)} definition Action or function definition to parse
+     * @return {IActionFunctionDefinition} Parsed action or function definition
+     * @memberof CDSParser
+     */
     private parseActionFunctionDef(
-        name: string,
         definition: ICsnActionDefinition | ICsnFunctionDefinition
     ): IActionFunctionDefinition {
         return {
@@ -149,9 +172,9 @@ export class CDSParser {
      * Parses elements from a entity.
      *
      * @private
-     * @param {string} name Entity name
-     * @param {*} def Object to parse from
-     * @returns {Map<string, IElement>} Parsed elements
+     * @param {string} name Name of the entity to parse the elements from
+     * @param {(ICsnEntityDefinition | ICsnTypeDefinition)} def Entity or type definition to parse the elements from
+     * @return {Map<string, IElement>} Parsed elements
      * @memberof CDSParser
      */
     private parseElements(
@@ -164,10 +187,8 @@ export class CDSParser {
             for (const elementName in def.elements) {
                 if (def.elements.hasOwnProperty(elementName)) {
                     const element = def.elements[elementName];
+
                     if (this.isLocalizationField(element)) continue;
-
-                    const _enum = this.parseEnum(element);
-
                     if (!element.type) {
                         if (element.type === undefined) {
                             throw new Error(
@@ -175,6 +196,8 @@ export class CDSParser {
                             );
                         }
                     }
+
+                    const _enum = this.parseEnum(element);
 
                     let canBeNull =
                         element["@Core.Computed"] ||
@@ -206,11 +229,41 @@ export class CDSParser {
     }
 
     /**
+     * Parses bound actions.
+     *
+     * @private
+     * @param {ICsnEntityDefinition} def Entity definition to parse the bound actions from.
+     * @returns {Map<string, IActionFunctionDefinition>} Parsed bound actions
+     * @memberof CDSParser
+     */
+    private parseBoundActions(
+        def: ICsnEntityDefinition
+    ): Map<string, IActionFunctionDefinition> {
+        let result: Map<string, IActionFunctionDefinition> = new Map<
+            string,
+            IActionFunctionDefinition
+        >();
+
+        if (def.actions) {
+            for (const actionName in def.actions) {
+                if (def.actions.hasOwnProperty(actionName)) {
+                    const action = def.actions[actionName];
+
+                    const parsedAction = this.parseActionFunctionDef(action);
+                    result.set(actionName, parsedAction);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * Parses a enum.
      *
      * @private
-     * @param {*} definition Object to parse from
-     * @returns {Map<string, IEnumValue>} Parsed enum values
+     * @param {(ICsnEnumDefinition | ICsnElement)} definition Enum definition to parse
+     * @return {Map<string, ICsnValue>} Parsed enum values
      * @memberof CDSParser
      */
     private parseEnum(
@@ -234,8 +287,8 @@ export class CDSParser {
      * Parses function and action import parameters
      *
      * @private
-     * @param {*} definition Object to parse from
-     * @returns {Map<string, IParamType>} Parsed parameters
+     * @param {(ICsnActionDefinition | ICsnFunctionDefinition)} definition Action or function definition to parse
+     * @return {Map<string, ICsnParam>} Parsed action or function parameters
      * @memberof CDSParser
      */
     private parseParams(
@@ -259,12 +312,12 @@ export class CDSParser {
      * Checks if a definition is valid.
      *
      * @private
-     * @param {string} key Key of the definition
-     * @param {*} value Value of the definition
-     * @returns {boolean} Flag, whether the definition is valid
+     * @param {string} name Name of the definition
+     * @param {ICsnDefinition} value Value of the definition
+     * @returns {boolean} Falg, whether the definition is valid or not
      * @memberof CDSParser
      */
-    private isValid(key: string, value: ICsnDefinition): boolean {
+    private isValid(name: string, value: ICsnDefinition): boolean {
         if (
             value.kind !== Kind.Entity &&
             value.kind !== Kind.Type &&
@@ -278,7 +331,7 @@ export class CDSParser {
             if (value.type === Type.Association) return false;
         }
 
-        if (key.includes("_texts") || key.startsWith("localized."))
+        if (name.includes("_texts") || name.startsWith("localized."))
             return false;
 
         return true;
@@ -348,26 +401,26 @@ export class CDSParser {
      * NOTE: It also creates a new namespace if the key includes one and it doesn't exist already.
      *
      * @private
-     * @param {string} key Key of the definition to get correspondig definitions
+     * @param {string} name Name of the definition to get correspondig definitions
      * @returns {Map<string, ICsnDefinition>} Found definitions
      * @memberof CDSParser
      */
-    private getDefinitions(key: string): Map<string, Definition> {
-        const service = this.services.find((s) => key.includes(s.name));
+    private getDefinitions(name: string): Map<string, Definition> {
+        const service = this.services.find((s) => name.includes(s.name));
         if (service) {
             return service.definitions;
         }
 
-        const namespace = this.namespaces.find((n) => key.includes(n.name));
+        const namespace = this.namespaces.find((n) => name.includes(n.name));
         if (namespace) {
             return namespace.definitions;
         } else {
-            const split = key.split(".");
+            const split = name.split(".");
             if (split.length > 1) {
                 const entity = _.last(split);
-                const name = key.replace(`.${entity}`, "");
+                const namespaceName = name.replace(`.${entity}`, "");
 
-                return this.addNamespace(name).definitions;
+                return this.addNamespace(namespaceName).definitions;
             } else {
                 return this.definitions;
             }

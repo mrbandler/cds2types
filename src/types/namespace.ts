@@ -3,10 +3,14 @@ import * as morph from "ts-morph";
 import { Definition, IEnumDefinition } from "../utils/types";
 import { ICsnValue, Kind, Type } from "../utils/cds.types";
 
-import { ActionFunction } from "./action.func";
-import { Entity } from "./entity";
+import {
+    ActionFunction,
+    IActionFunctionDeclarationStructure,
+} from "./action.func";
+import { Entity, IEntityDeclarationStructure } from "./entity";
 import { Enum } from "./enum";
 import _ from "lodash";
+import { appendFileSync } from "fs-extra";
 
 /**
  * Type that represents a namespace.
@@ -130,50 +134,97 @@ export class Namespace {
             true
         ).toType();
 
+        let namespaceOrSource:
+            | morph.SourceFile
+            | morph.NamespaceDeclaration = source;
         if (this.name && this.name !== "") {
-            let namespace = source.addNamespace({
+            namespaceOrSource = source.addNamespace({
                 name: this.name,
                 isExported: true,
             });
-
-            actionFuncDeclarations.forEach((afd) => {
-                namespace.addEnum(afd.enumDeclarationStructure);
-                if (afd.interfaceDeclarationStructure) {
-                    namespace.addInterface(afd.interfaceDeclarationStructure);
-                }
-            });
-
-            enumDeclarations.forEach((ed) => namespace.addEnum(ed));
-            entityDeclarations.forEach((ed) => {
-                if (!_.isEmpty(ed.enumDeclarationStructures)) {
-                    namespace.addEnums(ed.enumDeclarationStructures);
-                }
-
-                namespace.addInterface(ed.interfaceDeclarationStructure);
-            });
-
-            namespace.addEnum(entityEnumDeclaration);
-            namespace.addEnum(sanitizedEntityEnumDeclaration);
-        } else {
-            actionFuncDeclarations.forEach((afd) => {
-                source.addEnum(afd.enumDeclarationStructure);
-                if (afd.interfaceDeclarationStructure) {
-                    source.addInterface(afd.interfaceDeclarationStructure);
-                }
-            });
-
-            enumDeclarations.forEach((ed) => source.addEnum(ed));
-            entityDeclarations.forEach((ed) => {
-                if (!_.isEmpty(ed.enumDeclarationStructures)) {
-                    source.addEnums(ed.enumDeclarationStructures);
-                }
-
-                source.addInterface(ed.interfaceDeclarationStructure);
-            });
-
-            source.addEnum(entityEnumDeclaration);
-            source.addEnum(sanitizedEntityEnumDeclaration);
         }
+
+        this.addActionFuncDeclarations(
+            actionFuncDeclarations,
+            namespaceOrSource
+        );
+        this.addEnumDeclarations(enumDeclarations, namespaceOrSource);
+        this.addEntityDeclarations(entityDeclarations, namespaceOrSource);
+
+        namespaceOrSource.addEnum(entityEnumDeclaration);
+        namespaceOrSource.addEnum(sanitizedEntityEnumDeclaration);
+    }
+
+    /**
+     * Adds action/function declarations to a given source.
+     *
+     * @private
+     * @param {IActionFunctionDeclarationStructure[]} actionFuncDecls Action/function declaration to add
+     * @param {(morph.SourceFile | morph.NamespaceDeclaration)} source Source to add the action/function declaration to
+     * @memberof Namespace
+     */
+    private addActionFuncDeclarations(
+        actionFuncDecls: IActionFunctionDeclarationStructure[],
+        source: morph.SourceFile | morph.NamespaceDeclaration
+    ): void {
+        actionFuncDecls.forEach((afd) => {
+            source.addEnum(afd.enumDeclarationStructure);
+            if (afd.interfaceDeclarationStructure) {
+                source.addInterface(afd.interfaceDeclarationStructure);
+            }
+        });
+    }
+
+    /**
+     * Adds a enum declarations to the given source
+     *
+     * @private
+     * @param {(morph.SourceFile | morph.NamespaceDeclaration)} source Source to add the enum declartions to
+     * @param {morph.EnumDeclarationStructure[]} enumDecls Enum declarations to add
+     * @memberof Namespace
+     */
+    private addEnumDeclarations(
+        enumDecls: morph.EnumDeclarationStructure[],
+        source: morph.SourceFile | morph.NamespaceDeclaration
+    ): void {
+        enumDecls.forEach((ed) => {
+            if (ed.members && !_.isEmpty(ed.members)) {
+                source.addEnum(ed);
+            }
+        });
+    }
+
+    /**
+     * Adds entity declarations to the given source.
+     *
+     * @private
+     * @param {IEntityDeclarationStructure[]} entityDecls Entity declarations to add
+     * @param {(morph.SourceFile | morph.NamespaceDeclaration)} source Source to add the entity declarations to
+     * @memberof Namespace
+     */
+    private addEntityDeclarations(
+        entityDecls: IEntityDeclarationStructure[],
+        source: morph.SourceFile | morph.NamespaceDeclaration
+    ): void {
+        entityDecls.forEach((ed) => {
+            if (!_.isEmpty(ed.enumDeclarationStructures)) {
+                this.addEnumDeclarations(ed.enumDeclarationStructures, source);
+            }
+
+            source.addInterface(ed.interfaceDeclarationStructure);
+
+            if (!_.isEmpty(ed.actionFuncStructures)) {
+                const actionsNamespace = source.addNamespace({
+                    name: `${ed.interfaceDeclarationStructure.name}.actions`,
+                    isExported: true,
+                });
+
+                this.addActionFuncDeclarations(
+                    ed.actionFuncStructures,
+                    actionsNamespace
+                );
+            }
+        });
     }
 
     /**

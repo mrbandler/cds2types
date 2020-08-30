@@ -42,6 +42,7 @@ export interface IEntityDefinition {
     type?: Type;
     includes?: string[];
     elements?: Map<string, IElement>;
+    actions?: Map<string, IActionFunctionDefinition>;
 }
 
 export interface IEnumDefinition {

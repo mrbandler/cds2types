@@ -34,31 +34,31 @@ using { Currency, managed, sap } from '@sap/cds/common';
 namespace sap.capire.bookshop;
 
 entity Books : managed {
-  key ID : Integer;
-  title  : localized String(111);
-  descr  : localized String(1111);
-  author : Association to Authors;
-  genre  : Association to Genres;
-  stock  : Integer;
-  price  : Decimal(9,2);
-  currency : Currency;
+    key ID   : Integer;
+    title    : localized String(111);
+    descr    : localized String(1111);
+    author   : Association to Authors;
+    genre    : Association to Genres;
+    stock    : Integer;
+    price    : Decimal(9,2);
+    currency : Currency;
 }
 
 entity Authors : managed {
-  key ID : Integer;
-  name   : String(111);
-  dateOfBirth  : Date;
-  dateOfDeath  : Date;
-  placeOfBirth : String;
-  placeOfDeath : String;
-  books  : Association to many Books on books.author = $self;
+    key ID       : Integer;
+    name         : String(111);
+    dateOfBirth  : Date;
+    dateOfDeath  : Date;
+    placeOfBirth : String;
+    placeOfDeath : String;
+    books        : Association to many Books on books.author = $self;
 }
 
 /** Hierarchically organized Code List for Genres */
 entity Genres : sap.common.CodeList {
-  key ID   : Integer;
-  parent   : Association to Genres;
-  children : Composition of many Genres on children.parent = $self;
+    key ID   : Integer;
+    parent   : Association to Genres;
+    children : Composition of many Genres on children.parent = $self;
 }
 ```
 
@@ -68,12 +68,18 @@ entity Genres : sap.common.CodeList {
 using { sap.capire.bookshop as my } from './schema';
 service CatalogService @(path:'/browse') {
 
-  @readonly entity Books as SELECT from my.Books {*,
-    author.name as author
-  } excluding { createdBy, modifiedBy };
+    @readonly entity Books as SELECT from my.Books {*,
+        author.name as author
+    } excluding { createdBy, modifiedBy }
 
-  @requires_: 'authenticated-user'
-  action submitOrder (book : Books.ID, amount: Integer);
+    actions {
+        action addRating (stars: Integer);
+        function getViewsCount() returns Integer;
+    }
+
+    @requires_: 'authenticated-user'
+    action submitOrder (book : Books.ID, amount: Integer);
+
 }
 ```
 
@@ -192,6 +198,21 @@ export namespace CatalogService {
         price: number;
         currency: ICurrencies;
         currency_code?: string;
+    }
+
+    export namespace IBooks.actions {
+        export enum ActionAddRating {
+            name = "addRating",
+            paramStars = "stars",
+        }
+
+        export interface IActionAddRatingParams {
+            stars: number;
+        }
+
+        export enum FuncGetViewsCount {
+            name = "getViewsCount",
+        }
     }
 
     export interface ICurrencies {
