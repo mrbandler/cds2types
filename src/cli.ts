@@ -2,14 +2,15 @@
 
 import * as commander from "commander";
 
-import Program from "./program";
+import { IOptions } from "./utils/types";
+import { Program } from "./program";
 
 /**
  * Main function of the program.
  */
 function main() {
     const cli = new commander.Command();
-    cli.version("2.3.0")
+    cli.version("2.4.0")
         .description(
             "CLI to convert CDS models to Typescript interfaces and enumerations"
         )
@@ -28,7 +29,8 @@ function main() {
     if (!process.argv.slice(2).length) {
         cli.outputHelp();
     } else {
-        new Program().run(cli).catch(error => {
+        const options = cli.opts() as IOptions;
+        new Program().run(options).catch((error) => {
             console.error(`Unable to write types to '${cli.output}'`);
             console.error("Error:", error.message);
         });

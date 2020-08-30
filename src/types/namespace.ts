@@ -1,11 +1,16 @@
 import * as morph from "ts-morph";
 
-import { CDSKind, CDSType, IDefinition, IEnumValue } from "../utils/cds";
+import { Definition, IEnumDefinition } from "../utils/types";
+import { ICsnValue, Kind, Type } from "../utils/cds.types";
 
-import { ActionFunction } from "./action.func";
-import { Entity } from "./entity";
+import {
+    ActionFunction,
+    IActionFunctionDeclarationStructure,
+} from "./action.func";
+import { Entity, IEntityDeclarationStructure } from "./entity";
 import { Enum } from "./enum";
 import _ from "lodash";
+import { appendFileSync } from "fs-extra";
 
 /**
  * Type that represents a namespace.
@@ -33,7 +38,7 @@ export class Namespace {
      * @type {Map<string, IDefinition>}
      * @memberof Namespace
      */
-    private definitions: Map<string, IDefinition>;
+    private definitions: Map<string, Definition>;
 
     /**
      * CDS entities.
@@ -84,7 +89,7 @@ export class Namespace {
      * @memberof Namespace
      */
     constructor(
-        definitions: Map<string, IDefinition>,
+        definitions: Map<string, Definition>,
         blacklist: string[],
         interfacePrefix: string = "",
         name?: string
@@ -115,12 +120,12 @@ export class Namespace {
         source: morph.SourceFile,
         otherEntities: Entity[]
     ): void {
-        const actionFuncDeclarations = this.actionFunctions.map(f =>
+        const actionFuncDeclarations = this.actionFunctions.map((f) =>
             f.toType(otherEntities)
         );
 
-        const enumDeclarations = this.enums.map(e => e.toType());
-        const entityDeclarations = this.entities.map(e =>
+        const enumDeclarations = this.enums.map((e) => e.toType());
+        const entityDeclarations = this.entities.map((e) =>
             e.toType(otherEntities)
         );
 
@@ -129,50 +134,97 @@ export class Namespace {
             true
         ).toType();
 
+        let namespaceOrSource:
+            | morph.SourceFile
+            | morph.NamespaceDeclaration = source;
         if (this.name && this.name !== "") {
-            let namespace = source.addNamespace({
+            namespaceOrSource = source.addNamespace({
                 name: this.name,
                 isExported: true,
             });
-
-            actionFuncDeclarations.forEach(afd => {
-                namespace.addEnum(afd.enumDeclarationStructure);
-                if (afd.interfaceDeclarationStructure) {
-                    namespace.addInterface(afd.interfaceDeclarationStructure);
-                }
-            });
-
-            enumDeclarations.forEach(ed => namespace.addEnum(ed));
-            entityDeclarations.forEach(ed => {
-                if (!_.isEmpty(ed.enumDeclarationStructures)) {
-                    namespace.addEnums(ed.enumDeclarationStructures);
-                }
-
-                namespace.addInterface(ed.interfaceDeclarationStructure);
-            });
-
-            namespace.addEnum(entityEnumDeclaration);
-            namespace.addEnum(sanitizedEntityEnumDeclaration);
-        } else {
-            actionFuncDeclarations.forEach(afd => {
-                source.addEnum(afd.enumDeclarationStructure);
-                if (afd.interfaceDeclarationStructure) {
-                    source.addInterface(afd.interfaceDeclarationStructure);
-                }
-            });
-
-            enumDeclarations.forEach(ed => source.addEnum(ed));
-            entityDeclarations.forEach(ed => {
-                if (!_.isEmpty(ed.enumDeclarationStructures)) {
-                    source.addEnums(ed.enumDeclarationStructures);
-                }
-
-                source.addInterface(ed.interfaceDeclarationStructure);
-            });
-
-            source.addEnum(entityEnumDeclaration);
-            source.addEnum(sanitizedEntityEnumDeclaration);
         }
+
+        this.addActionFuncDeclarations(
+            actionFuncDeclarations,
+            namespaceOrSource
+        );
+        this.addEnumDeclarations(enumDeclarations, namespaceOrSource);
+        this.addEntityDeclarations(entityDeclarations, namespaceOrSource);
+
+        namespaceOrSource.addEnum(entityEnumDeclaration);
+        namespaceOrSource.addEnum(sanitizedEntityEnumDeclaration);
+    }
+
+    /**
+     * Adds action/function declarations to a given source.
+     *
+     * @private
+     * @param {IActionFunctionDeclarationStructure[]} actionFuncDecls Action/function declaration to add
+     * @param {(morph.SourceFile | morph.NamespaceDeclaration)} source Source to add the action/function declaration to
+     * @memberof Namespace
+     */
+    private addActionFuncDeclarations(
+        actionFuncDecls: IActionFunctionDeclarationStructure[],
+        source: morph.SourceFile | morph.NamespaceDeclaration
+    ): void {
+        actionFuncDecls.forEach((afd) => {
+            source.addEnum(afd.enumDeclarationStructure);
+            if (afd.interfaceDeclarationStructure) {
+                source.addInterface(afd.interfaceDeclarationStructure);
+            }
+        });
+    }
+
+    /**
+     * Adds a enum declarations to the given source
+     *
+     * @private
+     * @param {(morph.SourceFile | morph.NamespaceDeclaration)} source Source to add the enum declartions to
+     * @param {morph.EnumDeclarationStructure[]} enumDecls Enum declarations to add
+     * @memberof Namespace
+     */
+    private addEnumDeclarations(
+        enumDecls: morph.EnumDeclarationStructure[],
+        source: morph.SourceFile | morph.NamespaceDeclaration
+    ): void {
+        enumDecls.forEach((ed) => {
+            if (ed.members && !_.isEmpty(ed.members)) {
+                source.addEnum(ed);
+            }
+        });
+    }
+
+    /**
+     * Adds entity declarations to the given source.
+     *
+     * @private
+     * @param {IEntityDeclarationStructure[]} entityDecls Entity declarations to add
+     * @param {(morph.SourceFile | morph.NamespaceDeclaration)} source Source to add the entity declarations to
+     * @memberof Namespace
+     */
+    private addEntityDeclarations(
+        entityDecls: IEntityDeclarationStructure[],
+        source: morph.SourceFile | morph.NamespaceDeclaration
+    ): void {
+        entityDecls.forEach((ed) => {
+            if (!_.isEmpty(ed.enumDeclarationStructures)) {
+                this.addEnumDeclarations(ed.enumDeclarationStructures, source);
+            }
+
+            source.addInterface(ed.interfaceDeclarationStructure);
+
+            if (!_.isEmpty(ed.actionFuncStructures)) {
+                const actionsNamespace = source.addNamespace({
+                    name: `${ed.interfaceDeclarationStructure.name}.actions`,
+                    isExported: true,
+                });
+
+                this.addActionFuncDeclarations(
+                    ed.actionFuncStructures,
+                    actionsNamespace
+                );
+            }
+        });
     }
 
     /**
@@ -188,12 +240,12 @@ export class Namespace {
         interfacePrefix: string = ""
     ): void {
         for (const [key, value] of this.definitions) {
-            if (blacklist.map(b => this.wilcard(b, key)).includes(true)) {
+            if (blacklist.map((b) => this.wilcard(b, key)).includes(true)) {
                 continue;
             }
 
             switch (value.kind) {
-                case CDSKind.entity:
+                case Kind.Entity:
                     const entity = new Entity(
                         key,
                         value,
@@ -204,7 +256,7 @@ export class Namespace {
                     this.entities.push(entity);
 
                     break;
-                case CDSKind.function:
+                case Kind.Function:
                     const func = new ActionFunction(
                         key,
                         value,
@@ -216,7 +268,7 @@ export class Namespace {
                     this.actionFunctions.push(func);
 
                     break;
-                case CDSKind.action:
+                case Kind.Action:
                     const action = new ActionFunction(
                         key,
                         value,
@@ -228,9 +280,13 @@ export class Namespace {
                     this.actionFunctions.push(action);
 
                     break;
-                case CDSKind.type:
-                    if (value.enum) {
-                        const _enum = new Enum(key, value, this.name);
+                case Kind.Type:
+                    if ((value as IEnumDefinition).enum) {
+                        const _enum = new Enum(
+                            key,
+                            value as IEnumDefinition,
+                            this.name
+                        );
                         this.enums.push(_enum);
                     } else {
                         const entity = new Entity(
@@ -274,10 +330,10 @@ export class Namespace {
      * @memberof Namespace
      */
     private generateEntitiesEnum(sanitized: boolean = false): Enum {
-        const definition: IDefinition = {
-            kind: CDSKind.type,
-            type: CDSType.string,
-            enum: new Map<string, IEnumValue>(),
+        const definition: IEnumDefinition = {
+            kind: Kind.Type,
+            type: Type.String,
+            enum: new Map<string, ICsnValue>(),
         };
 
         if (definition.enum) {

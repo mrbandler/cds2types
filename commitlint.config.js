@@ -21,6 +21,6 @@ module.exports = {
             ],
         ],
     },
-    ignores: [message => /^((?:Merge|Merged){1}).*/.test(message)],
+    ignores: [(message) => /^((?:Merge|Merged){1}).*/.test(message)],
     defaultIgnores: true,
 };

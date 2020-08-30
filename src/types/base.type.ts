@@ -1,6 +1,7 @@
 import * as morph from "ts-morph";
 
-import { CDSCardinality, CDSType, IDefinition, IElement } from "../utils/cds";
+import { Cardinality, Type } from "../utils/cds.types";
+import { Definition, IElement } from "../utils/types";
 
 /**
  * Base type that represents a part of CDS domain.
@@ -46,7 +47,7 @@ export abstract class BaseType<I, O> {
      * @type {IDefinition}
      * @memberof BaseType
      */
-    protected definition: IDefinition;
+    protected definition: Definition;
 
     /**
      * Default constructor.
@@ -59,7 +60,7 @@ export abstract class BaseType<I, O> {
      */
     constructor(
         name: string,
-        definition: IDefinition,
+        definition: Definition,
         prefix: string = "",
         namespace: string = ""
     ) {
@@ -123,7 +124,7 @@ export abstract class BaseType<I, O> {
         prefix: string = ""
     ): morph.InterfaceMemberStructures {
         let fieldName =
-            element.canBeNull || element.type === CDSType.association
+            element.canBeNull || element.type === Type.Association
                 ? `${name}?`
                 : name;
 
@@ -220,82 +221,96 @@ export abstract class BaseType<I, O> {
     }
 
     /**
-     * Converts a CDS type to a Typescript type.
+     *
      *
      * @protected
-     * @param {CDSType} type
+     * @param {string} target
      * @returns {string}
      * @memberof BaseType
      */
-    protected cdsTypeToType(type: CDSType): string {
+    protected getNamespace(target: string): string {
+        const parts = target.split(".");
+        parts.splice(parts.length - 1);
+        return parts.join(".");
+    }
+
+    /**
+     * Converts a CDS type to a Typescript type.
+     *
+     * @protected
+     * @param {Type} type
+     * @returns {string}
+     * @memberof BaseType
+     */
+    protected cdsTypeToType(type: Type): string {
         let result: string = "unknown";
 
         switch (type) {
-            case CDSType.uuid:
+            case Type.Uuid:
                 result = "string";
                 break;
 
-            case CDSType.string:
+            case Type.String:
                 result = "string";
                 break;
 
-            case CDSType.largeString:
+            case Type.LargeString:
                 result = "string";
                 break;
 
-            case CDSType.user:
+            case Type.User:
                 result = "string";
                 break;
 
-            case CDSType.boolean:
+            case Type.Boolean:
                 result = "boolean";
                 break;
 
-            case CDSType.integer:
+            case Type.Integer:
                 result = "number";
                 break;
 
-            case CDSType.integer64:
+            case Type.Integer64:
                 result = "number";
                 break;
 
-            case CDSType.decimal:
+            case Type.Decimal:
                 result = "number";
                 break;
 
-            case CDSType.decimalFloat:
+            case Type.DecimalFloat:
                 result = "number";
                 break;
 
-            case CDSType.decimalFloat:
+            case Type.DecimalFloat:
                 result = "number";
                 break;
 
-            case CDSType.double:
+            case Type.Double:
                 result = "number";
                 break;
 
-            case CDSType.date:
+            case Type.Date:
                 result = "Date";
                 break;
 
-            case CDSType.time:
+            case Type.Time:
                 result = "Date";
                 break;
 
-            case CDSType.dateTime:
+            case Type.DateTime:
                 result = "Date";
                 break;
 
-            case CDSType.timestamp:
+            case Type.Timestamp:
                 result = "Date";
                 break;
 
-            case CDSType.binary:
+            case Type.Binary:
                 result = "Buffer";
                 break;
 
-            case CDSType.largeBinary:
+            case Type.LargeBinary:
                 result = "Buffer";
                 break;
         }
@@ -316,25 +331,56 @@ export abstract class BaseType<I, O> {
         let result: string = "unknown";
 
         switch (element.type) {
-            case CDSType.association:
-                if (element.target && element.cardinality) {
-                    const target = this.sanitizeTarget(element.target);
-                    let suffix = "";
-                    if (element.cardinality.max === CDSCardinality.many) {
-                        suffix = "[]";
-                    }
+            case Type.Association:
+                result = this.resolveTargetType(element, prefix);
 
-                    result = prefix + target + suffix;
-                }
+                break;
+
+            case Type.Composition:
+                result = this.resolveTargetType(element, prefix);
+
                 break;
 
             default:
-                result = this.cdsTypeToType(element.type);
+                if (
+                    element.type.includes("cds") ||
+                    element.type === Type.User
+                ) {
+                    result = this.cdsTypeToType(element.type);
+                } else {
+                    result = this.resolveTargetType(element, prefix);
+                }
+
                 break;
         }
 
-        if (element.type !== CDSType.association && element.isArray) {
-            result = `${result}[]`;
+        return result;
+    }
+
+    protected resolveTargetType(
+        element: IElement,
+        prefix: string = ""
+    ): string {
+        let result = "";
+
+        if (element && element.target && element.cardinality) {
+            let target = "";
+            if (element.target.includes(this.namespace)) {
+                target = prefix + this.sanitizeTarget(element.target);
+            } else {
+                target =
+                    this.getNamespace(element.target) +
+                    "." +
+                    prefix +
+                    this.sanitizeTarget(element.target);
+            }
+
+            let suffix = "";
+            if (element.cardinality.max === Cardinality.many) {
+                suffix = "[]";
+            }
+
+            result = target + suffix;
         }
 
         return result;

@@ -1,15 +1,14 @@
 import * as morph from "ts-morph";
 
-import {
-    CDSCardinality,
-    CDSKind,
-    CDSType,
-    IDefinition,
-    IElement,
-} from "../utils/cds";
+import { Cardinality, Kind } from "../utils/cds.types";
+import { IElement, IEntityDefinition, IEnumDefinition } from "../utils/types";
 
 import { BaseType } from "./base.type";
 import { Enum } from "./enum";
+import {
+    ActionFunction,
+    IActionFunctionDeclarationStructure,
+} from "./action.func";
 
 /**
  * Entity toType return type.
@@ -20,6 +19,7 @@ import { Enum } from "./enum";
 export interface IEntityDeclarationStructure {
     interfaceDeclarationStructure: morph.InterfaceDeclarationStructure;
     enumDeclarationStructures: morph.EnumDeclarationStructure[];
+    actionFuncStructures: IActionFunctionDeclarationStructure[];
 }
 
 /**
@@ -32,6 +32,10 @@ export interface IEntityDeclarationStructure {
  * @extends {BaseType}
  */
 export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
+    private get def(): IEntityDefinition {
+        return this.definition as IEntityDefinition;
+    }
+
     /**
      * Default constructor.
      *
@@ -43,7 +47,7 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
      */
     constructor(
         name: string,
-        definition: IDefinition,
+        definition: IEntityDefinition,
         prefix: string = "",
         namespace: string = ""
     ) {
@@ -63,10 +67,11 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
         let result: IEntityDeclarationStructure = {
             interfaceDeclarationStructure: this.createInterface("", "", ext),
             enumDeclarationStructures: [],
+            actionFuncStructures: [],
         };
 
-        if (this.definition.elements) {
-            for (const [key, value] of this.definition.elements) {
+        if (this.def.elements) {
+            for (const [key, value] of this.def.elements) {
                 if (value.enum) {
                     result.enumDeclarationStructures.push(
                         this.createEnumDeclaration(key, value)
@@ -91,7 +96,7 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
 
                         if (
                             value.cardinality &&
-                            value.cardinality.max === CDSCardinality.one
+                            value.cardinality.max === Cardinality.one
                         ) {
                             result.interfaceDeclarationStructure.properties?.push(
                                 ...(this.getAssociationRefField(
@@ -104,6 +109,21 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
                         }
                     }
                 }
+            }
+        }
+
+        if (this.def.actions) {
+            for (const [key, value] of this.def.actions) {
+                const actionFunc = new ActionFunction(
+                    key,
+                    value,
+                    value.kind,
+                    this.prefix,
+                    this.name
+                );
+                const actionFuncDeclaration = actionFunc.toType(types);
+
+                result.actionFuncStructures.push(actionFuncDeclaration);
             }
         }
 
@@ -152,8 +172,8 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
     public getFields(): string[] {
         let result: string[] = [];
 
-        if (this.definition.elements) {
-            result = Array.from(this.definition.elements.keys());
+        if (this.def.elements) {
+            result = Array.from(this.def.elements.keys());
         }
 
         return result;
@@ -167,7 +187,7 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
      * @memberof Entity
      */
     public getElement(name: string): IElement | undefined {
-        return this.definition.elements?.get(name);
+        return this.def.elements?.get(name);
     }
 
     /**
@@ -186,8 +206,8 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
         const enumName =
             this.sanitizeName(this.sanitizeTarget(this.name)) +
             this.sanitizeName(key);
-        const definition: IDefinition = {
-            kind: CDSKind.type,
+        const definition: IEnumDefinition = {
+            kind: Kind.Type,
             type: value.type,
             enum: value.enum,
         };
@@ -207,15 +227,13 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
     private getExtensionInterfaces(types: Entity[]): string[] | undefined {
         let result: string[] | undefined = undefined;
 
-        if (this.definition.includes) {
-            const entities = types.filter(e =>
-                this.definition.includes
-                    ? this.definition.includes.includes(e.name)
-                    : false
+        if (this.def.includes) {
+            const entities = types.filter((e) =>
+                this.def.includes ? this.def.includes.includes(e.name) : false
             );
 
             if (entities) {
-                result = entities.map(e => e.getSanitizedName(true, true));
+                result = entities.map((e) => e.getSanitizedName(true, true));
             }
         }
 
@@ -233,11 +251,9 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
     private getExtensionInterfaceFields(types: Entity[]): string[] {
         let result: string[] = [];
 
-        if (this.definition.includes) {
-            const entities = types.filter(e =>
-                this.definition.includes
-                    ? this.definition.includes.includes(e.name)
-                    : false
+        if (this.def.includes) {
+            const entities = types.filter((e) =>
+                this.def.includes ? this.def.includes.includes(e.name) : false
             );
             if (entities) {
                 for (const entity of entities) {
@@ -269,10 +285,12 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
         let result: morph.InterfaceMemberStructures[] = [];
 
         if (element.target && element.keys) {
-            const entity = types.find(t => element.target === t.getModelName());
-            if (entity && entity.definition.elements) {
+            const entity = types.find(
+                (t) => element.target === t.getModelName()
+            );
+            if (entity && entity.def.elements) {
                 for (const key of element.keys) {
-                    for (const [k, v] of entity.definition.elements) {
+                    for (const [k, v] of entity.def.elements) {
                         if (k === key.ref[0]) {
                             result.push({
                                 kind: morph.StructureKind.PropertySignature,

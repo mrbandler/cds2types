@@ -34,31 +34,31 @@ using { Currency, managed, sap } from '@sap/cds/common';
 namespace sap.capire.bookshop;
 
 entity Books : managed {
-  key ID : Integer;
-  title  : localized String(111);
-  descr  : localized String(1111);
-  author : Association to Authors;
-  genre  : Association to Genres;
-  stock  : Integer;
-  price  : Decimal(9,2);
-  currency : Currency;
+    key ID   : Integer;
+    title    : localized String(111);
+    descr    : localized String(1111);
+    author   : Association to Authors;
+    genre    : Association to Genres;
+    stock    : Integer;
+    price    : Decimal(9,2);
+    currency : Currency;
 }
 
 entity Authors : managed {
-  key ID : Integer;
-  name   : String(111);
-  dateOfBirth  : Date;
-  dateOfDeath  : Date;
-  placeOfBirth : String;
-  placeOfDeath : String;
-  books  : Association to many Books on books.author = $self;
+    key ID       : Integer;
+    name         : String(111);
+    dateOfBirth  : Date;
+    dateOfDeath  : Date;
+    placeOfBirth : String;
+    placeOfDeath : String;
+    books        : Association to many Books on books.author = $self;
 }
 
 /** Hierarchically organized Code List for Genres */
 entity Genres : sap.common.CodeList {
-  key ID   : Integer;
-  parent   : Association to Genres;
-  children : Composition of many Genres on children.parent = $self;
+    key ID   : Integer;
+    parent   : Association to Genres;
+    children : Composition of many Genres on children.parent = $self;
 }
 ```
 
@@ -68,12 +68,18 @@ entity Genres : sap.common.CodeList {
 using { sap.capire.bookshop as my } from './schema';
 service CatalogService @(path:'/browse') {
 
-  @readonly entity Books as SELECT from my.Books {*,
-    author.name as author
-  } excluding { createdBy, modifiedBy };
+    @readonly entity Books as SELECT from my.Books {*,
+        author.name as author
+    } excluding { createdBy, modifiedBy }
 
-  @requires_: 'authenticated-user'
-  action submitOrder (book : Books.ID, amount: Integer);
+    actions {
+        action addRating (stars: Integer);
+        function getViewsCount() returns Integer;
+    }
+
+    @requires_: 'authenticated-user'
+    action submitOrder (book : Books.ID, amount: Integer);
+
 }
 ```
 
@@ -98,6 +104,7 @@ export namespace sap.capire.bookshop {
         placeOfDeath: string;
         books?: IBooks[];
     }
+
     export interface IBooks extends IManaged {
         ID: number;
         title: string;
@@ -108,47 +115,56 @@ export namespace sap.capire.bookshop {
         genre_ID?: number;
         stock: number;
         price: number;
-        currency: unknown;
+        currency: sap.common.ICurrencies;
         currency_code?: string;
     }
+
     export interface IGenres extends sap.common.ICodeList {
         ID: number;
         parent?: IGenres;
         parent_ID?: number;
-        children: unknown;
+        children: IGenres[];
     }
+
     export enum Entity {
         Authors = "sap.capire.bookshop.Authors",
         Books = "sap.capire.bookshop.Books",
         Genres = "sap.capire.bookshop.Genres",
     }
+
     export enum SanitizedEntity {
         Authors = "Authors",
         Books = "Books",
         Genres = "Genres",
     }
 }
+
 export namespace sap.common {
     export interface ICodeList {
         name: string;
         descr: string;
     }
+
     export interface ICountries extends sap.common.ICodeList {
         code: string;
     }
+
     export interface ICurrencies extends sap.common.ICodeList {
         code: string;
         symbol: string;
     }
+
     export interface ILanguages extends sap.common.ICodeList {
         code: string;
     }
+
     export enum Entity {
         CodeList = "sap.common.CodeList",
         Countries = "sap.common.Countries",
         Currencies = "sap.common.Currencies",
         Languages = "sap.common.Languages",
     }
+
     export enum SanitizedEntity {
         CodeList = "CodeList",
         Countries = "Countries",
@@ -156,16 +172,19 @@ export namespace sap.common {
         Languages = "Languages",
     }
 }
+
 export namespace CatalogService {
     export enum ActionSubmitOrder {
         name = "submitOrder",
         paramBook = "book",
         paramAmount = "amount",
     }
+
     export interface IActionSubmitOrderParams {
-        book: unknown;
+        book: number;
         amount: number;
     }
+
     export interface IBooks {
         createdAt?: Date;
         modifiedAt?: Date;
@@ -177,54 +196,79 @@ export namespace CatalogService {
         genre_ID?: number;
         stock: number;
         price: number;
-        currency: unknown;
+        currency: ICurrencies;
         currency_code?: string;
     }
+
+    export namespace IBooks.actions {
+        export enum ActionAddRating {
+            name = "addRating",
+            paramStars = "stars",
+        }
+
+        export interface IActionAddRatingParams {
+            stars: number;
+        }
+
+        export enum FuncGetViewsCount {
+            name = "getViewsCount",
+        }
+    }
+
     export interface ICurrencies {
         name: string;
         descr: string;
         code: string;
         symbol: string;
     }
+
     export interface IGenres {
         name: string;
         descr: string;
         ID: number;
         parent?: IGenres;
         parent_ID?: number;
-        children: unknown;
+        children: IGenres[];
     }
+
     export enum Entity {
         Books = "CatalogService.Books",
         Currencies = "CatalogService.Currencies",
         Genres = "CatalogService.Genres",
     }
+
     export enum SanitizedEntity {
         Books = "Books",
         Currencies = "Currencies",
         Genres = "Genres",
     }
 }
+
 export interface IUser {}
+
 export interface ICuid {
     ID: string;
 }
+
 export interface IManaged {
     createdAt?: Date;
     createdBy?: string;
     modifiedAt?: Date;
     modifiedBy?: string;
 }
+
 export interface ITemporal {
     validFrom: Date;
     validTo: Date;
 }
+
 export enum Entity {
     User = "User",
     Cuid = "cuid",
     Managed = "managed",
     Temporal = "temporal",
 }
+
 export enum SanitizedEntity {
     User = "User",
     Cuid = "Cuid",
