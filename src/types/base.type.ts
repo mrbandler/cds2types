@@ -195,6 +195,7 @@ export abstract class BaseType<I, O> {
             kind: morph.StructureKind.TypeAlias,
             name: name,
             type: type,
+            isExported: true,
         };
     }
 
