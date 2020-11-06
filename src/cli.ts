@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import * as commander from "commander";
+import commander from "commander";
 
 import { IOptions } from "./utils/types";
 import { Program } from "./program";

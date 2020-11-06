@@ -20,6 +20,7 @@ module.exports = {
                 "wiki",
             ],
         ],
+        "header-max-length": [0, "always", 82],
     },
     ignores: [(message) => /^((?:Merge|Merged){1}).*/.test(message)],
     defaultIgnores: true,

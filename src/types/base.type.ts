@@ -187,6 +187,17 @@ export abstract class BaseType<I, O> {
         };
     }
 
+    protected createType(
+        name: string,
+        type: string
+    ): morph.TypeAliasDeclarationStructure {
+        return {
+            kind: morph.StructureKind.TypeAlias,
+            name: name,
+            type: type,
+        };
+    }
+
     /**
      * Sanitizes a given name.
      *

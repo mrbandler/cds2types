@@ -1,4 +1,4 @@
-import * as cds from "@sap/cds";
+import cds from "@sap/cds";
 import * as fs from "fs-extra";
 import * as morph from "ts-morph";
 import * as path from "path";

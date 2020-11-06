@@ -51,9 +51,15 @@ export interface IEnumDefinition {
     enum?: Map<string, ICsnValue>;
 }
 
+export interface IActionFunctionReturns {
+    type: Type | string;
+    isArray: boolean;
+}
+
 export interface IActionFunctionDefinition {
     kind: Kind;
     params?: Map<string, ICsnParam>;
+    returns?: IActionFunctionReturns;
 }
 
 export type Definition =

@@ -120,10 +120,11 @@ export interface ICsnParams {
 export interface ICsnActionDefinition {
     kind: Kind;
     params?: ICsnParams;
+    returns?: CsnReturns;
 }
 
 export interface ICsnReturnsSingle {
-    type: Type;
+    type: Type | string;
 }
 
 export interface ICsnReturnsMulti {
@@ -135,7 +136,7 @@ export type CsnReturns = ICsnReturnsSingle | ICsnReturnsMulti;
 export interface ICsnFunctionDefinition {
     kind: Kind;
     params?: ICsnParams;
-    returns: CsnReturns;
+    returns?: CsnReturns;
 }
 
 export type ICsnDefinition =
@@ -210,4 +211,9 @@ export function isReturnsMulti(
 
 export function isTypeRef(type: Type | ICsnTypeRef): type is ICsnTypeRef {
     return (type as ICsnTypeRef).ref !== undefined;
+}
+
+export function isType(type: Type | string): type is Type {
+    var values = Object.keys(Type).map((k) => Type[k as string]);
+    return values.includes(type);
 }

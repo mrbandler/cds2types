@@ -1,6 +1,6 @@
 import * as morph from "ts-morph";
 
-import { ICsnTypeRef, Kind, isTypeRef } from "../utils/cds.types";
+import { ICsnTypeRef, Kind, isTypeRef, isType } from "../utils/cds.types";
 
 import { BaseType } from "./base.type";
 import { Entity } from "./entity";
@@ -15,6 +15,7 @@ import { IActionFunctionDefinition } from "../utils/types";
 export interface IActionFunctionDeclarationStructure {
     enumDeclarationStructure: morph.EnumDeclarationStructure;
     interfaceDeclarationStructure?: morph.InterfaceDeclarationStructure;
+    typeAliasDeclarationStructure?: morph.TypeAliasDeclarationStructure;
 }
 
 /**
@@ -64,6 +65,14 @@ export class ActionFunction extends BaseType<
      */
     private params: string[] = [];
 
+    /**
+     * Returns the definition casted to a action/function definition.
+     *
+     * @readonly
+     * @private
+     * @type {IActionFunctionDefinition}
+     * @memberof ActionFunction
+     */
     private get def(): IActionFunctionDefinition {
         return this.definition as IActionFunctionDefinition;
     }
@@ -108,6 +117,10 @@ export class ActionFunction extends BaseType<
         return {
             enumDeclarationStructure: this.createEnumDeclaration(prefix),
             interfaceDeclarationStructure: this.createInterfaceDeclaration(
+                prefix,
+                types
+            ),
+            typeAliasDeclarationStructure: this.createTypeDeclaration(
                 prefix,
                 types
             ),
@@ -186,6 +199,50 @@ export class ActionFunction extends BaseType<
                     });
                 }
             }
+        }
+
+        return result;
+    }
+
+    /**
+     * Creates the Typescript type alias declaration.
+     *
+     * @private
+     * @param {string} prefix Kind prefix
+     * @param {Entity[]} types Scoped types for returns resolution
+     * @returns {(morph.TypeAliasDeclarationStructure | undefined)} Created Typescript type alias declaration
+     * @memberof ActionFunction
+     */
+    private createTypeDeclaration(
+        prefix: string,
+        types: Entity[]
+    ): morph.TypeAliasDeclarationStructure | undefined {
+        let result: morph.TypeAliasDeclarationStructure | undefined = undefined;
+
+        if (this.def.returns) {
+            var target = this.sanitizeTarget(this.name);
+            const name = `${prefix}${this.sanitizeName(target)}Return`;
+
+            var type = "unknown";
+            if (isType(this.def.returns.type)) {
+                type = this.cdsTypeToType(this.def.returns.type);
+                if (this.def.returns.isArray) {
+                    type = `${type}[]`;
+                }
+            } else {
+                const entity = types.find(
+                    (t) => t.getModelName() === this.def.returns?.type
+                );
+
+                if (entity) {
+                    type = entity.getSanitizedName(true, true);
+                    if (this.def.returns.isArray) {
+                        type = `${type}[]`;
+                    }
+                }
+            }
+
+            result = this.createType(name, type);
         }
 
         return result;

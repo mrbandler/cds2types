@@ -19,10 +19,13 @@ import {
     isFunctionDef,
     isServiceDef,
     isTypeDef,
+    isReturnsSingle,
+    isReturnsMulti,
 } from "./utils/cds.types";
 import {
     Definition,
     IActionFunctionDefinition,
+    IActionFunctionReturns,
     IElement,
     IEntityDefinition,
     IEnumDefinition,
@@ -165,6 +168,7 @@ export class CDSParser {
         return {
             kind: definition.kind,
             params: this.parseParams(definition),
+            returns: this.parseReturns(definition),
         };
     }
 
@@ -306,6 +310,34 @@ export class CDSParser {
         }
 
         return result;
+    }
+
+    /**
+     * Parses the return type of a given action or function.
+     *
+     * @private
+     * @param {(ICsnActionDefinition | ICsnFunctionDefinition)} definition Action or function definition to parse
+     * @returns {(IActionFunctionReturns | undefined)} Parsed action/function return (can be undefinied)
+     * @memberof CDSParser
+     */
+    private parseReturns(
+        definition: ICsnActionDefinition | ICsnFunctionDefinition
+    ): IActionFunctionReturns | undefined {
+        if (definition.returns) {
+            if (isReturnsSingle(definition.returns)) {
+                return {
+                    type: definition.returns.type,
+                    isArray: false,
+                };
+            } else if (isReturnsMulti(definition.returns)) {
+                return {
+                    type: definition.returns.items.type,
+                    isArray: true,
+                };
+            }
+        }
+
+        return undefined;
     }
 
     /**

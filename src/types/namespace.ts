@@ -172,6 +172,10 @@ export class Namespace {
             if (afd.interfaceDeclarationStructure) {
                 source.addInterface(afd.interfaceDeclarationStructure);
             }
+
+            if (afd.typeAliasDeclarationStructure) {
+                source.addTypeAlias(afd.typeAliasDeclarationStructure);
+            }
         });
     }
 
