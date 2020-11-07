@@ -135,16 +135,6 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
     }
 
     /**
-     * Returns the sanitized name of the entity.
-     *
-     * @returns {string} Sanitized name of the entity
-     * @memberof Entity
-     */
-    public getSanitizedName(withNamespace: boolean = false): string {
-        return this.getSanitizedAndPrefixedName(withNamespace);
-    }
-
-    /**
      * Returns the fields of the entity.
      *
      * @returns {string[]} List of all field names
@@ -214,7 +204,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
             );
 
             if (entities) {
-                result = entities.map((e) => e.getSanitizedName(true));
+                result = entities.map((e) => e.getSanitizedName(true, true));
             }
         }
 

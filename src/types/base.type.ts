@@ -91,22 +91,13 @@ export abstract class BaseType<O = any> {
      * @returns {string} Sanitized name of the entity
      * @memberof BaseType
      */
-    public getSanitizedName(withNamespace: boolean = false): string {
-        let name = this.sanitizeName(this.sanitizeTarget(this.name));
-
-        if (withNamespace && (this.namespace || this.namespace !== "")) {
-            name = this.namespace + "." + name;
-        }
-
-        return name;
-    }
-
-    protected getSanitizedAndPrefixedName(
-        withNamespace: boolean = false
+    public getSanitizedName(
+        withNamespace: boolean = false,
+        withPrefix: boolean = false
     ): string {
         let name = this.sanitizeName(this.sanitizeTarget(this.name));
 
-        if (this.prefix) {
+        if (withPrefix && (this.prefix || this.prefix !== "")) {
             name = this.prefix + name;
         }
 
@@ -301,7 +292,7 @@ export abstract class BaseType<O = any> {
         } else {
             const found = types.find((t) => t.name === type);
             if (found) {
-                result = found.getSanitizedName(true);
+                result = found.getSanitizedName(true, true);
 
                 if (this.namespace !== "" && result.includes(this.namespace)) {
                     result = result.replace(`${this.namespace}.`, "");

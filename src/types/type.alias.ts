@@ -38,10 +38,9 @@ export class TypeAlias extends BaseType<
     constructor(
         name: string,
         definition: ITypeAliasDefinition,
-        prefix: string,
         namespace?: string
     ) {
-        super(name, definition, prefix, namespace);
+        super(name, definition, undefined, namespace);
     }
 
     /**
