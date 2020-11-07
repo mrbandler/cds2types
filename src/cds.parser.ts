@@ -5,22 +5,32 @@ import {
     ICsnDefinition,
     ICsnElement,
     ICsnEntityDefinition,
-    ICsnEnumDefinition,
+    ICsnEnumTypeDefinition,
     ICsnFunctionDefinition,
     ICsnParam,
-    ICsnTypeDefinition,
+    ICsnStructuredTypeDefinition,
     ICsnValue,
     Kind,
     Managed,
     Type,
     isActionDef,
     isEntityDef,
-    isEnumDef,
+    isEnumTypeDef,
     isFunctionDef,
     isServiceDef,
-    isTypeDef,
+    isTypeAliasDef,
     isReturnsSingle,
     isReturnsMulti,
+    isTypeDef,
+    isArrayTypeAliasDef,
+    isStructuredTypeDef,
+    ICsnDefinitions,
+    ICsnTypeAliasDefinition,
+    ICsnArrayTypeAliasDefinition,
+    isType,
+    isArrayTypeAliasTypeItems,
+    ICsnElements,
+    ICsnActions,
 } from "./utils/cds.types";
 import {
     Definition,
@@ -32,9 +42,10 @@ import {
     INamespace,
     IParsed,
     IService,
+    ITypeAliasDefinition,
 } from "./utils/types";
 
-import _ from "lodash";
+import _, { isElement } from "lodash";
 
 /**
  * Parses a compiled CDS JSON object.
@@ -91,19 +102,8 @@ export class CDSParser {
                 }
 
                 let definitions = this.getDefinitions(name);
-                if (isEntityDef(def) || isTypeDef(def)) {
-                    const parsedDef = this.parseEntityOrTypeDef(name, def);
-
-                    definitions.set(name, parsedDef);
-                } else if (isEnumDef(def)) {
-                    const parsedDef = this.parseEnumDef(def);
-
-                    definitions.set(name, parsedDef);
-                } else if (isActionDef(def) || isFunctionDef(def)) {
-                    const parsedDef = this.parseActionFunctionDef(def);
-
-                    definitions.set(name, parsedDef);
-                }
+                let parsed = this.parseDefinition(name, def);
+                if (parsed) definitions.set(name, parsed);
             }
         }
 
@@ -115,24 +115,103 @@ export class CDSParser {
     }
 
     /**
+     * Parses a given CSN definition.
+     *
+     * @private
+     * @param {ICsnDefinition} definition CSN definition to parse
+     * @returns {Definition} Parsed definition
+     * @memberof CDSParser
+     */
+    private parseDefinition(
+        name: string,
+        definition: ICsnDefinition
+    ): Definition {
+        if (isTypeDef(definition)) {
+            if (isTypeAliasDef(definition)) {
+                return this.parseTypeAliasDef(definition);
+            } else if (isArrayTypeAliasDef(definition)) {
+                return this.parseArrayTypeAliasDef(name, definition);
+            } else if (isStructuredTypeDef(definition)) {
+                return this.parseEntityOrStructuredTypeDef(name, definition);
+            } else if (isEnumTypeDef(definition)) {
+                return this.parseEnumDef(definition);
+            }
+        } else {
+            if (isEntityDef(definition)) {
+                return this.parseEntityOrStructuredTypeDef(name, definition);
+            } else if (isActionDef(definition) || isFunctionDef(definition)) {
+                return this.parseActionFunctionDef(definition);
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Parses a type alias definition.
+     *
+     * @private
+     * @param {ICsnTypeAliasDefinition} definition CSN type alias definition to parse
+     * @returns {ITypeAliasDefinition} Parsed type definition
+     * @memberof CDSParser
+     */
+    private parseTypeAliasDef(
+        definition: ICsnTypeAliasDefinition
+    ): ITypeAliasDefinition {
+        return {
+            kind: definition.kind,
+            type: definition.type,
+            isArray: false,
+        };
+    }
+
+    /**
+     * Parses a array type alias definition.
+     *
+     * @private
+     * @param {string} name Name of the CSN array type alias definition to parse
+     * @param {ICsnArrayTypeAliasDefinition} definition CSN array type alias definition to parse
+     * @returns {ITypeAliasDefinition} Parsed array type alias definition
+     * @memberof CDSParser
+     */
+    private parseArrayTypeAliasDef(
+        name: string,
+        definition: ICsnArrayTypeAliasDefinition
+    ): ITypeAliasDefinition {
+        if (isArrayTypeAliasTypeItems(definition.items)) {
+            return {
+                kind: definition.kind,
+                type: definition.items.type,
+                isArray: true,
+            };
+        } else {
+            return {
+                kind: definition.kind,
+                elements: this.parseElements(name, definition.items.elements),
+                isArray: true,
+            };
+        }
+    }
+
+    /**
      * Parses a given entity or type definition.
      *
      * @private
      * @param {string} name Name of the entity or type to parse
-     * @param {(ICsnEntityDefinition | ICsnTypeDefinition)} definition Definition of the entity or type to parse
+     * @param {(ICsnEntityDefinition | ICsnStructuredTypeDefinition)} definition Definition of the entity or type to parse
      * @return {IEntityDefinition} Parsed entity definition
      * @memberof CDSParser
      */
-    private parseEntityOrTypeDef(
+    private parseEntityOrStructuredTypeDef(
         name: string,
-        definition: ICsnEntityDefinition | ICsnTypeDefinition
+        definition: ICsnEntityDefinition | ICsnStructuredTypeDefinition
     ): IEntityDefinition {
         return {
             kind: definition.kind,
-            type: isTypeDef(definition) ? definition.type : undefined,
-            elements: this.parseElements(name, definition),
+            type: isTypeAliasDef(definition) ? definition.type : undefined,
+            elements: this.parseElements(name, definition.elements),
             actions: isEntityDef(definition)
-                ? this.parseBoundActions(definition)
+                ? this.parseBoundActions(definition.actions)
                 : undefined,
             includes: isEntityDef(definition) ? definition.includes || [] : [],
         };
@@ -142,11 +221,11 @@ export class CDSParser {
      * Parses a given enum definition.
      *
      * @private
-     * @param {ICsnEnumDefinition} definition Enum definition to parse
+     * @param {ICsnEnumTypeDefinition} definition Enum definition to parse
      * @return {IEnumDefinition} Parsed enum definition.
      * @memberof CDSParser
      */
-    private parseEnumDef(definition: ICsnEnumDefinition): IEnumDefinition {
+    private parseEnumDef(definition: ICsnEnumTypeDefinition): IEnumDefinition {
         return {
             kind: definition.kind,
             type: definition.type,
@@ -177,20 +256,20 @@ export class CDSParser {
      *
      * @private
      * @param {string} name Name of the entity to parse the elements from
-     * @param {(ICsnEntityDefinition | ICsnTypeDefinition)} def Entity or type definition to parse the elements from
+     * @param {(ICsnEntityDefinition | ICsnStructuredTypeDefinition)} def Entity or type definition to parse the elements from
      * @return {Map<string, IElement>} Parsed elements
      * @memberof CDSParser
      */
     private parseElements(
         name: string,
-        def: ICsnEntityDefinition | ICsnTypeDefinition
+        elements: ICsnElements | undefined
     ): Map<string, IElement> {
         let result: Map<string, IElement> = new Map<string, IElement>();
 
-        if (def.elements) {
-            for (const elementName in def.elements) {
-                if (def.elements.hasOwnProperty(elementName)) {
-                    const element = def.elements[elementName];
+        if (elements) {
+            for (const elementName in elements) {
+                if (elements.hasOwnProperty(elementName)) {
+                    const element = elements[elementName];
 
                     if (this.isLocalizationField(element)) continue;
                     if (!element.type) {
@@ -241,17 +320,17 @@ export class CDSParser {
      * @memberof CDSParser
      */
     private parseBoundActions(
-        def: ICsnEntityDefinition
+        actions: ICsnActions | undefined
     ): Map<string, IActionFunctionDefinition> {
         let result: Map<string, IActionFunctionDefinition> = new Map<
             string,
             IActionFunctionDefinition
         >();
 
-        if (def.actions) {
-            for (const actionName in def.actions) {
-                if (def.actions.hasOwnProperty(actionName)) {
-                    const action = def.actions[actionName];
+        if (actions) {
+            for (const actionName in actions) {
+                if (actions.hasOwnProperty(actionName)) {
+                    const action = actions[actionName];
 
                     const parsedAction = this.parseActionFunctionDef(action);
                     result.set(actionName, parsedAction);
@@ -266,12 +345,12 @@ export class CDSParser {
      * Parses a enum.
      *
      * @private
-     * @param {(ICsnEnumDefinition | ICsnElement)} definition Enum definition to parse
+     * @param {(ICsnEnumTypeDefinition | ICsnElement)} definition Enum definition to parse
      * @return {Map<string, ICsnValue>} Parsed enum values
      * @memberof CDSParser
      */
     private parseEnum(
-        definition: ICsnEnumDefinition | ICsnElement
+        definition: ICsnEnumTypeDefinition | ICsnElement
     ): Map<string, ICsnValue> {
         let result = new Map<string, ICsnValue>();
 
@@ -359,7 +438,7 @@ export class CDSParser {
         )
             return false;
 
-        if (isTypeDef(value)) {
+        if (isTypeAliasDef(value)) {
             if (value.type === Type.Association) return false;
         }
 

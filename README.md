@@ -44,9 +44,33 @@ entity Books : managed {
     currency : Currency;
 }
 
+type Gender : Integer enum {
+    NonBinary;
+    Male;
+    Female;
+}
+
+type NameStr : String(111);
+
+type Name {
+    firstname: NameStr;
+    lastname: NameStr;
+}
+
+type Address {
+    street: String;
+    houseNo: String;
+    town: String;
+    country: String;
+}
+
+type Addresses : many Address;
+
 entity Authors : managed {
     key ID       : Integer;
-    name         : String(111);
+    name         : Name;
+    gender       : Gender;
+    addresses    : Addresses;
     dateOfBirth  : Date;
     dateOfDeath  : Date;
     placeOfBirth : String;
@@ -77,6 +101,8 @@ service CatalogService @(path:'/browse') {
         function getViewsCount() returns Integer;
     }
 
+    function getBooks(author : my.Authors.ID) returns array of my.Books;
+
     @requires_: 'authenticated-user'
     action submitOrder (book : Books.ID, amount: Integer);
 
@@ -95,9 +121,27 @@ We get the following output:
 // service.ts
 
 export namespace sap.capire.bookshop {
+    export type Addresses = IAddress[];
+    export type NameStr = string;
+
+    export enum Gender {
+        NonBinary,
+        Male,
+        Female,
+    }
+
+    export interface IAddress {
+        street: string;
+        houseNo: string;
+        town: string;
+        country: string;
+    }
+
     export interface IAuthors extends IManaged {
         ID: number;
-        name: string;
+        name: IName;
+        gender: Gender;
+        addresses: Addresses;
         dateOfBirth: Date;
         dateOfDeath: Date;
         placeOfBirth: string;
@@ -126,16 +170,25 @@ export namespace sap.capire.bookshop {
         children: IGenres[];
     }
 
+    export interface IName {
+        firstname: NameStr;
+        lastname: NameStr;
+    }
+
     export enum Entity {
-        Authors = "sap.capire.bookshop.Authors",
-        Books = "sap.capire.bookshop.Books",
-        Genres = "sap.capire.bookshop.Genres",
+        IAddress = "sap.capire.bookshop.Address",
+        IAuthors = "sap.capire.bookshop.Authors",
+        IBooks = "sap.capire.bookshop.Books",
+        IGenres = "sap.capire.bookshop.Genres",
+        IName = "sap.capire.bookshop.Name",
     }
 
     export enum SanitizedEntity {
-        Authors = "Authors",
-        Books = "Books",
-        Genres = "Genres",
+        IAddress = "IAddress",
+        IAuthors = "IAuthors",
+        IBooks = "IBooks",
+        IGenres = "IGenres",
+        IName = "IName",
     }
 }
 
@@ -159,39 +212,28 @@ export namespace sap.common {
     }
 
     export enum Entity {
-        CodeList = "sap.common.CodeList",
-        Countries = "sap.common.Countries",
-        Currencies = "sap.common.Currencies",
-        Languages = "sap.common.Languages",
+        ICodeList = "sap.common.CodeList",
+        ICountries = "sap.common.Countries",
+        ICurrencies = "sap.common.Currencies",
+        ILanguages = "sap.common.Languages",
     }
 
     export enum SanitizedEntity {
-        CodeList = "CodeList",
-        Countries = "Countries",
-        Currencies = "Currencies",
-        Languages = "Languages",
+        ICodeList = "ICodeList",
+        ICountries = "ICountries",
+        ICurrencies = "ICurrencies",
+        ILanguages = "ILanguages",
     }
 }
 
 export namespace CatalogService {
-    export enum ActionSubmitOrder {
-        name = "submitOrder",
-        paramBook = "book",
-        paramAmount = "amount",
-    }
-
-    export interface IActionSubmitOrderParams {
-        book: number;
-        amount: number;
-    }
-
     export interface IBooks {
         createdAt?: Date;
         modifiedAt?: Date;
         ID: number;
         title: string;
         descr: string;
-        author: string;
+        author: sap.capire.bookshop.IName;
         genre?: IGenres;
         genre_ID?: number;
         stock: number;
@@ -213,6 +255,8 @@ export namespace CatalogService {
         export enum FuncGetViewsCount {
             name = "getViewsCount",
         }
+
+        export type FuncGetViewsCountReturn = number;
     }
 
     export interface ICurrencies {
@@ -231,20 +275,42 @@ export namespace CatalogService {
         children: IGenres[];
     }
 
+    export enum FuncGetBooks {
+        name = "getBooks",
+        paramAuthor = "author",
+    }
+
+    export interface IFuncGetBooksParams {
+        author: number;
+    }
+
+    export type FuncGetBooksReturn = sap.capire.bookshop.IBooks[];
+
+    export enum ActionSubmitOrder {
+        name = "submitOrder",
+        paramBook = "book",
+        paramAmount = "amount",
+    }
+
+    export interface IActionSubmitOrderParams {
+        book: number;
+        amount: number;
+    }
+
     export enum Entity {
-        Books = "CatalogService.Books",
-        Currencies = "CatalogService.Currencies",
-        Genres = "CatalogService.Genres",
+        IBooks = "CatalogService.Books",
+        ICurrencies = "CatalogService.Currencies",
+        IGenres = "CatalogService.Genres",
     }
 
     export enum SanitizedEntity {
-        Books = "Books",
-        Currencies = "Currencies",
-        Genres = "Genres",
+        IBooks = "IBooks",
+        ICurrencies = "ICurrencies",
+        IGenres = "IGenres",
     }
 }
 
-export interface IUser {}
+export type User = string;
 
 export interface ICuid {
     ID: string;
@@ -263,17 +329,15 @@ export interface ITemporal {
 }
 
 export enum Entity {
-    User = "User",
-    Cuid = "cuid",
-    Managed = "managed",
-    Temporal = "temporal",
+    ICuid = "cuid",
+    IManaged = "managed",
+    ITemporal = "temporal",
 }
 
 export enum SanitizedEntity {
-    User = "User",
-    Cuid = "Cuid",
-    Managed = "Managed",
-    Temporal = "Temporal",
+    ICuid = "ICuid",
+    IManaged = "IManaged",
+    ITemporal = "ITemporal",
 }
 ```
 

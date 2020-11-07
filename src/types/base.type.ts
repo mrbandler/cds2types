@@ -1,7 +1,8 @@
 import * as morph from "ts-morph";
 
-import { Cardinality, Type } from "../utils/cds.types";
+import { Cardinality, isType, Type } from "../utils/cds.types";
 import { Definition, IElement } from "../utils/types";
+import { Entity } from "./entity";
 
 /**
  * Base type that represents a part of CDS domain.
@@ -12,7 +13,7 @@ import { Definition, IElement } from "../utils/types";
  * @template I Input type for the toType method
  * @template O Return type for the toType method
  */
-export abstract class BaseType<I, O> {
+export abstract class BaseType<O = any> {
     /**
      * Interface prefix.
      *
@@ -39,6 +40,10 @@ export abstract class BaseType<I, O> {
      * @memberof BaseType
      */
     protected name: string;
+
+    public get Name(): string {
+        return this.name;
+    }
 
     /**
      * CDS definition which represents the type.
@@ -74,11 +79,43 @@ export abstract class BaseType<I, O> {
      * Generates the Typescript type code.
      *
      * @abstract
-     * @param {I[]} [types] Input type, for cross type resolution
+     * @param {BaseType[]} [types] Input type, for cross type resolution
      * @returns {O} Output type
      * @memberof BaseType
      */
-    public abstract toType(types?: I[]): O;
+    public abstract toType(types?: BaseType[]): O;
+
+    /**
+     * Returns the sanitized name of the entity.
+     *
+     * @returns {string} Sanitized name of the entity
+     * @memberof BaseType
+     */
+    public getSanitizedName(withNamespace: boolean = false): string {
+        let name = this.sanitizeName(this.sanitizeTarget(this.name));
+
+        if (withNamespace && (this.namespace || this.namespace !== "")) {
+            name = this.namespace + "." + name;
+        }
+
+        return name;
+    }
+
+    protected getSanitizedAndPrefixedName(
+        withNamespace: boolean = false
+    ): string {
+        let name = this.sanitizeName(this.sanitizeTarget(this.name));
+
+        if (this.prefix) {
+            name = this.prefix + name;
+        }
+
+        if (withNamespace && (this.namespace || this.namespace !== "")) {
+            name = this.namespace + "." + name;
+        }
+
+        return name;
+    }
 
     /**
      * Creates a interface declaration.
@@ -115,14 +152,15 @@ export abstract class BaseType<I, O> {
      * @param {string} name Name of the field
      * @param {IElement} element CDS element which represents the field
      * @param {string} [prefix=""] Prefix of interfaces
-     * @returns {morph.InterfaceMemberStructures} Created interface field declaration
+     * @returns {morph.InterfaPropertySignatureStructureceMemberStructures} Created interface field declaration
      * @memberof BaseType
      */
     protected createInterfaceField(
         name: string,
         element: IElement,
+        types: BaseType[],
         prefix: string = ""
-    ): morph.InterfaceMemberStructures {
+    ): morph.PropertySignatureStructure {
         let fieldName =
             element.canBeNull || element.type === Type.Association
                 ? `${name}?`
@@ -134,7 +172,7 @@ export abstract class BaseType<I, O> {
                 this.sanitizeName(this.sanitizeTarget(this.name)) +
                 this.sanitizeName(name);
         } else {
-            fieldType = this.cdsElementToType(element, prefix);
+            fieldType = this.cdsElementToType(element, types, prefix);
         }
 
         return {
@@ -187,7 +225,7 @@ export abstract class BaseType<I, O> {
         };
     }
 
-    protected createType(
+    protected createTypeAlias(
         name: string,
         type: string
     ): morph.TypeAliasDeclarationStructure {
@@ -195,6 +233,7 @@ export abstract class BaseType<I, O> {
             kind: morph.StructureKind.TypeAlias,
             name: name,
             type: type,
+            isExported: true,
         };
     }
 
@@ -243,6 +282,34 @@ export abstract class BaseType<I, O> {
         const parts = target.split(".");
         parts.splice(parts.length - 1);
         return parts.join(".");
+    }
+
+    /**
+     * Resolves a CDS type or a type reference to a entity.
+     *
+     * @protected
+     * @param {(Type | string)} type Type to resolve
+     * @param {Entity[]} types Types to resolve to if the type is a reference
+     * @returns {string} Resolved type
+     * @memberof BaseType
+     */
+    protected resolveType(type: Type | string, types: BaseType[]): string {
+        let result = "unknown";
+
+        if (isType(type)) {
+            result = this.cdsTypeToType(type);
+        } else {
+            const found = types.find((t) => t.name === type);
+            if (found) {
+                result = found.getSanitizedName(true);
+
+                if (this.namespace !== "" && result.includes(this.namespace)) {
+                    result = result.replace(`${this.namespace}.`, "");
+                }
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -338,7 +405,11 @@ export abstract class BaseType<I, O> {
      * @returns {string} Created type declaration
      * @memberof BaseType
      */
-    protected cdsElementToType(element: IElement, prefix: string = ""): string {
+    protected cdsElementToType(
+        element: IElement,
+        types: BaseType[],
+        prefix: string = ""
+    ): string {
         let result: string = "unknown";
 
         switch (element.type) {
@@ -353,13 +424,10 @@ export abstract class BaseType<I, O> {
                 break;
 
             default:
-                if (
-                    element.type.includes("cds") ||
-                    element.type === Type.User
-                ) {
-                    result = this.cdsTypeToType(element.type);
-                } else {
+                if (element.target) {
                     result = this.resolveTargetType(element, prefix);
+                } else {
+                    result = this.resolveType(element.type, types);
                 }
 
                 break;
