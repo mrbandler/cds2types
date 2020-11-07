@@ -10,6 +10,8 @@ service CatalogService @(path:'/browse') {
         function getViewsCount() returns Integer;
     }
 
+    function getBooks(author : my.Authors.ID) returns array of my.Books;
+
     @requires_: 'authenticated-user'
     action submitOrder (book : Books.ID, amount: Integer);
 

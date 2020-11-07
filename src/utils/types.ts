@@ -24,7 +24,7 @@ export interface IEnum {
  * @interface IElement
  */
 export interface IElement {
-    type: Type;
+    type: Type | string;
     canBeNull: boolean;
     cardinality?: { max: Cardinality };
     target?: string;
@@ -51,12 +51,27 @@ export interface IEnumDefinition {
     enum?: Map<string, ICsnValue>;
 }
 
+export interface IActionFunctionReturns {
+    type: Type | string;
+    isArray: boolean;
+}
+
 export interface IActionFunctionDefinition {
     kind: Kind;
     params?: Map<string, ICsnParam>;
+    returns?: IActionFunctionReturns;
+}
+
+export interface ITypeAliasDefinition {
+    kind: Kind;
+    type?: Type | string;
+    elements?: Map<string, IElement>;
+    isArray: boolean;
 }
 
 export type Definition =
+    | undefined
+    | ITypeAliasDefinition
     | IEntityDefinition
     | IEnumDefinition
     | IActionFunctionDefinition;
@@ -94,9 +109,22 @@ export interface IParsed {
     definitions?: Map<string, Definition>;
 }
 
+export function isType(
+    definition: Definition
+): definition is ITypeAliasDefinition {
+    if (definition == undefined) return false;
+    return (
+        definition.kind === Kind.Type &&
+        ((definition as ITypeAliasDefinition).type !== undefined ||
+            (definition as ITypeAliasDefinition).elements !== undefined) &&
+        (definition as ITypeAliasDefinition).isArray !== undefined
+    );
+}
+
 export function isEntity(
     definition: Definition
 ): definition is IEntityDefinition {
+    if (definition == undefined) return false;
     return (
         definition.kind === Kind.Entity ||
         (definition.kind === Kind.Type &&
@@ -105,6 +133,7 @@ export function isEntity(
 }
 
 export function isEnum(definition: Definition): definition is IEnumDefinition {
+    if (definition == undefined) return false;
     return (
         definition.kind === Kind.Type &&
         (definition as IEnumDefinition).enum !== undefined
@@ -114,6 +143,7 @@ export function isEnum(definition: Definition): definition is IEnumDefinition {
 export function isActionFunction(
     definition: Definition
 ): definition is IActionFunctionDefinition {
+    if (definition == undefined) return false;
     return definition.kind === Kind.Function || definition.kind === Kind.Action;
 }
 

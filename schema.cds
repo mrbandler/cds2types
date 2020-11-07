@@ -12,9 +12,33 @@ entity Books : managed {
     currency : Currency;
 }
 
+type Gender : Integer enum {
+    NonBinary;
+    Male;
+    Female;
+}
+
+type NameStr : String(111);
+
+type Name {
+    firstname: NameStr;
+    lastname: NameStr;
+}
+
+type Address {
+    street: String;
+    houseNo: String;
+    town: String;
+    country: String;
+}
+
+type Addresses : many Address;
+
 entity Authors : managed {
     key ID       : Integer;
-    name         : String(111);
+    name         : Name;
+    gender       : Gender;
+    addresses    : Addresses;
     dateOfBirth  : Date;
     dateOfDeath  : Date;
     placeOfBirth : String;

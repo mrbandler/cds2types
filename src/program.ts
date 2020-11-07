@@ -1,4 +1,4 @@
-import * as cds from "@sap/cds";
+import cds from "@sap/cds";
 import * as fs from "fs-extra";
 import * as morph from "ts-morph";
 import * as path from "path";
@@ -125,8 +125,8 @@ export class Program {
         }
 
         for (const namespace of namespaces) {
-            const entities = _.flatten(namespaces.map((n) => n.getEntities()));
-            namespace.generateCode(source, entities);
+            const types = _.flatten(namespaces.map((n) => n.getTypes()));
+            namespace.generateCode(source, types);
         }
     }
 

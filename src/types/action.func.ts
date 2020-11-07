@@ -1,6 +1,6 @@
 import * as morph from "ts-morph";
 
-import { ICsnTypeRef, Kind, isTypeRef } from "../utils/cds.types";
+import { ICsnTypeRef, Kind, isTypeRef, isType } from "../utils/cds.types";
 
 import { BaseType } from "./base.type";
 import { Entity } from "./entity";
@@ -15,6 +15,7 @@ import { IActionFunctionDefinition } from "../utils/types";
 export interface IActionFunctionDeclarationStructure {
     enumDeclarationStructure: morph.EnumDeclarationStructure;
     interfaceDeclarationStructure?: morph.InterfaceDeclarationStructure;
+    typeAliasDeclarationStructure?: morph.TypeAliasDeclarationStructure;
 }
 
 /**
@@ -25,7 +26,6 @@ export interface IActionFunctionDeclarationStructure {
  * @extends {BaseType}
  */
 export class ActionFunction extends BaseType<
-    Entity,
     IActionFunctionDeclarationStructure
 > {
     /**
@@ -64,6 +64,14 @@ export class ActionFunction extends BaseType<
      */
     private params: string[] = [];
 
+    /**
+     * Returns the definition casted to a action/function definition.
+     *
+     * @readonly
+     * @private
+     * @type {IActionFunctionDefinition}
+     * @memberof ActionFunction
+     */
     private get def(): IActionFunctionDefinition {
         return this.definition as IActionFunctionDefinition;
     }
@@ -101,13 +109,17 @@ export class ActionFunction extends BaseType<
      * @returns {IActionFunctionDeclarationStructure} Generates typescript types
      * @memberof ActionFunction
      */
-    public toType(types: Entity[]): IActionFunctionDeclarationStructure {
+    public toType(types: BaseType[]): IActionFunctionDeclarationStructure {
         const prefix =
             this.kind === Kind.Function ? this.FUNC_PREFIX : this.ACTION_PREFIX;
 
         return {
             enumDeclarationStructure: this.createEnumDeclaration(prefix),
             interfaceDeclarationStructure: this.createInterfaceDeclaration(
+                prefix,
+                types
+            ),
+            typeAliasDeclarationStructure: this.createTypeDeclaration(
                 prefix,
                 types
             ),
@@ -148,13 +160,13 @@ export class ActionFunction extends BaseType<
      *
      * @private
      * @param {string} prefix Kind prefix
-     * @param {Entity[]} types Scoped types for parameter resolution
+     * @param {BaseType[]} types Scoped types for parameter resolution
      * @returns {(morph.InterfaceDeclarationStructure | undefined)} Created Typescript interface declaration
      * @memberof ActionFunction
      */
     private createInterfaceDeclaration(
         prefix: string,
-        types: Entity[]
+        types: BaseType[]
     ): morph.InterfaceDeclarationStructure | undefined {
         let result: morph.InterfaceDeclarationStructure | undefined = undefined;
 
@@ -164,17 +176,16 @@ export class ActionFunction extends BaseType<
             for (const [key, value] of this.def.params) {
                 if (isTypeRef(value.type)) {
                     const typeRef = value.type as ICsnTypeRef;
-                    const entity = types.find(
-                        (t) => t.getModelName() === typeRef.ref[0]
-                    );
+                    const type = types.find((t) => t.Name === typeRef.ref[0]);
 
-                    if (entity) {
-                        const element = entity.getElement(typeRef.ref[1]);
+                    if (type && type instanceof Entity) {
+                        const element = type.getElement(typeRef.ref[1]);
                         if (element) {
                             result.properties?.push(
                                 this.createInterfaceField(
                                     key,
-                                    element
+                                    element,
+                                    types
                                 ) as morph.PropertySignatureStructure
                             );
                         }
@@ -186,6 +197,36 @@ export class ActionFunction extends BaseType<
                     });
                 }
             }
+        }
+
+        return result;
+    }
+
+    /**
+     * Creates the Typescript type alias declaration.
+     *
+     * @private
+     * @param {string} prefix Kind prefix
+     * @param {Entity[]} types Scoped types for returns resolution
+     * @returns {(morph.TypeAliasDeclarationStructure | undefined)} Created Typescript type alias declaration
+     * @memberof ActionFunction
+     */
+    private createTypeDeclaration(
+        prefix: string,
+        types: BaseType[]
+    ): morph.TypeAliasDeclarationStructure | undefined {
+        let result: morph.TypeAliasDeclarationStructure | undefined = undefined;
+
+        if (this.def.returns) {
+            var target = this.sanitizeTarget(this.name);
+            const name = `${prefix}${this.sanitizeName(target)}Return`;
+
+            let type = this.resolveType(this.def.returns.type, types);
+            if (this.def.returns.isArray) {
+                type = `${type}[]`;
+            }
+
+            result = this.createTypeAlias(name, type);
         }
 
         return result;

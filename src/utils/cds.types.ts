@@ -87,7 +87,7 @@ export interface ICsnEntityDefinition {
     includes?: string[];
 }
 
-export interface ICsnTypeDefinition {
+export interface ICsnStructuredTypeDefinition {
     kind: Kind;
     type: Type;
     elements?: ICsnElements;
@@ -95,11 +95,35 @@ export interface ICsnTypeDefinition {
     keys?: ICsnKeys;
 }
 
+export interface ICsnTypeAliasDefinition {
+    kind: Kind;
+    type: Type;
+}
+
+export interface ICsnArrayTypeAliasTypeItems {
+    type: Type | string;
+}
+
+export interface ICsnArrayTypeAliasElementItems {
+    elements: ICsnElements;
+}
+
+export interface ICsnArrayTypeAliasDefinition {
+    kind: Kind;
+    items: ICsnArrayTypeAliasTypeItems | ICsnArrayTypeAliasElementItems;
+}
+
+export type ICsnTypeDefinition =
+    | ICsnTypeAliasDefinition
+    | ICsnArrayTypeAliasDefinition
+    | ICsnStructuredTypeDefinition
+    | ICsnEnumTypeDefinition;
+
 export interface IEnum {
     [name: string]: ICsnValue;
 }
 
-export interface ICsnEnumDefinition {
+export interface ICsnEnumTypeDefinition {
     kind: Kind;
     type: Type;
     enum: IEnum;
@@ -120,10 +144,11 @@ export interface ICsnParams {
 export interface ICsnActionDefinition {
     kind: Kind;
     params?: ICsnParams;
+    returns?: CsnReturns;
 }
 
 export interface ICsnReturnsSingle {
-    type: Type;
+    type: Type | string;
 }
 
 export interface ICsnReturnsMulti {
@@ -135,14 +160,13 @@ export type CsnReturns = ICsnReturnsSingle | ICsnReturnsMulti;
 export interface ICsnFunctionDefinition {
     kind: Kind;
     params?: ICsnParams;
-    returns: CsnReturns;
+    returns?: CsnReturns;
 }
 
 export type ICsnDefinition =
     | ICsnServiceDefinition
     | ICsnEntityDefinition
     | ICsnTypeDefinition
-    | ICsnEnumDefinition
     | ICsnActionDefinition
     | ICsnFunctionDefinition;
 
@@ -169,18 +193,58 @@ export function isEntityDef(
 export function isTypeDef(
     definition: ICsnDefinition
 ): definition is ICsnTypeDefinition {
+    return definition.kind === Kind.Type;
+}
+
+export function isTypeAliasDef(
+    definition: ICsnDefinition
+): definition is ICsnTypeAliasDefinition {
     return (
         definition.kind === Kind.Type &&
-        (definition as ICsnEnumDefinition).enum === undefined
+        (definition as ICsnStructuredTypeDefinition).type !== undefined &&
+        (definition as ICsnEnumTypeDefinition).enum === undefined
     );
 }
 
-export function isEnumDef(
+export function isArrayTypeAliasDef(
     definition: ICsnDefinition
-): definition is ICsnEnumDefinition {
+): definition is ICsnArrayTypeAliasDefinition {
     return (
         definition.kind === Kind.Type &&
-        (definition as ICsnEnumDefinition).enum !== undefined
+        (definition as ICsnStructuredTypeDefinition).type === undefined &&
+        (definition as ICsnArrayTypeAliasDefinition).items !== undefined
+    );
+}
+
+export function isArrayTypeAliasTypeItems(
+    items: ICsnArrayTypeAliasTypeItems | ICsnArrayTypeAliasElementItems
+): items is ICsnArrayTypeAliasTypeItems {
+    return (items as ICsnArrayTypeAliasTypeItems).type !== undefined;
+}
+
+export function isArrayTypeAliasElementItems(
+    items: ICsnArrayTypeAliasTypeItems | ICsnArrayTypeAliasElementItems
+): items is ICsnArrayTypeAliasElementItems {
+    return (items as ICsnArrayTypeAliasElementItems).elements !== undefined;
+}
+
+export function isStructuredTypeDef(
+    definition: ICsnDefinition
+): definition is ICsnStructuredTypeDefinition {
+    return (
+        definition.kind === Kind.Type &&
+        (definition as ICsnStructuredTypeDefinition).type === undefined &&
+        (definition as ICsnEntityDefinition).elements !== undefined
+    );
+}
+
+export function isEnumTypeDef(
+    definition: ICsnDefinition
+): definition is ICsnEnumTypeDefinition {
+    return (
+        definition.kind === Kind.Type &&
+        (definition as ICsnStructuredTypeDefinition).type !== undefined &&
+        (definition as ICsnEnumTypeDefinition).enum !== undefined
     );
 }
 
@@ -210,4 +274,9 @@ export function isReturnsMulti(
 
 export function isTypeRef(type: Type | ICsnTypeRef): type is ICsnTypeRef {
     return (type as ICsnTypeRef).ref !== undefined;
+}
+
+export function isType(type: Type | string): type is Type {
+    var values = Object.keys(Type).map((k) => Type[k as string]);
+    return values.includes(type);
 }

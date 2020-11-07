@@ -31,7 +31,7 @@ export interface IEntityDeclarationStructure {
  * @class Entity
  * @extends {BaseType}
  */
-export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
+export class Entity extends BaseType<IEntityDeclarationStructure> {
     private get def(): IEntityDefinition {
         return this.definition as IEntityDefinition;
     }
@@ -60,7 +60,7 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
      * @returns {string}
      * @memberof Entity
      */
-    public toType(types: Entity[]): IEntityDeclarationStructure {
+    public toType(types: BaseType[]): IEntityDeclarationStructure {
         const ext = this.getExtensionInterfaces(types);
         const extFields = this.getExtensionInterfaceFields(types);
 
@@ -81,30 +81,34 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
                         this.createInterfaceField(
                             key,
                             value,
+                            types,
                             this.prefix
                         ) as morph.PropertySignatureStructure
                     );
                 } else {
                     if (!extFields.includes(key)) {
+                        let field = this.createInterfaceField(
+                            key,
+                            value,
+                            types,
+                            this.prefix
+                        );
                         result.interfaceDeclarationStructure.properties?.push(
-                            this.createInterfaceField(
-                                key,
-                                value,
-                                this.prefix
-                            ) as morph.PropertySignatureStructure
+                            field
                         );
 
                         if (
                             value.cardinality &&
                             value.cardinality.max === Cardinality.one
                         ) {
+                            let fields = this.getAssociationRefField(
+                                types,
+                                key,
+                                "_",
+                                value
+                            );
                             result.interfaceDeclarationStructure.properties?.push(
-                                ...(this.getAssociationRefField(
-                                    types,
-                                    key,
-                                    "_",
-                                    value
-                                ) as morph.PropertySignatureStructure[])
+                                ...fields
                             );
                         }
                     }
@@ -136,31 +140,8 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
      * @returns {string} Sanitized name of the entity
      * @memberof Entity
      */
-    public getSanitizedName(
-        withPrefix: boolean = false,
-        withNamespace: boolean = false
-    ): string {
-        let name = this.sanitizeName(this.sanitizeTarget(this.name));
-
-        if (withPrefix) {
-            name = this.prefix + name;
-        }
-
-        if (withNamespace && (this.namespace || this.namespace !== "")) {
-            name = this.namespace + "." + name;
-        }
-
-        return name;
-    }
-
-    /**
-     * Returns the model name of the entity.
-     *
-     * @returns {string} Model name of the entity
-     * @memberof Entity
-     */
-    public getModelName(): string {
-        return this.name;
+    public getSanitizedName(withNamespace: boolean = false): string {
+        return this.getSanitizedAndPrefixedName(withNamespace);
     }
 
     /**
@@ -224,16 +205,16 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
      * @returns {(string[] | undefined)} List of all extended types
      * @memberof Entity
      */
-    private getExtensionInterfaces(types: Entity[]): string[] | undefined {
+    private getExtensionInterfaces(types: BaseType[]): string[] | undefined {
         let result: string[] | undefined = undefined;
 
         if (this.def.includes) {
             const entities = types.filter((e) =>
-                this.def.includes ? this.def.includes.includes(e.name) : false
+                this.def.includes ? this.def.includes.includes(e.Name) : false
             );
 
             if (entities) {
-                result = entities.map((e) => e.getSanitizedName(true, true));
+                result = entities.map((e) => e.getSanitizedName(true));
             }
         }
 
@@ -248,15 +229,19 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
      * @returns {string[]} List of all fields
      * @memberof Entity
      */
-    private getExtensionInterfaceFields(types: Entity[]): string[] {
+    private getExtensionInterfaceFields(types: BaseType[]): string[] {
         let result: string[] = [];
 
         if (this.def.includes) {
-            const entities = types.filter((e) =>
-                this.def.includes ? this.def.includes.includes(e.name) : false
-            );
-            if (entities) {
-                for (const entity of entities) {
+            const filtered = types
+                .filter((e) =>
+                    this.def.includes
+                        ? this.def.includes.includes(e.Name)
+                        : false
+                )
+                .filter((f) => f instanceof Entity) as Entity[];
+            if (filtered) {
+                for (const entity of filtered) {
                     result.push(...entity.getFields());
                 }
             }
@@ -277,26 +262,24 @@ export class Entity extends BaseType<Entity, IEntityDeclarationStructure> {
      * @memberof Entity
      */
     private getAssociationRefField(
-        types: Entity[],
+        types: BaseType[],
         name: string,
         suffix: string,
         element: IElement
-    ): morph.InterfaceMemberStructures[] {
-        let result: morph.InterfaceMemberStructures[] = [];
+    ): morph.PropertySignatureStructure[] {
+        let result: morph.PropertySignatureStructure[] = [];
 
         if (element.target && element.keys) {
-            const entity = types.find(
-                (t) => element.target === t.getModelName()
-            );
-            if (entity && entity.def.elements) {
+            const type = types.find((t) => element.target === t.Name);
+            if (type && type instanceof Entity && type.def.elements) {
                 for (const key of element.keys) {
-                    for (const [k, v] of entity.def.elements) {
+                    for (const [k, v] of type.def.elements) {
                         if (k === key.ref[0]) {
                             result.push({
                                 kind: morph.StructureKind.PropertySignature,
                                 name: `${name}${suffix}${k}`,
                                 hasQuestionToken: true,
-                                type: this.cdsTypeToType(v.type),
+                                type: this.resolveType(v.type, types),
                             });
 
                             break;
