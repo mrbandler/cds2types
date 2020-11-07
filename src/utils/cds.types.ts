@@ -100,9 +100,17 @@ export interface ICsnTypeAliasDefinition {
     type: Type;
 }
 
+export interface ICsnArrayTypeAliasTypeItems {
+    type: Type | string;
+}
+
+export interface ICsnArrayTypeAliasElementItems {
+    elements: ICsnElements;
+}
+
 export interface ICsnArrayTypeAliasDefinition {
     kind: Kind;
-    items: ICsnTypeOrEntity | ICsnElements;
+    items: ICsnArrayTypeAliasTypeItems | ICsnArrayTypeAliasElementItems;
 }
 
 export type ICsnTypeDefinition =
@@ -119,10 +127,6 @@ export interface ICsnEnumTypeDefinition {
     kind: Kind;
     type: Type;
     enum: IEnum;
-}
-
-export interface ICsnTypeOrEntity {
-    type: Type | string;
 }
 
 export interface ICsnTypeRef {
@@ -194,7 +198,7 @@ export function isTypeDef(
 
 export function isTypeAliasDef(
     definition: ICsnDefinition
-): definition is ICsnStructuredTypeDefinition {
+): definition is ICsnTypeAliasDefinition {
     return (
         definition.kind === Kind.Type &&
         (definition as ICsnStructuredTypeDefinition).type !== undefined &&
@@ -204,12 +208,24 @@ export function isTypeAliasDef(
 
 export function isArrayTypeAliasDef(
     definition: ICsnDefinition
-): definition is ICsnStructuredTypeDefinition {
+): definition is ICsnArrayTypeAliasDefinition {
     return (
         definition.kind === Kind.Type &&
         (definition as ICsnStructuredTypeDefinition).type === undefined &&
         (definition as ICsnArrayTypeAliasDefinition).items !== undefined
     );
+}
+
+export function isArrayTypeAliasTypeItems(
+    items: ICsnArrayTypeAliasTypeItems | ICsnArrayTypeAliasElementItems
+): items is ICsnArrayTypeAliasTypeItems {
+    return (items as ICsnArrayTypeAliasTypeItems).type !== undefined;
+}
+
+export function isArrayTypeAliasElementItems(
+    items: ICsnArrayTypeAliasTypeItems | ICsnArrayTypeAliasElementItems
+): items is ICsnArrayTypeAliasElementItems {
+    return (items as ICsnArrayTypeAliasElementItems).elements !== undefined;
 }
 
 export function isStructuredTypeDef(

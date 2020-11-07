@@ -26,7 +26,6 @@ export interface IActionFunctionDeclarationStructure {
  * @extends {BaseType}
  */
 export class ActionFunction extends BaseType<
-    Entity,
     IActionFunctionDeclarationStructure
 > {
     /**
@@ -110,7 +109,7 @@ export class ActionFunction extends BaseType<
      * @returns {IActionFunctionDeclarationStructure} Generates typescript types
      * @memberof ActionFunction
      */
-    public toType(types: Entity[]): IActionFunctionDeclarationStructure {
+    public toType(types: BaseType[]): IActionFunctionDeclarationStructure {
         const prefix =
             this.kind === Kind.Function ? this.FUNC_PREFIX : this.ACTION_PREFIX;
 
@@ -161,13 +160,13 @@ export class ActionFunction extends BaseType<
      *
      * @private
      * @param {string} prefix Kind prefix
-     * @param {Entity[]} types Scoped types for parameter resolution
+     * @param {BaseType[]} types Scoped types for parameter resolution
      * @returns {(morph.InterfaceDeclarationStructure | undefined)} Created Typescript interface declaration
      * @memberof ActionFunction
      */
     private createInterfaceDeclaration(
         prefix: string,
-        types: Entity[]
+        types: BaseType[]
     ): morph.InterfaceDeclarationStructure | undefined {
         let result: morph.InterfaceDeclarationStructure | undefined = undefined;
 
@@ -177,17 +176,16 @@ export class ActionFunction extends BaseType<
             for (const [key, value] of this.def.params) {
                 if (isTypeRef(value.type)) {
                     const typeRef = value.type as ICsnTypeRef;
-                    const entity = types.find(
-                        (t) => t.getModelName() === typeRef.ref[0]
-                    );
+                    const type = types.find((t) => t.Name === typeRef.ref[0]);
 
-                    if (entity) {
-                        const element = entity.getElement(typeRef.ref[1]);
+                    if (type && type instanceof Entity) {
+                        const element = type.getElement(typeRef.ref[1]);
                         if (element) {
                             result.properties?.push(
                                 this.createInterfaceField(
                                     key,
-                                    element
+                                    element,
+                                    types
                                 ) as morph.PropertySignatureStructure
                             );
                         }
@@ -215,7 +213,7 @@ export class ActionFunction extends BaseType<
      */
     private createTypeDeclaration(
         prefix: string,
-        types: Entity[]
+        types: BaseType[]
     ): morph.TypeAliasDeclarationStructure | undefined {
         let result: morph.TypeAliasDeclarationStructure | undefined = undefined;
 
@@ -223,26 +221,12 @@ export class ActionFunction extends BaseType<
             var target = this.sanitizeTarget(this.name);
             const name = `${prefix}${this.sanitizeName(target)}Return`;
 
-            var type = "unknown";
-            if (isType(this.def.returns.type)) {
-                type = this.cdsTypeToType(this.def.returns.type);
-                if (this.def.returns.isArray) {
-                    type = `${type}[]`;
-                }
-            } else {
-                const entity = types.find(
-                    (t) => t.getModelName() === this.def.returns?.type
-                );
-
-                if (entity) {
-                    type = entity.getSanitizedName(true, true);
-                    if (this.def.returns.isArray) {
-                        type = `${type}[]`;
-                    }
-                }
+            let type = this.resolveType(this.def.returns.type, types);
+            if (this.def.returns.isArray) {
+                type = `${type}[]`;
             }
 
-            result = this.createType(name, type);
+            result = this.createTypeAlias(name, type);
         }
 
         return result;

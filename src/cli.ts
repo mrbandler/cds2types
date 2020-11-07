@@ -30,10 +30,11 @@ function main() {
         cli.outputHelp();
     } else {
         const options = cli.opts() as IOptions;
-        new Program().run(options).catch((error) => {
-            console.error(`Unable to write types to '${cli.output}'`);
-            console.error("Error:", error.message);
-        });
+        new Program().run(options);
+        // .catch((error) => {
+        //     console.error(`Unable to write types to '${cli.output}'`);
+        //     console.error("Error:", error.message);
+        // });
     }
 }
 

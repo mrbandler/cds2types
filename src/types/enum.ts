@@ -11,7 +11,7 @@ import { Type } from "../utils/cds.types";
  * @class Enum
  * @extends {BaseType}
  */
-export class Enum extends BaseType<Enum, morph.EnumDeclarationStructure> {
+export class Enum extends BaseType<morph.EnumDeclarationStructure> {
     /**
      * Fields of the enum.
      *
@@ -21,6 +21,14 @@ export class Enum extends BaseType<Enum, morph.EnumDeclarationStructure> {
      */
     private fields: Map<string, unknown> = new Map<string, unknown>();
 
+    /**
+     * Casted definition.
+     *
+     * @readonly
+     * @private
+     * @type {IEnumDefinition}
+     * @memberof Enum
+     */
     private get def(): IEnumDefinition {
         return this.definition as IEnumDefinition;
     }

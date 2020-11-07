@@ -125,8 +125,8 @@ export class Program {
         }
 
         for (const namespace of namespaces) {
-            const entities = _.flatten(namespaces.map((n) => n.getEntities()));
-            namespace.generateCode(source, entities);
+            const types = _.flatten(namespaces.map((n) => n.getTypes()));
+            namespace.generateCode(source, types);
         }
     }
 
