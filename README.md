@@ -86,29 +86,6 @@ entity Genres : sap.common.CodeList {
 }
 ```
 
-```cds
-// service.cds
-
-using { sap.capire.bookshop as my } from './schema';
-service CatalogService @(path:'/browse') {
-
-    @readonly entity Books as SELECT from my.Books {*,
-        author.name as author
-    } excluding { createdBy, modifiedBy }
-
-    actions {
-        action addRating (stars: Integer);
-        function getViewsCount() returns Integer;
-    }
-
-    function getBooks(author : my.Authors.ID) returns array of my.Books;
-
-    @requires_: 'authenticated-user'
-    action submitOrder (book : Books.ID, amount: Integer);
-
-}
-```
-
 Now when we run the CLI:
 
 ```bash
@@ -176,19 +153,19 @@ export namespace sap.capire.bookshop {
     }
 
     export enum Entity {
-        IAddress = "sap.capire.bookshop.Address",
-        IAuthors = "sap.capire.bookshop.Authors",
-        IBooks = "sap.capire.bookshop.Books",
-        IGenres = "sap.capire.bookshop.Genres",
-        IName = "sap.capire.bookshop.Name",
+        Address = "sap.capire.bookshop.Address",
+        Authors = "sap.capire.bookshop.Authors",
+        Books = "sap.capire.bookshop.Books",
+        Genres = "sap.capire.bookshop.Genres",
+        Name = "sap.capire.bookshop.Name",
     }
 
     export enum SanitizedEntity {
-        IAddress = "IAddress",
-        IAuthors = "IAuthors",
-        IBooks = "IBooks",
-        IGenres = "IGenres",
-        IName = "IName",
+        Address = "Address",
+        Authors = "Authors",
+        Books = "Books",
+        Genres = "Genres",
+        Name = "Name",
     }
 }
 
@@ -212,17 +189,17 @@ export namespace sap.common {
     }
 
     export enum Entity {
-        ICodeList = "sap.common.CodeList",
-        ICountries = "sap.common.Countries",
-        ICurrencies = "sap.common.Currencies",
-        ILanguages = "sap.common.Languages",
+        CodeList = "sap.common.CodeList",
+        Countries = "sap.common.Countries",
+        Currencies = "sap.common.Currencies",
+        Languages = "sap.common.Languages",
     }
 
     export enum SanitizedEntity {
-        ICodeList = "ICodeList",
-        ICountries = "ICountries",
-        ICurrencies = "ICurrencies",
-        ILanguages = "ILanguages",
+        CodeList = "CodeList",
+        Countries = "Countries",
+        Currencies = "Currencies",
+        Languages = "Languages",
     }
 }
 
@@ -298,15 +275,15 @@ export namespace CatalogService {
     }
 
     export enum Entity {
-        IBooks = "CatalogService.Books",
-        ICurrencies = "CatalogService.Currencies",
-        IGenres = "CatalogService.Genres",
+        Books = "CatalogService.Books",
+        Currencies = "CatalogService.Currencies",
+        Genres = "CatalogService.Genres",
     }
 
     export enum SanitizedEntity {
-        IBooks = "IBooks",
-        ICurrencies = "ICurrencies",
-        IGenres = "IGenres",
+        Books = "Books",
+        Currencies = "Currencies",
+        Genres = "Genres",
     }
 }
 
@@ -329,15 +306,15 @@ export interface ITemporal {
 }
 
 export enum Entity {
-    ICuid = "cuid",
-    IManaged = "managed",
-    ITemporal = "temporal",
+    Cuid = "cuid",
+    Managed = "managed",
+    Temporal = "temporal",
 }
 
 export enum SanitizedEntity {
-    ICuid = "ICuid",
-    IManaged = "IManaged",
-    ITemporal = "ITemporal",
+    Cuid = "Cuid",
+    Managed = "Managed",
+    Temporal = "Temporal",
 }
 ```
 

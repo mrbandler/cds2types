@@ -299,7 +299,7 @@ export class Namespace {
                 const typeAlias = new TypeAlias(
                     key,
                     value,
-                    interfacePrefix,
+                    // interfacePrefix,
                     this.name
                 );
 
