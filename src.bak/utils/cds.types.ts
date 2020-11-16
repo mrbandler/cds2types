@@ -178,27 +178,19 @@ export interface ICsn {
     definitions: ICsnDefinitions;
 }
 
-export function isServiceDef(
-    definition: ICsnDefinition
-): definition is ICsnServiceDefinition {
+export function isServiceDef(definition: ICsnDefinition): definition is ICsnServiceDefinition {
     return definition.kind === Kind.Service;
 }
 
-export function isEntityDef(
-    definition: ICsnDefinition
-): definition is ICsnEntityDefinition {
+export function isEntityDef(definition: ICsnDefinition): definition is ICsnEntityDefinition {
     return definition.kind === Kind.Entity;
 }
 
-export function isTypeDef(
-    definition: ICsnDefinition
-): definition is ICsnTypeDefinition {
+export function isTypeDef(definition: ICsnDefinition): definition is ICsnTypeDefinition {
     return definition.kind === Kind.Type;
 }
 
-export function isTypeAliasDef(
-    definition: ICsnDefinition
-): definition is ICsnTypeAliasDefinition {
+export function isTypeAliasDef(definition: ICsnDefinition): definition is ICsnTypeAliasDefinition {
     return (
         definition.kind === Kind.Type &&
         (definition as ICsnStructuredTypeDefinition).type !== undefined &&
@@ -206,9 +198,7 @@ export function isTypeAliasDef(
     );
 }
 
-export function isArrayTypeAliasDef(
-    definition: ICsnDefinition
-): definition is ICsnArrayTypeAliasDefinition {
+export function isArrayTypeAliasDef(definition: ICsnDefinition): definition is ICsnArrayTypeAliasDefinition {
     return (
         definition.kind === Kind.Type &&
         (definition as ICsnStructuredTypeDefinition).type === undefined &&
@@ -228,9 +218,7 @@ export function isArrayTypeAliasElementItems(
     return (items as ICsnArrayTypeAliasElementItems).elements !== undefined;
 }
 
-export function isStructuredTypeDef(
-    definition: ICsnDefinition
-): definition is ICsnStructuredTypeDefinition {
+export function isStructuredTypeDef(definition: ICsnDefinition): definition is ICsnStructuredTypeDefinition {
     return (
         definition.kind === Kind.Type &&
         (definition as ICsnStructuredTypeDefinition).type === undefined &&
@@ -238,9 +226,7 @@ export function isStructuredTypeDef(
     );
 }
 
-export function isEnumTypeDef(
-    definition: ICsnDefinition
-): definition is ICsnEnumTypeDefinition {
+export function isEnumTypeDef(definition: ICsnDefinition): definition is ICsnEnumTypeDefinition {
     return (
         definition.kind === Kind.Type &&
         (definition as ICsnStructuredTypeDefinition).type !== undefined &&
@@ -248,27 +234,19 @@ export function isEnumTypeDef(
     );
 }
 
-export function isActionDef(
-    definition: ICsnDefinition
-): definition is ICsnActionDefinition {
+export function isActionDef(definition: ICsnDefinition): definition is ICsnActionDefinition {
     return definition.kind === Kind.Action;
 }
 
-export function isFunctionDef(
-    definition: ICsnDefinition
-): definition is ICsnFunctionDefinition {
+export function isFunctionDef(definition: ICsnDefinition): definition is ICsnFunctionDefinition {
     return definition.kind === Kind.Function;
 }
 
-export function isReturnsSingle(
-    returns: CsnReturns
-): returns is ICsnReturnsSingle {
+export function isReturnsSingle(returns: CsnReturns): returns is ICsnReturnsSingle {
     return (returns as ICsnReturnsMulti).items === undefined;
 }
 
-export function isReturnsMulti(
-    returns: CsnReturns
-): returns is ICsnReturnsMulti {
+export function isReturnsMulti(returns: CsnReturns): returns is ICsnReturnsMulti {
     return (returns as ICsnReturnsMulti).items !== undefined;
 }
 
@@ -277,6 +255,6 @@ export function isTypeRef(type: Type | ICsnTypeRef): type is ICsnTypeRef {
 }
 
 export function isType(type: Type | string): type is Type {
-    var values = Object.keys(Type).map((k) => Type[k as string]);
+    var values = Object.keys(Type).map(k => Type[k as string]);
     return values.includes(type);
 }

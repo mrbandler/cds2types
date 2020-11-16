@@ -1,11 +1,4 @@
-import {
-    Cardinality,
-    ICsnKeys,
-    ICsnParam,
-    ICsnValue,
-    Kind,
-    Type,
-} from "./cds.types";
+import { Cardinality, ICsnKeys, ICsnParam, ICsnValue, Kind, Type } from "./cds.types";
 
 /**
  * CDS inline enum.
@@ -109,9 +102,7 @@ export interface IParsed {
     definitions?: Map<string, Definition>;
 }
 
-export function isType(
-    definition: Definition
-): definition is ITypeAliasDefinition {
+export function isType(definition: Definition): definition is ITypeAliasDefinition {
     if (definition == undefined) return false;
     return (
         definition.kind === Kind.Type &&
@@ -121,28 +112,20 @@ export function isType(
     );
 }
 
-export function isEntity(
-    definition: Definition
-): definition is IEntityDefinition {
+export function isEntity(definition: Definition): definition is IEntityDefinition {
     if (definition == undefined) return false;
     return (
         definition.kind === Kind.Entity ||
-        (definition.kind === Kind.Type &&
-            (definition as IEnumDefinition).enum === undefined)
+        (definition.kind === Kind.Type && (definition as IEnumDefinition).enum === undefined)
     );
 }
 
 export function isEnum(definition: Definition): definition is IEnumDefinition {
     if (definition == undefined) return false;
-    return (
-        definition.kind === Kind.Type &&
-        (definition as IEnumDefinition).enum !== undefined
-    );
+    return definition.kind === Kind.Type && (definition as IEnumDefinition).enum !== undefined;
 }
 
-export function isActionFunction(
-    definition: Definition
-): definition is IActionFunctionDefinition {
+export function isActionFunction(definition: Definition): definition is IActionFunctionDefinition {
     if (definition == undefined) return false;
     return definition.kind === Kind.Function || definition.kind === Kind.Action;
 }

@@ -5,10 +5,7 @@ import { IElement, IEntityDefinition, IEnumDefinition } from "../utils/types";
 
 import { BaseType } from "./base.type";
 import { Enum } from "./enum";
-import {
-    ActionFunction,
-    IActionFunctionDeclarationStructure,
-} from "./action.func";
+import { ActionFunction, IActionFunctionDeclarationStructure } from "./action.func";
 
 /**
  * Entity toType return type.
@@ -45,12 +42,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
      * @param {string} [namespace=""] Namespace this entity belongs to
      * @memberof Entity
      */
-    constructor(
-        name: string,
-        definition: IEntityDefinition,
-        prefix: string = "",
-        namespace: string = ""
-    ) {
+    constructor(name: string, definition: IEntityDefinition, prefix: string = "", namespace: string = "") {
         super(name, definition, prefix, namespace);
     }
 
@@ -73,43 +65,19 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
         if (this.def.elements) {
             for (const [key, value] of this.def.elements) {
                 if (value.enum) {
-                    result.enumDeclarationStructures.push(
-                        this.createEnumDeclaration(key, value)
-                    );
+                    result.enumDeclarationStructures.push(this.createEnumDeclaration(key, value));
 
                     result.interfaceDeclarationStructure.properties?.push(
-                        this.createInterfaceField(
-                            key,
-                            value,
-                            types,
-                            this.prefix
-                        ) as morph.PropertySignatureStructure
+                        this.createInterfaceField(key, value, types, this.prefix) as morph.PropertySignatureStructure
                     );
                 } else {
                     if (!extFields.includes(key)) {
-                        let field = this.createInterfaceField(
-                            key,
-                            value,
-                            types,
-                            this.prefix
-                        );
-                        result.interfaceDeclarationStructure.properties?.push(
-                            field
-                        );
+                        let field = this.createInterfaceField(key, value, types, this.prefix);
+                        result.interfaceDeclarationStructure.properties?.push(field);
 
-                        if (
-                            value.cardinality &&
-                            value.cardinality.max === Cardinality.one
-                        ) {
-                            let fields = this.getAssociationRefField(
-                                types,
-                                key,
-                                "_",
-                                value
-                            );
-                            result.interfaceDeclarationStructure.properties?.push(
-                                ...fields
-                            );
+                        if (value.cardinality && value.cardinality.max === Cardinality.one) {
+                            let fields = this.getAssociationRefField(types, key, "_", value);
+                            result.interfaceDeclarationStructure.properties?.push(...fields);
                         }
                     }
                 }
@@ -118,13 +86,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
 
         if (this.def.actions) {
             for (const [key, value] of this.def.actions) {
-                const actionFunc = new ActionFunction(
-                    key,
-                    value,
-                    value.kind,
-                    this.prefix,
-                    this.name
-                );
+                const actionFunc = new ActionFunction(key, value, value.kind, this.prefix, this.name);
                 const actionFuncDeclaration = actionFunc.toType(types);
 
                 result.actionFuncStructures.push(actionFuncDeclaration);
@@ -170,13 +132,8 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
      * @returns {morph.EnumDeclarationStructure} Created enum declaration
      * @memberof Entity
      */
-    private createEnumDeclaration(
-        key: string,
-        value: any
-    ): morph.EnumDeclarationStructure {
-        const enumName =
-            this.sanitizeName(this.sanitizeTarget(this.name)) +
-            this.sanitizeName(key);
+    private createEnumDeclaration(key: string, value: any): morph.EnumDeclarationStructure {
+        const enumName = this.sanitizeName(this.sanitizeTarget(this.name)) + this.sanitizeName(key);
         const definition: IEnumDefinition = {
             kind: Kind.Type,
             type: value.type,
@@ -199,12 +156,10 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
         let result: string[] | undefined = undefined;
 
         if (this.def.includes) {
-            const entities = types.filter((e) =>
-                this.def.includes ? this.def.includes.includes(e.Name) : false
-            );
+            const entities = types.filter(e => (this.def.includes ? this.def.includes.includes(e.Name) : false));
 
             if (entities) {
-                result = entities.map((e) => e.getSanitizedName(true, true));
+                result = entities.map(e => e.getSanitizedName(true, true));
             }
         }
 
@@ -224,12 +179,8 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
 
         if (this.def.includes) {
             const filtered = types
-                .filter((e) =>
-                    this.def.includes
-                        ? this.def.includes.includes(e.Name)
-                        : false
-                )
-                .filter((f) => f instanceof Entity) as Entity[];
+                .filter(e => (this.def.includes ? this.def.includes.includes(e.Name) : false))
+                .filter(f => f instanceof Entity) as Entity[];
             if (filtered) {
                 for (const entity of filtered) {
                     result.push(...entity.getFields());
@@ -260,7 +211,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
         let result: morph.PropertySignatureStructure[] = [];
 
         if (element.target && element.keys) {
-            const type = types.find((t) => element.target === t.Name);
+            const type = types.find(t => element.target === t.Name);
             if (type && type instanceof Entity && type.def.elements) {
                 for (const key of element.keys) {
                     for (const [k, v] of type.def.elements) {

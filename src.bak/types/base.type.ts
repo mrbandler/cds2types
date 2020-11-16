@@ -63,12 +63,7 @@ export abstract class BaseType<O = any> {
      * @param {string} [namespace=""] Namespace this type belongs to
      * @memberof BaseType
      */
-    constructor(
-        name: string,
-        definition: Definition,
-        prefix: string = "",
-        namespace: string = ""
-    ) {
+    constructor(name: string, definition: Definition, prefix: string = "", namespace: string = "") {
         this.prefix = prefix;
         this.namespace = namespace;
         this.name = name;
@@ -91,10 +86,7 @@ export abstract class BaseType<O = any> {
      * @returns {string} Sanitized name of the entity
      * @memberof BaseType
      */
-    public getSanitizedName(
-        withNamespace: boolean = false,
-        withPrefix: boolean = false
-    ): string {
+    public getSanitizedName(withNamespace: boolean = false, withPrefix: boolean = false): string {
         let name = this.sanitizeName(this.sanitizeTarget(this.name));
 
         if (withPrefix && (this.prefix || this.prefix !== "")) {
@@ -123,9 +115,7 @@ export abstract class BaseType<O = any> {
         suffix: string = "",
         ext?: string[]
     ): morph.InterfaceDeclarationStructure {
-        const sanitizedName = `${prefix}${this.sanitizeName(
-            this.sanitizeTarget(this.name)
-        )}${suffix}`;
+        const sanitizedName = `${prefix}${this.sanitizeName(this.sanitizeTarget(this.name))}${suffix}`;
 
         return {
             kind: morph.StructureKind.Interface,
@@ -152,16 +142,11 @@ export abstract class BaseType<O = any> {
         types: BaseType[],
         prefix: string = ""
     ): morph.PropertySignatureStructure {
-        let fieldName =
-            element.canBeNull || element.type === Type.Association
-                ? `${name}?`
-                : name;
+        let fieldName = element.canBeNull || element.type === Type.Association ? `${name}?` : name;
 
         let fieldType = "unknown";
         if (element.enum) {
-            fieldType =
-                this.sanitizeName(this.sanitizeTarget(this.name)) +
-                this.sanitizeName(name);
+            fieldType = this.sanitizeName(this.sanitizeTarget(this.name)) + this.sanitizeName(name);
         } else {
             fieldType = this.cdsElementToType(element, types, prefix);
         }
@@ -202,11 +187,7 @@ export abstract class BaseType<O = any> {
      * @returns {morph.EnumMemberStructure} Created enum field declaration
      * @memberof BaseType
      */
-    protected createEnumField(
-        name: string,
-        value: unknown,
-        isStringType: boolean
-    ): morph.EnumMemberStructure {
+    protected createEnumField(name: string, value: unknown, isStringType: boolean): morph.EnumMemberStructure {
         const fieldValue = (isStringType ? `${value}` : value) as undefined;
 
         return {
@@ -216,10 +197,7 @@ export abstract class BaseType<O = any> {
         };
     }
 
-    protected createTypeAlias(
-        name: string,
-        type: string
-    ): morph.TypeAliasDeclarationStructure {
+    protected createTypeAlias(name: string, type: string): morph.TypeAliasDeclarationStructure {
         return {
             kind: morph.StructureKind.TypeAlias,
             name: name,
@@ -240,9 +218,7 @@ export abstract class BaseType<O = any> {
         let result = name;
 
         if (/[a-z]/.test(name.substr(0, 1))) {
-            result =
-                name.substring(0, 1).toUpperCase() +
-                name.substring(1, name.length);
+            result = name.substring(0, 1).toUpperCase() + name.substring(1, name.length);
         }
 
         return result;
@@ -290,7 +266,7 @@ export abstract class BaseType<O = any> {
         if (isType(type)) {
             result = this.cdsTypeToType(type);
         } else {
-            const found = types.find((t) => t.name === type);
+            const found = types.find(t => t.name === type);
             if (found) {
                 result = found.getSanitizedName(true, true);
 
@@ -396,11 +372,7 @@ export abstract class BaseType<O = any> {
      * @returns {string} Created type declaration
      * @memberof BaseType
      */
-    protected cdsElementToType(
-        element: IElement,
-        types: BaseType[],
-        prefix: string = ""
-    ): string {
+    protected cdsElementToType(element: IElement, types: BaseType[], prefix: string = ""): string {
         let result: string = "unknown";
 
         switch (element.type) {
@@ -427,10 +399,7 @@ export abstract class BaseType<O = any> {
         return result;
     }
 
-    protected resolveTargetType(
-        element: IElement,
-        prefix: string = ""
-    ): string {
+    protected resolveTargetType(element: IElement, prefix: string = ""): string {
         let result = "";
 
         if (element && element.target && element.cardinality) {
@@ -438,11 +407,7 @@ export abstract class BaseType<O = any> {
             if (element.target.includes(this.namespace)) {
                 target = prefix + this.sanitizeTarget(element.target);
             } else {
-                target =
-                    this.getNamespace(element.target) +
-                    "." +
-                    prefix +
-                    this.sanitizeTarget(element.target);
+                target = this.getNamespace(element.target) + "." + prefix + this.sanitizeTarget(element.target);
             }
 
             let suffix = "";

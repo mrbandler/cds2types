@@ -1,19 +1,9 @@
 import * as morph from "ts-morph";
 
-import {
-    Definition,
-    IEnumDefinition,
-    isActionFunction,
-    isEntity,
-    isEnum,
-    isType,
-} from "../utils/types";
+import { Definition, IEnumDefinition, isActionFunction, isEntity, isEnum, isType } from "../utils/types";
 import { ICsnValue, Kind, Type } from "../utils/cds.types";
 
-import {
-    ActionFunction,
-    IActionFunctionDeclarationStructure,
-} from "./action.func";
+import { ActionFunction, IActionFunctionDeclarationStructure } from "./action.func";
 import { Entity, IEntityDeclarationStructure } from "./entity";
 import { TypeAlias } from "./type.alias";
 import { Enum } from "./enum";
@@ -139,31 +129,18 @@ export class Namespace {
      * @returns {string} Typescript code.
      * @memberof Namespace
      */
-    public generateCode(
-        source: morph.SourceFile,
-        otherEntities: BaseType[]
-    ): void {
-        const actionFuncDeclarations = this.actionFunctions.map((f) =>
-            f.toType(otherEntities)
-        );
+    public generateCode(source: morph.SourceFile, otherEntities: BaseType[]): void {
+        const actionFuncDeclarations = this.actionFunctions.map(f => f.toType(otherEntities));
 
-        const enumDeclarations = this.enums.map((e) => e.toType());
-        const entityDeclarations = this.entities.map((e) =>
-            e.toType(otherEntities)
-        );
+        const enumDeclarations = this.enums.map(e => e.toType());
+        const entityDeclarations = this.entities.map(e => e.toType(otherEntities));
 
         const entityEnumDeclaration = this.generateEntitiesEnum().toType();
-        const sanitizedEntityEnumDeclaration = this.generateEntitiesEnum(
-            true
-        ).toType();
+        const sanitizedEntityEnumDeclaration = this.generateEntitiesEnum(true).toType();
 
-        const typeAliasDeclarations = this.typeAliases.map((t) =>
-            t.toType(otherEntities)
-        );
+        const typeAliasDeclarations = this.typeAliases.map(t => t.toType(otherEntities));
 
-        let namespaceOrSource:
-            | morph.SourceFile
-            | morph.NamespaceDeclaration = source;
+        let namespaceOrSource: morph.SourceFile | morph.NamespaceDeclaration = source;
         if (this.name && this.name !== "") {
             namespaceOrSource = source.addNamespace({
                 name: this.name,
@@ -174,10 +151,7 @@ export class Namespace {
         this.addTypeAliasDeclarations(typeAliasDeclarations, namespaceOrSource);
         this.addEnumDeclarations(enumDeclarations, namespaceOrSource);
         this.addEntityDeclarations(entityDeclarations, namespaceOrSource);
-        this.addActionFuncDeclarations(
-            actionFuncDeclarations,
-            namespaceOrSource
-        );
+        this.addActionFuncDeclarations(actionFuncDeclarations, namespaceOrSource);
 
         namespaceOrSource.addEnum(entityEnumDeclaration);
         namespaceOrSource.addEnum(sanitizedEntityEnumDeclaration);
@@ -195,7 +169,7 @@ export class Namespace {
         actionFuncDecls: IActionFunctionDeclarationStructure[],
         source: morph.SourceFile | morph.NamespaceDeclaration
     ): void {
-        actionFuncDecls.forEach((afd) => {
+        actionFuncDecls.forEach(afd => {
             source.addEnum(afd.enumDeclarationStructure);
             if (afd.interfaceDeclarationStructure) {
                 source.addInterface(afd.interfaceDeclarationStructure);
@@ -219,7 +193,7 @@ export class Namespace {
         enumDecls: morph.EnumDeclarationStructure[],
         source: morph.SourceFile | morph.NamespaceDeclaration
     ): void {
-        enumDecls.forEach((ed) => {
+        enumDecls.forEach(ed => {
             if (ed.members && !_.isEmpty(ed.members)) {
                 source.addEnum(ed);
             }
@@ -238,7 +212,7 @@ export class Namespace {
         entityDecls: IEntityDeclarationStructure[],
         source: morph.SourceFile | morph.NamespaceDeclaration
     ): void {
-        entityDecls.forEach((ed) => {
+        entityDecls.forEach(ed => {
             if (!_.isEmpty(ed.enumDeclarationStructures)) {
                 this.addEnumDeclarations(ed.enumDeclarationStructures, source);
             }
@@ -251,10 +225,7 @@ export class Namespace {
                     isExported: true,
                 });
 
-                this.addActionFuncDeclarations(
-                    ed.actionFuncStructures,
-                    actionsNamespace
-                );
+                this.addActionFuncDeclarations(ed.actionFuncStructures, actionsNamespace);
             }
         });
     }
@@ -271,7 +242,7 @@ export class Namespace {
         typeAliasDecls: (morph.TypeAliasDeclarationStructure | undefined)[],
         source: morph.SourceFile | morph.NamespaceDeclaration
     ): void {
-        typeAliasDecls.forEach((tad) => {
+        typeAliasDecls.forEach(tad => {
             if (tad !== undefined) {
                 source.addTypeAlias(tad);
             }
@@ -286,13 +257,9 @@ export class Namespace {
      * @param {string} [interfacePrefix=""] Interface prefix.
      * @memberof Namespace
      */
-    private extractTypes(
-        blacklist: string[],
-        interfacePrefix: string = ""
-    ): void {
+    private extractTypes(blacklist: string[], interfacePrefix: string = ""): void {
         for (const [key, value] of this.definitions) {
-            if (blacklist.map((b) => this.wilcard(b, key)).includes(true))
-                continue;
+            if (blacklist.map(b => this.wilcard(b, key)).includes(true)) continue;
             if (value == undefined) continue;
 
             if (isType(value)) {
@@ -305,29 +272,14 @@ export class Namespace {
 
                 this.typeAliases.push(typeAlias);
             } else if (isEntity(value)) {
-                const entity = new Entity(
-                    key,
-                    value,
-                    interfacePrefix,
-                    this.name
-                );
+                const entity = new Entity(key, value, interfacePrefix, this.name);
 
                 this.entities.push(entity);
             } else if (isEnum(value)) {
-                const _enum = new Enum(
-                    key,
-                    value as IEnumDefinition,
-                    this.name
-                );
+                const _enum = new Enum(key, value as IEnumDefinition, this.name);
                 this.enums.push(_enum);
             } else if (isActionFunction(value)) {
-                const actionFunction = new ActionFunction(
-                    key,
-                    value,
-                    value.kind,
-                    interfacePrefix,
-                    this.name
-                );
+                const actionFunction = new ActionFunction(key, value, value.kind, interfacePrefix, this.name);
 
                 this.actionFunctions.push(actionFunction);
             }
@@ -344,10 +296,7 @@ export class Namespace {
      * @memberof Namespace
      */
     private wilcard(wildcard: string, str: string): boolean {
-        const re = new RegExp(
-            `^${wildcard.replace(/\*/g, ".*").replace(/\?/g, ".")}$`,
-            "i"
-        );
+        const re = new RegExp(`^${wildcard.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
         return re.test(str);
     }
 
@@ -374,8 +323,6 @@ export class Namespace {
             }
         }
 
-        return sanitized
-            ? new Enum("SanitizedEntity", definition)
-            : new Enum("Entity", definition);
+        return sanitized ? new Enum("SanitizedEntity", definition) : new Enum("Entity", definition);
     }
 }

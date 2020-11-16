@@ -1,3 +1,13 @@
+/* eslint-disable ts-immutable/immutable-data */
+/* eslint-disable ts-immutable/no-throw */
+/* eslint-disable ts-immutable/prefer-readonly-types */
+/* eslint-disable prefer-const */
+/* eslint-disable ts-immutable/no-this */
+/* eslint-disable ts-immutable/no-expression-statement */
+/* eslint-disable ts-immutable/no-let */
+/* eslint-disable ts-immutable/no-conditional-statement */
+/* eslint-disable ts-immutable/no-class */
+/* eslint-disable ts-immutable/no-loop-statement */
 import {
     Cardinality,
     ICsn,
@@ -79,10 +89,7 @@ export class CDSParser {
      * @type {Map<string, Definition>}
      * @memberof CDSParser
      */
-    private definitions: Map<string, Definition> = new Map<
-        string,
-        Definition
-    >();
+    private definitions: Map<string, Definition> = new Map<string, Definition>();
 
     /**
      * Parses a given compiled JSON representation of the CDS source.
@@ -122,10 +129,7 @@ export class CDSParser {
      * @returns {Definition} Parsed definition
      * @memberof CDSParser
      */
-    private parseDefinition(
-        name: string,
-        definition: ICsnDefinition
-    ): Definition {
+    private parseDefinition(name: string, definition: ICsnDefinition): Definition {
         if (isTypeDef(definition)) {
             if (isTypeAliasDef(definition)) {
                 return this.parseTypeAliasDef(definition);
@@ -155,9 +159,7 @@ export class CDSParser {
      * @returns {ITypeAliasDefinition} Parsed type definition
      * @memberof CDSParser
      */
-    private parseTypeAliasDef(
-        definition: ICsnTypeAliasDefinition
-    ): ITypeAliasDefinition {
+    private parseTypeAliasDef(definition: ICsnTypeAliasDefinition): ITypeAliasDefinition {
         return {
             kind: definition.kind,
             type: definition.type,
@@ -174,10 +176,7 @@ export class CDSParser {
      * @returns {ITypeAliasDefinition} Parsed array type alias definition
      * @memberof CDSParser
      */
-    private parseArrayTypeAliasDef(
-        name: string,
-        definition: ICsnArrayTypeAliasDefinition
-    ): ITypeAliasDefinition {
+    private parseArrayTypeAliasDef(name: string, definition: ICsnArrayTypeAliasDefinition): ITypeAliasDefinition {
         if (isArrayTypeAliasTypeItems(definition.items)) {
             return {
                 kind: definition.kind,
@@ -210,9 +209,7 @@ export class CDSParser {
             kind: definition.kind,
             type: isTypeAliasDef(definition) ? definition.type : undefined,
             elements: this.parseElements(name, definition.elements),
-            actions: isEntityDef(definition)
-                ? this.parseBoundActions(definition.actions)
-                : undefined,
+            actions: isEntityDef(definition) ? this.parseBoundActions(definition.actions) : undefined,
             includes: isEntityDef(definition) ? definition.includes || [] : [],
         };
     }
@@ -260,10 +257,7 @@ export class CDSParser {
      * @return {Map<string, IElement>} Parsed elements
      * @memberof CDSParser
      */
-    private parseElements(
-        name: string,
-        elements: ICsnElements | undefined
-    ): Map<string, IElement> {
+    private parseElements(name: string, elements: ICsnElements | undefined): Map<string, IElement> {
         let result: Map<string, IElement> = new Map<string, IElement>();
 
         if (elements) {
@@ -283,10 +277,7 @@ export class CDSParser {
                     const _enum = this.parseEnum(element);
 
                     let canBeNull =
-                        element["@Core.Computed"] ||
-                        element["@Core.Immutable"] ||
-                        element.virtual ||
-                        element.default
+                        element["@Core.Computed"] || element["@Core.Immutable"] || element.virtual || element.default
                             ? true
                             : false ||
                               elementName === Managed.CreatedAt ||
@@ -297,9 +288,7 @@ export class CDSParser {
                     result.set(elementName, {
                         type: element.type,
                         canBeNull: canBeNull,
-                        cardinality: element.cardinality
-                            ? element.cardinality
-                            : { max: Cardinality.one },
+                        cardinality: element.cardinality ? element.cardinality : { max: Cardinality.one },
                         target: element.target,
                         enum: _enum.size <= 0 ? undefined : _enum,
                         keys: element.keys,
@@ -319,13 +308,8 @@ export class CDSParser {
      * @returns {Map<string, IActionFunctionDefinition>} Parsed bound actions
      * @memberof CDSParser
      */
-    private parseBoundActions(
-        actions: ICsnActions | undefined
-    ): Map<string, IActionFunctionDefinition> {
-        let result: Map<string, IActionFunctionDefinition> = new Map<
-            string,
-            IActionFunctionDefinition
-        >();
+    private parseBoundActions(actions: ICsnActions | undefined): Map<string, IActionFunctionDefinition> {
+        let result: Map<string, IActionFunctionDefinition> = new Map<string, IActionFunctionDefinition>();
 
         if (actions) {
             for (const actionName in actions) {
@@ -349,9 +333,7 @@ export class CDSParser {
      * @return {Map<string, ICsnValue>} Parsed enum values
      * @memberof CDSParser
      */
-    private parseEnum(
-        definition: ICsnEnumTypeDefinition | ICsnElement
-    ): Map<string, ICsnValue> {
+    private parseEnum(definition: ICsnEnumTypeDefinition | ICsnElement): Map<string, ICsnValue> {
         let result = new Map<string, ICsnValue>();
 
         if (definition.enum) {
@@ -374,9 +356,7 @@ export class CDSParser {
      * @return {Map<string, ICsnParam>} Parsed action or function parameters
      * @memberof CDSParser
      */
-    private parseParams(
-        definition: ICsnActionDefinition | ICsnFunctionDefinition
-    ): Map<string, ICsnParam> {
+    private parseParams(definition: ICsnActionDefinition | ICsnFunctionDefinition): Map<string, ICsnParam> {
         let result: Map<string, ICsnParam> = new Map<string, ICsnParam>();
 
         if (definition.params) {
@@ -442,8 +422,7 @@ export class CDSParser {
             if (value.type === Type.Association) return false;
         }
 
-        if (name.includes("_texts") || name.startsWith("localized."))
-            return false;
+        if (name.includes("_texts") || name.startsWith("localized.")) return false;
 
         return true;
     }
@@ -517,12 +496,12 @@ export class CDSParser {
      * @memberof CDSParser
      */
     private getDefinitions(name: string): Map<string, Definition> {
-        const service = this.services.find((s) => name.includes(s.name));
+        const service = this.services.find(s => name.includes(s.name));
         if (service) {
             return service.definitions;
         }
 
-        const namespace = this.namespaces.find((n) => name.includes(n.name));
+        const namespace = this.namespaces.find(n => name.includes(n.name));
         if (namespace) {
             return namespace.definitions;
         } else {

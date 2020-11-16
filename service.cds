@@ -16,3 +16,5 @@ service CatalogService @(path:'/browse') {
     action submitOrder (book : Books.ID, amount: Integer);
 
 }
+
+action test();

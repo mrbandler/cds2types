@@ -1,18 +1,10 @@
 {
-    "eslint.validate": ["javascript", "typescript"],
+    "eslint.validate": ["typescript"],
     "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
     "files.exclude": {
         "**/node_modules": true,
         "**/.mta": true
     },
-    "eslint.packageManager": "yarn",
-    "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[json]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    "eslint.packageManager": "yarn"
 }

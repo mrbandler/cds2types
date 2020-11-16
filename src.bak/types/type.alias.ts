@@ -12,9 +12,7 @@ import { Entity } from "./entity";
  * @class TypeAlias
  * @extends {(BaseType<Entity, morph.TypeAliasDeclarationStructure | undefined>)}
  */
-export class TypeAlias extends BaseType<
-    morph.TypeAliasDeclarationStructure | undefined
-> {
+export class TypeAlias extends BaseType<morph.TypeAliasDeclarationStructure | undefined> {
     /**
      * Casted definition.
      *
@@ -35,11 +33,7 @@ export class TypeAlias extends BaseType<
      * @param {string} [namespace] Namespace the type alias belongs to
      * @memberof TypeAlias
      */
-    constructor(
-        name: string,
-        definition: ITypeAliasDefinition,
-        namespace?: string
-    ) {
+    constructor(name: string, definition: ITypeAliasDefinition, namespace?: string) {
         super(name, definition, undefined, namespace);
     }
 
@@ -50,9 +44,7 @@ export class TypeAlias extends BaseType<
      * @returns {morph.TypeAliasDeclarationStructure | undefined} Generated Typescript type alias
      * @memberof TypeAlias
      */
-    public toType(
-        types: BaseType[]
-    ): morph.TypeAliasDeclarationStructure | undefined {
+    public toType(types: BaseType[]): morph.TypeAliasDeclarationStructure | undefined {
         if (this.def.elements) {
             return this.toStructuredTypeAlias(this.def.elements, types);
         } else if (this.def.type) {
@@ -71,10 +63,7 @@ export class TypeAlias extends BaseType<
      * @returns {morph.TypeAliasDeclarationStructure} Generated Typescript type alias.
      * @memberof TypeAlias
      */
-    private toTypeAlias(
-        type: Type | string,
-        types: BaseType[]
-    ): morph.TypeAliasDeclarationStructure {
+    private toTypeAlias(type: Type | string, types: BaseType[]): morph.TypeAliasDeclarationStructure {
         type = this.resolveType(type, types);
         if (this.def.isArray) {
             type = `${type}[]`;
@@ -98,10 +87,8 @@ export class TypeAlias extends BaseType<
         types: BaseType[]
     ): morph.TypeAliasDeclarationStructure {
         let fields = Array.from(elements)
-            .map(([key, value]) =>
-                this.createInterfaceField(key, value, types, this.prefix)
-            )
-            .map((f) => `${f.name}${f.hasQuestionToken ? "?" : ""}: ${f.type}`);
+            .map(([key, value]) => this.createInterfaceField(key, value, types, this.prefix))
+            .map(f => `${f.name}${f.hasQuestionToken ? "?" : ""}: ${f.type}`);
 
         let type = `{ ${fields.join(";\n")} }`;
         if (this.def.isArray) {

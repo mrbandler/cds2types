@@ -1,154 +1,26 @@
-import cds from "@sap/cds";
-import * as fs from "fs-extra";
-import * as morph from "ts-morph";
-import * as path from "path";
+import { toError } from "fp-ts/lib/Either";
+import { IOEither, leftIO, tryCatch } from "fp-ts/lib/IOEither";
+import { TaskEither } from "fp-ts/lib/TaskEither";
+import * as cds from "@sap/cds";
+import { Arguments } from "./arguments";
 
-import { IOptions, IParsed } from "./utils/types";
+// import { parse } from "./parsers/namespace.parser";
 
-import { CDSParser } from "./cds.parser";
-import { ICsn } from "./utils/cds.types";
-import { Namespace } from "./types/namespace";
-import _ from "lodash";
+// const loadCds = (path: string): IOEither<Error, unknown> => {
+//     tryCatch(() => cds.load(path), toError);
+// };
+
+// const compileToJson = (cds: unknown): TaskEither<string, Object> => {};
 
 /**
- * Main porgram class.
+ * run :: Arguments -> IOEither (String, String)
  *
- * @export
- * @class Program
+ * @param {Arguments} args
+ * @returns {*}  {IOEither<string, string>}
  */
-export class Program {
-    /**
-     * Blacklist of entities, types and enums that should not be generated.
-     *
-     * @private
-     * @type {string[]}
-     * @memberof Program
-     */
-    private readonly blacklist: string[] = [];
+export const run = (args: Arguments): IOEither<string, string> => {
+    // const result = parse();
 
-    /**
-     * Interface prefix.
-     *
-     * @private
-     * @type {string}
-     * @memberof Program
-     */
-    private interfacePrefix: string = "";
-
-    /**
-     * Main method.
-     *
-     * @param {Command} options Parsed CLI options.
-     * @memberof Program
-     */
-    public async run(options: IOptions): Promise<void> {
-        this.interfacePrefix = options.prefix;
-
-        const jsonObj = await this.loadCdsAndConvertToJSON(options.cds);
-        const parsed = new CDSParser().parse(jsonObj as ICsn);
-
-        if (options.json) {
-            fs.writeFileSync(options.output + ".json", JSON.stringify(jsonObj));
-        }
-
-        if (fs.existsSync(options.output)) {
-            fs.removeSync(options.output);
-        }
-
-        const project = new morph.Project();
-        const source = project.createSourceFile(options.output);
-
-        this.generateCode(source, parsed);
-        this.writeTypes(options.output, source);
-    }
-
-    /**
-     * Loads a given CDS file and parses the compiled JSON to a object.
-     *
-     * @private
-     * @param {string} path Path to load the CDS file from.
-     * @returns {Promise<any>}
-     * @memberof Program
-     */
-    private async loadCdsAndConvertToJSON(path: string): Promise<Object> {
-        const csn = await cds.load(path);
-        return JSON.parse(cds.compile.to.json(csn));
-    }
-
-    /**
-     * Extracts the types from a parsed service and generates the Typescript code.
-     *
-     * @private
-     * @param {morph.SourceFile} source Source file to generate the typescript code in
-     * @param {IParsed} parsed Parsed definitions, services and namespaces
-     * @memberof Program
-     */
-    private generateCode(source: morph.SourceFile, parsed: IParsed): void {
-        let namespaces: Namespace[] = [];
-
-        if (parsed.namespaces) {
-            const ns = parsed.namespaces.map(
-                (n) =>
-                    new Namespace(
-                        n.definitions,
-                        this.blacklist,
-                        this.interfacePrefix,
-                        n.name
-                    )
-            );
-
-            namespaces.push(...ns);
-        }
-
-        if (parsed.services) {
-            const ns = parsed.services.map(
-                (s) =>
-                    new Namespace(
-                        s.definitions,
-                        this.blacklist,
-                        this.interfacePrefix,
-                        s.name
-                    )
-            );
-
-            namespaces.push(...ns);
-        }
-
-        if (parsed.definitions) {
-            const ns = new Namespace(
-                parsed.definitions,
-                this.blacklist,
-                this.interfacePrefix
-            );
-
-            namespaces.push(ns);
-        }
-
-        for (const namespace of namespaces) {
-            const types = _.flatten(namespaces.map((n) => n.getTypes()));
-            namespace.generateCode(source, types);
-        }
-    }
-
-    /**
-     * Writes the types to disk.
-     *
-     * @private
-     * @param {string} filepath File path to save the types at
-     * @memberof Program
-     */
-    private writeTypes(filepath: string, source: morph.SourceFile): void {
-        const dir = path.dirname(filepath);
-        if (fs.existsSync(dir)) {
-            source
-                .save()
-                .then(() => console.log(`Wrote types to '${filepath}'`));
-        } else {
-            console.error(
-                `Unable to write types: '${dir}' is not a valid directory`
-            );
-
-            process.exit(-1);
-        }
-    }
-}
+    return leftIO(() => "test");
+    // return isLeft(result) ? left(result.left) : right("Everything is fine!");
+};

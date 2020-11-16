@@ -60,9 +60,7 @@ export class Enum extends BaseType<morph.EnumDeclarationStructure> {
         let result = this.createEnum();
 
         for (const [key, value] of this.fields) {
-            result.members?.push(
-                this.createEnumField(key, value, this.isStringType())
-            );
+            result.members?.push(this.createEnumField(key, value, this.isStringType()));
         }
 
         return result;
@@ -77,10 +75,7 @@ export class Enum extends BaseType<morph.EnumDeclarationStructure> {
     public isStringType(): boolean {
         let result: boolean = false;
 
-        if (
-            this.def.type === Type.String ||
-            this.def.type === Type.LargeString
-        ) {
+        if (this.def.type === Type.String || this.def.type === Type.LargeString) {
             result = true;
         }
 

@@ -25,9 +25,7 @@ export interface IActionFunctionDeclarationStructure {
  * @class ActionFunction
  * @extends {BaseType}
  */
-export class ActionFunction extends BaseType<
-    IActionFunctionDeclarationStructure
-> {
+export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure> {
     /**
      * ActionFunction prefix.
      *
@@ -110,19 +108,12 @@ export class ActionFunction extends BaseType<
      * @memberof ActionFunction
      */
     public toType(types: BaseType[]): IActionFunctionDeclarationStructure {
-        const prefix =
-            this.kind === Kind.Function ? this.FUNC_PREFIX : this.ACTION_PREFIX;
+        const prefix = this.kind === Kind.Function ? this.FUNC_PREFIX : this.ACTION_PREFIX;
 
         return {
             enumDeclarationStructure: this.createEnumDeclaration(prefix),
-            interfaceDeclarationStructure: this.createInterfaceDeclaration(
-                prefix,
-                types
-            ),
-            typeAliasDeclarationStructure: this.createTypeDeclaration(
-                prefix,
-                types
-            ),
+            interfaceDeclarationStructure: this.createInterfaceDeclaration(prefix, types),
+            typeAliasDeclarationStructure: this.createTypeDeclaration(prefix, types),
         };
     }
 
@@ -134,21 +125,15 @@ export class ActionFunction extends BaseType<
      * @returns {morph.EnumDeclarationStructure} Created Typescript enum declaration
      * @memberof ActionFunction
      */
-    private createEnumDeclaration(
-        prefix: string
-    ): morph.EnumDeclarationStructure {
+    private createEnumDeclaration(prefix: string): morph.EnumDeclarationStructure {
         let result = this.createEnum(prefix);
 
-        result.members?.push(
-            this.createEnumField("name", this.sanitizeTarget(this.name), true)
-        );
+        result.members?.push(this.createEnumField("name", this.sanitizeTarget(this.name), true));
 
         if (this.def.params) {
             for (const [key, _] of this.def.params) {
                 const fieldName = "param" + this.sanitizeName(key);
-                result.members?.push(
-                    this.createEnumField(fieldName, key, true)
-                );
+                result.members?.push(this.createEnumField(fieldName, key, true));
             }
         }
 
@@ -176,17 +161,13 @@ export class ActionFunction extends BaseType<
             for (const [key, value] of this.def.params) {
                 if (isTypeRef(value.type)) {
                     const typeRef = value.type as ICsnTypeRef;
-                    const type = types.find((t) => t.Name === typeRef.ref[0]);
+                    const type = types.find(t => t.Name === typeRef.ref[0]);
 
                     if (type && type instanceof Entity) {
                         const element = type.getElement(typeRef.ref[1]);
                         if (element) {
                             result.properties?.push(
-                                this.createInterfaceField(
-                                    key,
-                                    element,
-                                    types
-                                ) as morph.PropertySignatureStructure
+                                this.createInterfaceField(key, element, types) as morph.PropertySignatureStructure
                             );
                         }
                     }
@@ -211,10 +192,7 @@ export class ActionFunction extends BaseType<
      * @returns {(morph.TypeAliasDeclarationStructure | undefined)} Created Typescript type alias declaration
      * @memberof ActionFunction
      */
-    private createTypeDeclaration(
-        prefix: string,
-        types: BaseType[]
-    ): morph.TypeAliasDeclarationStructure | undefined {
+    private createTypeDeclaration(prefix: string, types: BaseType[]): morph.TypeAliasDeclarationStructure | undefined {
         let result: morph.TypeAliasDeclarationStructure | undefined = undefined;
 
         if (this.def.returns) {
