@@ -1,42 +1,42 @@
 import { Kind, Kind2, URIS, URIS2 } from "fp-ts/lib/HKT";
 
 /**
- *
+ * CLI typeclass.
  *
  * @export
  * @interface CLI
- * @template A
- * @template B
+ * @template A URI of the kind to wrap single value side effects in
+ * @template B URI of the kind to wrap tuple value side effects in
  */
-export interface CLI<A extends URIS, B extends URIS2> {
+export interface CLI<A extends URIS, B extends URIS2, E, S> {
     /**
-     *
+     * Success handler.
      *
      * @memberof CLI
      */
-    readonly log: (message: unknown) => Kind<A, void>;
+    readonly success: (message: S) => Kind<A, void>;
 
     /**
-     *
+     * Failure handler.
      *
      * @memberof CLI
      */
-    readonly exit: (error: Error) => Kind<A, void>;
+    readonly failure: (error: E) => Kind<A, void>;
 
     /**
-     *
+     * Executes the CLI.
      *
      * @memberof CLI
      */
-    readonly run: (args: ReadonlyArray<string>) => Kind2<B, Error, string>;
+    readonly exec: (args: ReadonlyArray<string>) => Kind2<B, E, S>;
 
     /**
-     *
+     * Logs a message to the user given the success and failure handlers and the exec result.
      *
      * @memberof CLI
      */
-    readonly write: (
-        left: (e: Error) => Kind<A, void>,
-        right: (m: unknown) => Kind<A, void>
-    ) => (result: Kind2<B, Error, string>) => Kind<A, void>;
+    readonly log: (
+        left: (e: E) => Kind<A, void>,
+        right: (s: S) => Kind<A, void>
+    ) => (result: Kind2<B, E, S>) => Kind<A, void>;
 }

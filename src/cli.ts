@@ -43,28 +43,35 @@ const parse = (args: ReadonlyArray<string>): E.Either<Error, Arguments> => {
 };
 
 /**
+ * CLI typeclass instance type declaration.
+ */
+type _CLI = CLI<T.URI, TE.URI, Error, string>;
+
+/**
  * CLI typeclass instance.
  */
-const cli: CLI<T.URI, TE.URI> = {
-    log: flow(log, T.fromIO),
-    exit: exit,
-    run: flow(parse, TE.fromEither, TE.chain(run)),
-    write: TE.fold,
+const cli: _CLI = {
+    success: flow(log, T.fromIO),
+    failure: exit,
+    exec: flow(parse, TE.fromEither, TE.chain(run)),
+    log: TE.fold,
 };
 
 /**
- *  main :: Task a, TaskEither b => CLI (a, b) -> [String] -> Task ()
+ *  main :: Task a, TaskEither b, => CLI (a, b, e, s) -> [String] -> Task ()
  *
- * @param {CLI<T.URI, TE.URI>} cli CLI typeclass instance
+ * @param {_CLI} cli CLI typeclass instance
  * @param {ReadonlyArray<string>} args CLI arguments
  * @returns {T.Task<void>} Main entry point task
  */
-const main = (cli: CLI<T.URI, TE.URI>) => (args: ReadonlyArray<string>): T.Task<void> => {
-    return pipe(args, cli.run, cli.write(cli.exit, cli.log));
+const main = (cli: _CLI) => (args: ReadonlyArray<string>): T.Task<void> => {
+    return pipe(args, cli.exec, cli.log(cli.failure, cli.success));
 };
 
 /**
  * Creating main entry point and calling it.
+ *
+ * entry :: Task ()
  */
 const entry = main(cli)(process.argv);
 entry();
