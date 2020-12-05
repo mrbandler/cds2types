@@ -1,76 +1,72 @@
 /* eslint-disable ts-immutable/no-expression-statement */
 import commander from "commander";
-import * as io from "fp-ts/lib/IO";
-import * as e from "fp-ts/lib/Either";
-import * as te from "fp-ts/lib/TaskEither";
-import * as fp from "fp-ts/lib/function";
+import * as E from "fp-ts/lib/Either";
+import * as T from "fp-ts/lib/Task";
+import * as TE from "fp-ts/lib/TaskEither";
+import { flow, pipe } from "fp-ts/lib/function";
+import { log } from "fp-ts/lib/Console";
 import { run } from "./program";
 import { Arguments } from "./arguments";
-
-// CLI command.
-const cmd = new commander.Command()
-    .version("2.5.1")
-    .description("CLI to convert CDS models to Typescript interfaces and enumerations")
-    .option("-c, --cds <file.cds>", "CDS file to convert")
-    .option("-o, --output <file.ts>", "Output location for the *.ts file(s)")
-    .option("-p, --prefix <I>", "Interface prefix", "")
-    .option("-j, --json", "Prints the compiled JSON representation of the CDS sources")
-    .parse(process.argv);
+import { CLI } from "./typeclasses/cli";
 
 /**
- * parseArgs :: Command -> [String] -> Either (String, Arguments)
- *
- * @param {commander.Command} cmd Incoming CLI command
- * @param {ReadonlyArray<string>} args Incoming CLI arguments
- * @returns {Either<string, Arguments>} Either a error message or the parsed arguments
- */
-const parseArgs = (cmd: commander.Command) => (args: ReadonlyArray<string>): e.Either<Error, Arguments> => {
-    return !args.slice(2).length ? e.left(new Error(cmd.helpInformation())) : e.right(cmd.opts() as Arguments);
-};
-
-/**
- * main :: Command -> [String] -> IO
- *
- * @param {commander.Command} cmd Incoming Command-line command
- * @param {ReadonlyArray<string>} args Incoming Command-line arguments
- * @returns {IO<void>} IO with no return value
- */
-const cli = (cmd: commander.Command) => (args: ReadonlyArray<string>): te.TaskEither<Error, string> => {
-    const parse = parseArgs(cmd);
-    const parseTask = te.fromEither(parse(args));
-
-    return te.taskEither.chain(parseTask, run);
-};
-
-/**
- * exit :: Error -> IO
+ * exit :: Error -> IO ()
  *
  * @param {Error} error Error to print before exiting
  * @returns {IO<void>} IO with no return value
  */
-const exit = (error: Error): io.IO<void> => {
-    return () => {
-        console.log(error.message);
-        process.exit(1);
-    };
+const exit = (error: Error): T.Task<void> => () =>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    new Promise<void>((resolve, _) => {
+        console.error(error.message, 1);
+        resolve();
+    });
+
+/**
+ * parse :: [String] -> Either (String, Arguments)
+ *
+ * @param {ReadonlyArray<string>} args CLI arguments
+ * @returns {Either<string, Arguments>} Either a error message or parsed arguments
+ */
+const parse = (args: ReadonlyArray<string>): E.Either<Error, Arguments> => {
+    const cmd = new commander.Command()
+        .version("2.5.1")
+        .description("CLI to convert CDS models to Typescript interfaces and enumerations")
+        .option("-c, --cds <file.cds>", "CDS file to convert")
+        .option("-o, --output <file.ts>", "Output location for the *.ts file(s)")
+        .option("-p, --prefix <I>", "Interface prefix", "")
+        .option("-j, --json", "Prints the compiled JSON representation of the CDS sources")
+        .parse(args.map(a => a));
+
+    const help = cmd.helpInformation();
+    return !args.slice(2).length ? E.left(new Error(help)) : E.right(cmd.opts() as Arguments);
 };
 
 /**
- * log :: String -> IO
- *
- * @param {string} error Error message to print before exiting
- * @returns {IO<void>} IO with no return value
+ * CLI type class instance.
  */
-const log = (message: string): io.IO<void> => {
-    return () => console.log(message);
+const cli: CLI<T.URI, TE.URI> = {
+    log: flow(log, T.fromIO),
+    exit: exit,
+    run: flow(parse, TE.fromEither, TE.chain(run)),
+    write: TE.fold,
 };
 
-// Creates the main entry point task.
-const main = cli(cmd)(process.argv);
+/**
+ * main :: Task a, TaskEither b => CLI (a, b) -> [String] -> Task ()
+ *
+ * @template A
+ * @template B
+ * @param {CLI<A, B>} cli
+ * @param {ReadonlyArray<string>} args
+ * @returns {T.Task<void>}
+ */
+const main = (cli: CLI<T.URI, TE.URI>) => (args: ReadonlyArray<string>): T.Task<void> => {
+    return pipe(args, cli.run, cli.write(cli.exit, cli.log));
+};
 
-// Executs the main entry points task,
-// folds the resulting either
-// and finally executes the IO that logs to the console.
-main()
-    .then(result => fp.pipe(result, e.fold(exit, log)))
-    .then(io => io());
+/**
+ * Creating main entry point and calling it.
+ */
+const entry = main(cli)(process.argv);
+entry();
