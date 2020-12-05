@@ -10,10 +10,10 @@ import { Arguments } from "./arguments";
 import { CLI } from "./typeclasses/cli";
 
 /**
- * exit :: Error -> IO ()
+ * exit :: Error -> Task ()
  *
  * @param {Error} error Error to print before exiting
- * @returns {IO<void>} IO with no return value
+ * @returns {T.Task<void>} Task with no return value
  */
 const exit = (error: Error): T.Task<void> => () =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -26,7 +26,7 @@ const exit = (error: Error): T.Task<void> => () =>
  * parse :: [String] -> Either (String, Arguments)
  *
  * @param {ReadonlyArray<string>} args CLI arguments
- * @returns {Either<string, Arguments>} Either a error message or parsed arguments
+ * @returns {E.Either<string, Arguments>} Either a error message or parsed arguments
  */
 const parse = (args: ReadonlyArray<string>): E.Either<Error, Arguments> => {
     const cmd = new commander.Command()
@@ -43,7 +43,7 @@ const parse = (args: ReadonlyArray<string>): E.Either<Error, Arguments> => {
 };
 
 /**
- * CLI type class instance.
+ * CLI typeclass instance.
  */
 const cli: CLI<T.URI, TE.URI> = {
     log: flow(log, T.fromIO),
@@ -53,13 +53,11 @@ const cli: CLI<T.URI, TE.URI> = {
 };
 
 /**
- * main :: Task a, TaskEither b => CLI (a, b) -> [String] -> Task ()
+ *  main :: Task a, TaskEither b => CLI (a, b) -> [String] -> Task ()
  *
- * @template A
- * @template B
- * @param {CLI<A, B>} cli
- * @param {ReadonlyArray<string>} args
- * @returns {T.Task<void>}
+ * @param {CLI<T.URI, TE.URI>} cli CLI typeclass instance
+ * @param {ReadonlyArray<string>} args CLI arguments
+ * @returns {T.Task<void>} Main entry point task
  */
 const main = (cli: CLI<T.URI, TE.URI>) => (args: ReadonlyArray<string>): T.Task<void> => {
     return pipe(args, cli.run, cli.write(cli.exit, cli.log));
