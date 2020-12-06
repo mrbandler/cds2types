@@ -1,4 +1,3 @@
-/* eslint-disable ts-immutable/no-expression-statement */
 import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
@@ -20,4 +19,6 @@ const main = (cli: CLI<T.URI, TE.URI, Error, string>) => (args: ReadonlyArray<st
  * entry :: Task ()
  */
 const entry = main(cli)(process.argv);
+
+// eslint-disable-next-line ts-immutable/no-expression-statement
 entry();
