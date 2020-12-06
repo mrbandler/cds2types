@@ -11,7 +11,7 @@
         "url": "https://github.com/mrbandler/cds2types/issues"
     },
     "bin": {
-        "cds2types": "./bin/cli.js"
+        "cds2types": "./bin/main.js"
     },
     "files": [
         "bin"

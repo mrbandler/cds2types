@@ -5,8 +5,8 @@ import { Kind, Kind2, URIS, URIS2 } from "fp-ts/lib/HKT";
  *
  * @export
  * @interface CLI
- * @template A URI of the kind to wrap single value side effects in
- * @template B URI of the kind to wrap tuple value side effects in
+ * @template A URI of the kind to wrap a single value side effect
+ * @template B URI of the kind to wrap a tuple valued side effect
  */
 export interface CLI<A extends URIS, B extends URIS2, E, S> {
     /**
@@ -14,7 +14,7 @@ export interface CLI<A extends URIS, B extends URIS2, E, S> {
      *
      * @memberof CLI
      */
-    readonly success: (message: S) => Kind<A, void>;
+    readonly success: (msg: S) => Kind<A, void>;
 
     /**
      * Failure handler.
