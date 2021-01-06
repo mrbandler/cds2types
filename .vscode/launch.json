@@ -10,13 +10,16 @@
             "request": "launch",
             "args": [
                 "${workspaceRoot}/src/cli.ts",
-                "-c",
+                "--cds",
                 "./service.cds",
-                "-o",
+                "--output",
                 "./service.ts",
-                "-p",
+                "--prefix",
                 "I",
-                "-j"
+                "--formatter",
+                "prettier",
+                "--json",
+                "--debug"
             ],
             "runtimeArgs": ["-r", "ts-node/register"],
             "cwd": "${workspaceRoot}",

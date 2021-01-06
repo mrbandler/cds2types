@@ -11,5 +11,6 @@
         "noImplicitAny": false,
         "esModuleInterop": true,
         "removeComments": true
-    }
+    },
+    "exclude": ["service.ts"]
 }

@@ -107,13 +107,12 @@ export class Namespace {
      */
     constructor(
         definitions: Map<string, Definition>,
-        blacklist: string[],
         interfacePrefix: string = "",
         name?: string
     ) {
         this._name = name;
         this.definitions = definitions;
-        this.extractTypes(blacklist, interfacePrefix);
+        this.extractTypes(interfacePrefix);
     }
 
     /**
@@ -286,13 +285,8 @@ export class Namespace {
      * @param {string} [interfacePrefix=""] Interface prefix.
      * @memberof Namespace
      */
-    private extractTypes(
-        blacklist: string[],
-        interfacePrefix: string = ""
-    ): void {
+    private extractTypes(interfacePrefix: string = ""): void {
         for (const [key, value] of this.definitions) {
-            if (blacklist.map((b) => this.wilcard(b, key)).includes(true))
-                continue;
             if (value == undefined) continue;
 
             if (isType(value)) {
@@ -332,23 +326,6 @@ export class Namespace {
                 this.actionFunctions.push(actionFunction);
             }
         }
-    }
-
-    /**
-     * Checks a given string for a given GLOB wildcard.
-     *
-     * @private
-     * @param {string} wildcard Wildcard to check against
-     * @param {string} str String to check the wildcard against
-     * @returns {boolean} Flag, whether the check was succsessful
-     * @memberof Namespace
-     */
-    private wilcard(wildcard: string, str: string): boolean {
-        const re = new RegExp(
-            `^${wildcard.replace(/\*/g, ".*").replace(/\?/g, ".")}$`,
-            "i"
-        );
-        return re.test(str);
     }
 
     /**

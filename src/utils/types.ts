@@ -148,6 +148,17 @@ export function isActionFunction(
 }
 
 /**
+ * Formatter.
+ *
+ * @export
+ * @enum {number}
+ */
+export enum FormatterType {
+    Prettier = "prettier",
+    ESLint = "eslint",
+}
+
+/**
  * CLI options.
  *
  * @export
@@ -158,5 +169,7 @@ export interface IOptions {
     output: string;
     prefix: string;
     json: boolean;
+    debug: boolean;
     version: string;
+    formatter: FormatterType;
 }
