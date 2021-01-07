@@ -24,10 +24,8 @@ import {
     isTypeDef,
     isArrayTypeAliasDef,
     isStructuredTypeDef,
-    ICsnDefinitions,
     ICsnTypeAliasDefinition,
     ICsnArrayTypeAliasDefinition,
-    isType,
     isArrayTypeAliasTypeItems,
     ICsnElements,
     ICsnActions,
@@ -101,8 +99,8 @@ export class CDSParser {
                     continue;
                 }
 
-                let definitions = this.getDefinitions(name);
-                let parsed = this.parseDefinition(name, def);
+                const definitions = this.getDefinitions(name);
+                const parsed = this.parseDefinition(name, def);
                 if (parsed) definitions.set(name, parsed);
             }
         }
@@ -264,7 +262,7 @@ export class CDSParser {
         name: string,
         elements: ICsnElements | undefined
     ): Map<string, IElement> {
-        let result: Map<string, IElement> = new Map<string, IElement>();
+        const result: Map<string, IElement> = new Map<string, IElement>();
 
         if (elements) {
             for (const elementName in elements) {
@@ -282,7 +280,7 @@ export class CDSParser {
 
                     const _enum = this.parseEnum(element);
 
-                    let canBeNull =
+                    const canBeNull =
                         element["@Core.Computed"] ||
                         element["@Core.Immutable"] ||
                         element.virtual ||
@@ -322,7 +320,7 @@ export class CDSParser {
     private parseBoundActions(
         actions: ICsnActions | undefined
     ): Map<string, IActionFunctionDefinition> {
-        let result: Map<string, IActionFunctionDefinition> = new Map<
+        const result: Map<string, IActionFunctionDefinition> = new Map<
             string,
             IActionFunctionDefinition
         >();
@@ -352,7 +350,7 @@ export class CDSParser {
     private parseEnum(
         definition: ICsnEnumTypeDefinition | ICsnElement
     ): Map<string, ICsnValue> {
-        let result = new Map<string, ICsnValue>();
+        const result = new Map<string, ICsnValue>();
 
         if (definition.enum) {
             for (const key in definition.enum) {
@@ -377,7 +375,7 @@ export class CDSParser {
     private parseParams(
         definition: ICsnActionDefinition | ICsnFunctionDefinition
     ): Map<string, ICsnParam> {
-        let result: Map<string, ICsnParam> = new Map<string, ICsnParam>();
+        const result: Map<string, ICsnParam> = new Map<string, ICsnParam>();
 
         if (definition.params) {
             for (const key in definition.params) {
@@ -456,7 +454,7 @@ export class CDSParser {
      * @returns {boolean} Flag, whether it is a localized field or not
      * @memberof CDSParser
      */
-    private isLocalizationField(obj: any): boolean {
+    private isLocalizationField(obj: ICsnElement): boolean {
         let result = false;
 
         if (obj && obj.target) {

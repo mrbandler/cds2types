@@ -1,6 +1,6 @@
 import * as morph from "ts-morph";
 
-import { ICsnTypeRef, Kind, isTypeRef, isType } from "../utils/cds.types";
+import { ICsnTypeRef, Kind, isTypeRef } from "../utils/cds.types";
 
 import { BaseType } from "./base.type";
 import { Entity } from "./entity";
@@ -25,9 +25,7 @@ export interface IActionFunctionDeclarationStructure {
  * @class ActionFunction
  * @extends {BaseType}
  */
-export class ActionFunction extends BaseType<
-    IActionFunctionDeclarationStructure
-> {
+export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure> {
     /**
      * ActionFunction prefix.
      *
@@ -96,7 +94,7 @@ export class ActionFunction extends BaseType<
         super(name, definition, interfacePrefix, namespace);
         this.kind = kind;
         if (this.definition && this.def.params) {
-            for (const [key, _] of this.def.params) {
+            for (const [key] of this.def.params) {
                 this.params.push(key);
             }
         }
@@ -137,14 +135,14 @@ export class ActionFunction extends BaseType<
     private createEnumDeclaration(
         prefix: string
     ): morph.EnumDeclarationStructure {
-        let result = this.createEnum(prefix);
+        const result = this.createEnum(prefix);
 
         result.members?.push(
             this.createEnumField("name", this.sanitizeTarget(this.name), true)
         );
 
         if (this.def.params) {
-            for (const [key, _] of this.def.params) {
+            for (const [key] of this.def.params) {
                 const fieldName = "param" + this.sanitizeName(key);
                 result.members?.push(
                     this.createEnumField(fieldName, key, true)
@@ -218,7 +216,7 @@ export class ActionFunction extends BaseType<
         let result: morph.TypeAliasDeclarationStructure | undefined = undefined;
 
         if (this.def.returns) {
-            var target = this.sanitizeTarget(this.name);
+            const target = this.sanitizeTarget(this.name);
             const name = `${prefix}${this.sanitizeName(target)}Return`;
 
             let type = this.resolveType(this.def.returns.type, types);

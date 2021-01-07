@@ -277,6 +277,6 @@ export function isTypeRef(type: Type | ICsnTypeRef): type is ICsnTypeRef {
 }
 
 export function isType(type: Type | string): type is Type {
-    var values = Object.keys(Type).map((k) => Type[k as string]);
+    const values = Object.keys(Type).map((k) => Type[k as string]);
     return values.includes(type);
 }

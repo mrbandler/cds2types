@@ -1,39 +1,13 @@
 {
-    "extends": ["plugin:prettier/recommended"],
+    "root": true,
+    "parser": "@typescript-eslint/parser",
     "plugins": ["prettier", "@typescript-eslint"],
-    "env": {
-        "browser": true,
-        "es6": true
-    },
-    "overrides": [
-        {
-            "files": "**/*.ts",
-            "env": {
-                "browser": false
-            },
-            "parser": "@typescript-eslint/parser",
-            "parserOptions": {
-                "ecmaVersion": 6,
-                "sourceType": "module",
-                "ecmaFeatures": {
-                    "modules": true
-                }
-            },
-            "plugins": ["@typescript-eslint"],
-            "rules": {
-                "@typescript-eslint/interface-name-prefix": [
-                    "error",
-                    { "prefixWithI": "always" }
-                ],
-                "@typescript-eslint/no-require-imports": ["off", false],
-                "@typescript-eslint/no-var-requires": ["off", false]
-            }
-        },
-        {
-            "files": "**/*.js",
-            "rules": {
-                "quote-props": ["warn", "as-needed"]
-            }
-        }
-    ]
+    "extends": [
+        "plugin:prettier/recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+        "@typescript-eslint/no-empty-interface": "off",
+        "@typescript-eslint/no-namespace": "off"
+    }
 }

@@ -1,6 +1,6 @@
 {
     "name": "cds2types",
-    "version": "2.5.1",
+    "version": "2.6.0",
     "description": "CLI to convert CDS models to Typescript interfaces and enumerations",
     "main": "./bin/cli.js",
     "repository": "git@github.com:mrbandler/cds2types.git",
@@ -20,22 +20,23 @@
         "start": "node",
         "build": "tsc",
         "build:start": "yarn build && yarn start",
-        "build:link": "yarn build && npm link"
+        "build:link": "yarn build && npm link",
+        "prettier:gen": "json2ts ./src/formatting/prettier/prettierrc-schema.json ./src/formatting/prettier/config.ts"
     },
     "devDependencies": {
         "@commitlint/cli": "^8.3.5",
         "@commitlint/config-conventional": "^8.3.4",
+        "@types/eslint": "^7.2.6",
         "@types/fs-extra": "^8.0.1",
         "@types/node": "^12.12.3",
-        "@typescript-eslint/eslint-plugin": "^2.12.0",
-        "@typescript-eslint/parser": "^2.12.0",
-        "eslint": "^6.8.0",
-        "eslint-config-prettier": "^6.10.1",
-        "eslint-plugin-prettier": "^3.1.2",
-        "express": "^4.17.1",
+        "@types/prettier": "^2.1.6",
+        "@typescript-eslint/eslint-plugin": "^4.12.0",
+        "@typescript-eslint/parser": "^4.12.0",
+        "eslint": "^7.17.0",
+        "eslint-config-prettier": "^7.1.0",
+        "eslint-plugin-prettier": "^3.3.1",
         "husky": "^3.1.0",
         "lint-staged": "^9.5.0",
-        "prettier": "^1.19.1",
         "ts-node": "^8.4.1",
         "typescript": "^3.6.4"
     },
@@ -45,6 +46,7 @@
         "commander": "^4.0.1",
         "fs-extra": "^8.1.0",
         "lodash": "^4.17.15",
+        "prettier": "^2.2.1",
         "ts-morph": "^7.1.1"
     },
     "husky": {
