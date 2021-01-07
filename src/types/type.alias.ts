@@ -3,7 +3,6 @@ import * as morph from "ts-morph";
 import { BaseType } from "./base.type";
 import { IElement, ITypeAliasDefinition } from "../utils/types";
 import { Type } from "../utils/cds.types";
-import { Entity } from "./entity";
 
 /**
  * Type that represents a CDS type alias.
@@ -80,7 +79,7 @@ export class TypeAlias extends BaseType<
             type = `${type}[]`;
         }
 
-        let name = this.sanitizeName(this.sanitizeTarget(this.name));
+        const name = this.sanitizeName(this.sanitizeTarget(this.name));
         return this.createTypeAlias(name, type);
     }
 
@@ -97,7 +96,7 @@ export class TypeAlias extends BaseType<
         elements: Map<string, IElement>,
         types: BaseType[]
     ): morph.TypeAliasDeclarationStructure {
-        let fields = Array.from(elements)
+        const fields = Array.from(elements)
             .map(([key, value]) =>
                 this.createInterfaceField(key, value, types, this.prefix)
             )
@@ -108,7 +107,7 @@ export class TypeAlias extends BaseType<
             type = `${type}[]`;
         }
 
-        let name = this.sanitizeName(this.sanitizeTarget(this.name));
+        const name = this.sanitizeName(this.sanitizeTarget(this.name));
         return this.createTypeAlias(name, type);
     }
 }

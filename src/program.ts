@@ -1,14 +1,16 @@
+import _ from "lodash";
 import cds from "@sap/cds";
 import * as fs from "fs-extra";
 import * as morph from "ts-morph";
 import * as path from "path";
 
 import { IOptions, IParsed } from "./utils/types";
-
 import { CDSParser } from "./cds.parser";
 import { ICsn } from "./utils/cds.types";
 import { Namespace } from "./types/namespace";
-import _ from "lodash";
+import { Formatter } from "./formatter/formatter";
+import { NoopFormatter } from "./formatter/noop.formatter";
+import { PrettierFormatter } from "./formatter/prettier.formatter";
 
 /**
  * Main porgram class.
@@ -18,48 +20,58 @@ import _ from "lodash";
  */
 export class Program {
     /**
-     * Blacklist of entities, types and enums that should not be generated.
-     *
-     * @private
-     * @type {string[]}
-     * @memberof Program
-     */
-    private readonly blacklist: string[] = [];
-
-    /**
-     * Interface prefix.
-     *
-     * @private
-     * @type {string}
-     * @memberof Program
-     */
-    private interfacePrefix: string = "";
-
-    /**
      * Main method.
      *
      * @param {Command} options Parsed CLI options.
      * @memberof Program
      */
     public async run(options: IOptions): Promise<void> {
-        this.interfacePrefix = options.prefix;
-
+        // Load and parse compiled cds.
         const jsonObj = await this.loadCdsAndConvertToJSON(options.cds);
         const parsed = new CDSParser().parse(jsonObj as ICsn);
 
+        // Write the compiled cds JSON to disc for debugging.
         if (options.json) {
             fs.writeFileSync(options.output + ".json", JSON.stringify(jsonObj));
         }
 
+        // Remove the output file if it already exists.
         if (fs.existsSync(options.output)) {
             fs.removeSync(options.output);
         }
 
-        const project = new morph.Project();
+        // Initialize the formatter and retrieve its settings.
+        const formatter = await this.createFormatter(options);
+        const settings = formatter.getSettings();
+
+        // Create ts-morph project and source file to write to.
+        const project = new morph.Project({ manipulationSettings: settings });
         const source = project.createSourceFile(options.output);
 
-        this.generateCode(source, parsed);
-        this.writeTypes(options.output, source);
+        // Generate the actual source code.
+        this.generateCode(source, parsed, options.prefix);
+
+        // Extract source code and format it.
+        source.formatText();
+        const text = source.getFullText();
+        const formattedText = await formatter.format(text);
+
+        // Write the actual source file.
+        await this.writeSource(options.output, formattedText);
+    }
+
+    /**
+     * Creates a formatter based on given options.
+     *
+     * @private
+     * @param {IOptions} options Options to create a formatter for
+     * @returns {Promise<Formatter>} Created formatter
+     * @memberof Program
+     */
+    private async createFormatter(options: IOptions): Promise<Formatter> {
+        return options.format
+            ? await new PrettierFormatter(options.output).init()
+            : await new NoopFormatter(options.output).init();
     }
 
     /**
@@ -70,7 +82,7 @@ export class Program {
      * @returns {Promise<any>}
      * @memberof Program
      */
-    private async loadCdsAndConvertToJSON(path: string): Promise<Object> {
+    private async loadCdsAndConvertToJSON(path: string): Promise<unknown> {
         const csn = await cds.load(path);
         return JSON.parse(cds.compile.to.json(csn));
     }
@@ -83,18 +95,16 @@ export class Program {
      * @param {IParsed} parsed Parsed definitions, services and namespaces
      * @memberof Program
      */
-    private generateCode(source: morph.SourceFile, parsed: IParsed): void {
-        let namespaces: Namespace[] = [];
+    private generateCode(
+        source: morph.SourceFile,
+        parsed: IParsed,
+        interfacePrefix = ""
+    ): void {
+        const namespaces: Namespace[] = [];
 
         if (parsed.namespaces) {
             const ns = parsed.namespaces.map(
-                (n) =>
-                    new Namespace(
-                        n.definitions,
-                        this.blacklist,
-                        this.interfacePrefix,
-                        n.name
-                    )
+                (n) => new Namespace(n.definitions, interfacePrefix, n.name)
             );
 
             namespaces.push(...ns);
@@ -102,24 +112,14 @@ export class Program {
 
         if (parsed.services) {
             const ns = parsed.services.map(
-                (s) =>
-                    new Namespace(
-                        s.definitions,
-                        this.blacklist,
-                        this.interfacePrefix,
-                        s.name
-                    )
+                (s) => new Namespace(s.definitions, interfacePrefix, s.name)
             );
 
             namespaces.push(...ns);
         }
 
         if (parsed.definitions) {
-            const ns = new Namespace(
-                parsed.definitions,
-                this.blacklist,
-                this.interfacePrefix
-            );
+            const ns = new Namespace(parsed.definitions, interfacePrefix);
 
             namespaces.push(ns);
         }
@@ -137,12 +137,12 @@ export class Program {
      * @param {string} filepath File path to save the types at
      * @memberof Program
      */
-    private writeTypes(filepath: string, source: morph.SourceFile): void {
+    private async writeSource(filepath: string, source: string): Promise<void> {
         const dir = path.dirname(filepath);
         if (fs.existsSync(dir)) {
-            source
-                .save()
-                .then(() => console.log(`Wrote types to '${filepath}'`));
+            await fs.writeFile(filepath, source);
+
+            console.log(`Wrote types to '${filepath}'`);
         } else {
             console.error(
                 `Unable to write types: '${dir}' is not a valid directory`

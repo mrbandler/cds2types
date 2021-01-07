@@ -158,5 +158,7 @@ export interface IOptions {
     output: string;
     prefix: string;
     json: boolean;
+    debug: boolean;
     version: string;
+    format: boolean;
 }

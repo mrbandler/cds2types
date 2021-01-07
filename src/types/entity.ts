@@ -1,6 +1,6 @@
 import * as morph from "ts-morph";
 
-import { Cardinality, Kind } from "../utils/cds.types";
+import { Cardinality, Kind, Type } from "../utils/cds.types";
 import { IElement, IEntityDefinition, IEnumDefinition } from "../utils/types";
 
 import { BaseType } from "./base.type";
@@ -48,8 +48,8 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
     constructor(
         name: string,
         definition: IEntityDefinition,
-        prefix: string = "",
-        namespace: string = ""
+        prefix = "",
+        namespace = ""
     ) {
         super(name, definition, prefix, namespace);
     }
@@ -64,7 +64,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
         const ext = this.getExtensionInterfaces(types);
         const extFields = this.getExtensionInterfaceFields(types);
 
-        let result: IEntityDeclarationStructure = {
+        const result: IEntityDeclarationStructure = {
             interfaceDeclarationStructure: this.createInterface("", "", ext),
             enumDeclarationStructures: [],
             actionFuncStructures: [],
@@ -87,7 +87,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
                     );
                 } else {
                     if (!extFields.includes(key)) {
-                        let field = this.createInterfaceField(
+                        const field = this.createInterfaceField(
                             key,
                             value,
                             types,
@@ -101,7 +101,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
                             value.cardinality &&
                             value.cardinality.max === Cardinality.one
                         ) {
-                            let fields = this.getAssociationRefField(
+                            const fields = this.getAssociationRefField(
                                 types,
                                 key,
                                 "_",
@@ -172,14 +172,14 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
      */
     private createEnumDeclaration(
         key: string,
-        value: any
+        value: IElement
     ): morph.EnumDeclarationStructure {
         const enumName =
             this.sanitizeName(this.sanitizeTarget(this.name)) +
             this.sanitizeName(key);
         const definition: IEnumDefinition = {
             kind: Kind.Type,
-            type: value.type,
+            type: value.type as Type,
             enum: value.enum,
         };
 
@@ -220,7 +220,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
      * @memberof Entity
      */
     private getExtensionInterfaceFields(types: BaseType[]): string[] {
-        let result: string[] = [];
+        const result: string[] = [];
 
         if (this.def.includes) {
             const filtered = types
@@ -257,7 +257,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
         suffix: string,
         element: IElement
     ): morph.PropertySignatureStructure[] {
-        let result: morph.PropertySignatureStructure[] = [];
+        const result: morph.PropertySignatureStructure[] = [];
 
         if (element.target && element.keys) {
             const type = types.find((t) => element.target === t.Name);

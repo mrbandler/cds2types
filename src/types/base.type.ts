@@ -2,7 +2,6 @@ import * as morph from "ts-morph";
 
 import { Cardinality, isType, Type } from "../utils/cds.types";
 import { Definition, IElement } from "../utils/types";
-import { Entity } from "./entity";
 
 /**
  * Base type that represents a part of CDS domain.
@@ -13,7 +12,7 @@ import { Entity } from "./entity";
  * @template I Input type for the toType method
  * @template O Return type for the toType method
  */
-export abstract class BaseType<O = any> {
+export abstract class BaseType<O = unknown> {
     /**
      * Interface prefix.
      *
@@ -66,8 +65,8 @@ export abstract class BaseType<O = any> {
     constructor(
         name: string,
         definition: Definition,
-        prefix: string = "",
-        namespace: string = ""
+        prefix = "",
+        namespace = ""
     ) {
         this.prefix = prefix;
         this.namespace = namespace;
@@ -91,10 +90,7 @@ export abstract class BaseType<O = any> {
      * @returns {string} Sanitized name of the entity
      * @memberof BaseType
      */
-    public getSanitizedName(
-        withNamespace: boolean = false,
-        withPrefix: boolean = false
-    ): string {
+    public getSanitizedName(withNamespace = false, withPrefix = false): string {
         let name = this.sanitizeName(this.sanitizeTarget(this.name));
 
         if (withPrefix && (this.prefix || this.prefix !== "")) {
@@ -119,8 +115,8 @@ export abstract class BaseType<O = any> {
      * @memberof BaseType
      */
     protected createInterface(
-        prefix: string = "",
-        suffix: string = "",
+        prefix = "",
+        suffix = "",
         ext?: string[]
     ): morph.InterfaceDeclarationStructure {
         const sanitizedName = `${prefix}${this.sanitizeName(
@@ -150,9 +146,9 @@ export abstract class BaseType<O = any> {
         name: string,
         element: IElement,
         types: BaseType[],
-        prefix: string = ""
+        prefix = ""
     ): morph.PropertySignatureStructure {
-        let fieldName =
+        const fieldName =
             element.canBeNull || element.type === Type.Association
                 ? `${name}?`
                 : name;
@@ -181,7 +177,7 @@ export abstract class BaseType<O = any> {
      * @returns {morph.EnumDeclarationStructure} Created enum declaration
      * @memberof BaseType
      */
-    protected createEnum(prefix: string = ""): morph.EnumDeclarationStructure {
+    protected createEnum(prefix = ""): morph.EnumDeclarationStructure {
         const name = prefix + this.sanitizeName(this.sanitizeTarget(this.name));
 
         return {
@@ -312,7 +308,7 @@ export abstract class BaseType<O = any> {
      * @memberof BaseType
      */
     protected cdsTypeToType(type: Type): string {
-        let result: string = "unknown";
+        let result = "unknown";
 
         switch (type) {
             case Type.Uuid:
@@ -399,9 +395,9 @@ export abstract class BaseType<O = any> {
     protected cdsElementToType(
         element: IElement,
         types: BaseType[],
-        prefix: string = ""
+        prefix = ""
     ): string {
-        let result: string = "unknown";
+        let result = "unknown";
 
         switch (element.type) {
             case Type.Association:
@@ -427,10 +423,7 @@ export abstract class BaseType<O = any> {
         return result;
     }
 
-    protected resolveTargetType(
-        element: IElement,
-        prefix: string = ""
-    ): string {
+    protected resolveTargetType(element: IElement, prefix = ""): string {
         let result = "";
 
         if (element && element.target && element.cardinality) {
