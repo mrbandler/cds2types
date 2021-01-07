@@ -16,8 +16,7 @@
                 "./service.ts",
                 "--prefix",
                 "I",
-                "--formatter",
-                "prettier",
+                "--format",
                 "--json",
                 "--debug"
             ],

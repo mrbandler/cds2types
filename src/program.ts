@@ -4,14 +4,13 @@ import * as fs from "fs-extra";
 import * as morph from "ts-morph";
 import * as path from "path";
 
-import { FormatterType, IOptions, IParsed } from "./utils/types";
+import { IOptions, IParsed } from "./utils/types";
 import { CDSParser } from "./cds.parser";
 import { ICsn } from "./utils/cds.types";
 import { Namespace } from "./types/namespace";
 import { Formatter } from "./formatter/formatter";
 import { NoopFormatter } from "./formatter/noop.formatter";
 import { PrettierFormatter } from "./formatter/prettier.formatter";
-import { ESLintFormatter } from "./formatter/eslint.formatter";
 
 /**
  * Main porgram class.
@@ -55,7 +54,7 @@ export class Program {
         // Extract source code and format it.
         source.formatText();
         const text = source.getFullText();
-        const formattedText = formatter.format(text);
+        const formattedText = await formatter.format(text);
 
         // Write the actual source file.
         await this.writeSource(options.output, formattedText);
@@ -70,14 +69,9 @@ export class Program {
      * @memberof Program
      */
     private async createFormatter(options: IOptions): Promise<Formatter> {
-        switch (options.formatter) {
-            case FormatterType.Prettier:
-                return await new PrettierFormatter(options.output).init();
-            case FormatterType.ESLint:
-                return await new ESLintFormatter(options.output).init();
-            default:
-                return await new NoopFormatter(options.output).init();
-        }
+        return options.format
+            ? await new PrettierFormatter(options.output).init()
+            : await new NoopFormatter(options.output).init();
     }
 
     /**
@@ -88,7 +82,7 @@ export class Program {
      * @returns {Promise<any>}
      * @memberof Program
      */
-    private async loadCdsAndConvertToJSON(path: string): Promise<Object> {
+    private async loadCdsAndConvertToJSON(path: string): Promise<unknown> {
         const csn = await cds.load(path);
         return JSON.parse(cds.compile.to.json(csn));
     }
@@ -104,9 +98,9 @@ export class Program {
     private generateCode(
         source: morph.SourceFile,
         parsed: IParsed,
-        interfacePrefix: string = ""
+        interfacePrefix = ""
     ): void {
-        let namespaces: Namespace[] = [];
+        const namespaces: Namespace[] = [];
 
         if (parsed.namespaces) {
             const ns = parsed.namespaces.map(

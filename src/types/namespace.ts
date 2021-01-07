@@ -107,7 +107,7 @@ export class Namespace {
      */
     constructor(
         definitions: Map<string, Definition>,
-        interfacePrefix: string = "",
+        interfacePrefix = "",
         name?: string
     ) {
         this._name = name;
@@ -122,7 +122,7 @@ export class Namespace {
      * @memberof Namespace
      */
     public getTypes(): BaseType[] {
-        let result: BaseType[] = [];
+        const result: BaseType[] = [];
 
         result.push(...this.typeAliases);
         result.push(...this.enums);
@@ -285,7 +285,7 @@ export class Namespace {
      * @param {string} [interfacePrefix=""] Interface prefix.
      * @memberof Namespace
      */
-    private extractTypes(interfacePrefix: string = ""): void {
+    private extractTypes(interfacePrefix = ""): void {
         for (const [key, value] of this.definitions) {
             if (value == undefined) continue;
 
@@ -336,7 +336,7 @@ export class Namespace {
      * @returns {Enum} Generates enum
      * @memberof Namespace
      */
-    private generateEntitiesEnum(sanitized: boolean = false): Enum {
+    private generateEntitiesEnum(sanitized = false): Enum {
         const definition: IEnumDefinition = {
             kind: Kind.Type,
             type: Type.String,

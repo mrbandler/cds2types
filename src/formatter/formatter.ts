@@ -63,5 +63,5 @@ export abstract class Formatter {
      * @returns {string} Formatted source code
      * @memberof Formatter
      */
-    public abstract format(source: string): string;
+    public abstract format(source: string): Promise<string>;
 }

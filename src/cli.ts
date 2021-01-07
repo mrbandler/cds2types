@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 
 import commander from "commander";
-
 import { IOptions } from "./utils/types";
 import { Program } from "./program";
 
 /**
  * Main function of the program.
  */
-function main() {
+function main(): void {
     const cli = new commander.Command();
     cli.version("2.5.1")
         .description(
@@ -26,9 +25,8 @@ function main() {
             "Prints JavaScript error message, should be used for issue reporting => https://github.com/mrbandler/cds2types/issues"
         )
         .option(
-            "-f, --formatter <prettier/eslint>",
-            "Formatter to use, will read project configuration and apply it",
-            (value: string) => value.toLowerCase()
+            "-f, --format",
+            "Flag, whether to format the outputted source code or not (will try to format with prettier rules in the project)"
         )
         .parse(process.argv);
 

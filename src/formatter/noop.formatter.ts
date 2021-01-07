@@ -29,7 +29,7 @@ export class NoopFormatter extends Formatter {
      * @returns {string} Formatted source code
      * @memberof Formatter
      */
-    public format(source: string): string {
+    public async format(source: string): Promise<string> {
         return source;
     }
 }

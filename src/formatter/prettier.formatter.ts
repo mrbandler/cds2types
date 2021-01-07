@@ -27,7 +27,7 @@ export class PrettierFormatter extends Formatter {
      * @returns {Promise<PrettierFormatter>} Initialized formatter
      * @memberof PrettierFormatter
      */
-    public async init(): Promise<Formatter> {
+    public async init(): Promise<PrettierFormatter> {
         const options = await prettier.resolveConfig(this.output);
 
         if (options) {
@@ -61,7 +61,7 @@ export class PrettierFormatter extends Formatter {
      * @returns {string} Formatted source code
      * @memberof Formatter
      */
-    public format(source: string): string {
+    public async format(source: string): Promise<string> {
         return prettier.format(source, {
             parser: "typescript",
             ...this.options,

@@ -57,7 +57,7 @@ export class Enum extends BaseType<morph.EnumDeclarationStructure> {
      * @memberof Enum
      */
     public toType(): morph.EnumDeclarationStructure {
-        let result = this.createEnum();
+        const result = this.createEnum();
 
         for (const [key, value] of this.fields) {
             result.members?.push(
@@ -75,7 +75,7 @@ export class Enum extends BaseType<morph.EnumDeclarationStructure> {
      * @memberof BaseType
      */
     public isStringType(): boolean {
-        let result: boolean = false;
+        let result = false;
 
         if (
             this.def.type === Type.String ||
