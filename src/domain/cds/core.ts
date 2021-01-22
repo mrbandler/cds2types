@@ -74,39 +74,35 @@ export type Type = PrimitiveType | Reference | string;
  * CDS value.
  *
  * @export
- * @interface Value
  */
-export interface Value {
+export type Value = {
     readonly val: unknown;
-}
+};
 
 /**
  * CDS key references.
  *
  * @export
- * @interface Keys
  */
-export interface Reference {
+export type Reference = {
     readonly ref: ReadonlyArray<string>;
-}
+};
 
 /**
  * CDS enum definition.
  *
  * @export
- * @interface Enum
  */
-export interface Enum {
+export type Enum = {
     readonly [name: string]: Value;
-}
+};
 
 /**
  * CDS element.
  *
  * @export
- * @interface Element
  */
-export interface Element {
+export type Element = {
     readonly type: PrimitiveType;
     readonly key: Option<boolean>;
     readonly target: Option<string>;
@@ -117,37 +113,34 @@ export interface Element {
     readonly enum: Option<Enum>;
     readonly "@Core.Immutable": Option<boolean>;
     readonly "@Core.Computed": Option<boolean>;
-}
+};
 
 /**
  * CDS elements.
  *
  * @export
- * @interface Elements
  */
-export interface Elements {
+export type Elements = {
     readonly [name: string]: Element;
-}
+};
 
 /**
  * CDS single return type.
  *
  * @export
- * @interface SingleReturnType
  */
-export interface SingleReturnType {
+export type SingleReturnType = {
     readonly type: PrimitiveType | string;
-}
+};
 
 /**
  * CDS array return type.
  *
  * @export
- * @interface ArrayReturnType
  */
-export interface ArrayReturnType {
+export type ArrayReturnType = {
     readonly items: SingleReturnType;
-}
+};
 
 /**
  * CDS action/function return type.
@@ -158,18 +151,16 @@ export type ReturnType = SingleReturnType | ArrayReturnType;
  * CDS action/function parameter.
  *
  * @export
- * @interface Parameter
  */
-export interface Parameter {
+export type Parameter = {
     readonly type: PrimitiveType | Reference;
-}
+};
 
 /**
  * CDS action/function parameters.
  *
  * @export
- * @interface Parameters
  */
-export interface Parameters {
+export type Parameters = {
     readonly [name: string]: Parameter;
-}
+};

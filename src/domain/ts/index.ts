@@ -7,77 +7,71 @@ import * as cds from "../cds/core";
  * Will be used by entities and structured types.
  *
  * @export
- * @interface Element
  */
-export interface Element {
+export type Element = {
     readonly type: cds.Type;
     readonly optional: boolean;
     readonly cardinality: Option<{ readonly max: cds.Cardinality }>;
     readonly target: Option<string>;
     readonly enum: Option<ReadonlyMap<string, cds.Value>>;
     readonly keys: Option<ReadonlyArray<cds.Reference>>;
-}
+};
 
 /**
  * Parsed action return type.
  *
  * @export
- * @interface ReturnType
  */
-export interface ReturnType {
+export type ReturnType = {
     readonly type: cds.Type;
     readonly isArray: boolean;
-}
+};
 
 /**
  * Parsed type alias.
  *
  * @export
- * @interface TypeAlias
  */
-export interface TypeAlias {
+export type TypeAlias = {
     readonly kind: cds.Kind;
     readonly type: Option<cds.Type>;
     readonly elements: Option<ReadonlyMap<string, Element>>;
     readonly isArray: boolean;
-}
+};
 
 /**
  * Parsed enum definition.
  *
  * @export
- * @interface Enum
  */
-export interface Enum {
+export type Enum = {
     readonly kind: cds.Kind;
     readonly type: cds.Type;
     readonly enum: Option<ReadonlyMap<string, cds.Value>>;
-}
+};
 
 /**
  * Parsed action definition.
  *
  * @export
- * @interface Action
  */
-export interface Action {
+export type Action = {
     readonly kind: cds.Kind;
     readonly params: Option<ReadonlyMap<string, cds.Parameter>>;
     readonly returns: Option<ReturnType>;
-}
+};
 
 /**
  * Parsed entity definition.
  *
  * @export
- * @interface Entity
  */
-export interface Entity {
+export type Entity = {
     readonly kind: cds.Kind;
     readonly includes?: ReadonlyArray<string>;
     readonly elements?: ReadonlyMap<string, Element>;
     readonly actions?: ReadonlyMap<string, Action>;
-}
+};
 
 /**
  * Parsed CDS definition.
@@ -88,23 +82,21 @@ export type Definition = Entity | Action | Enum | TypeAlias;
  * Parsed CDS namespace definition.
  *
  * @export
- * @interface Namespace
  */
-export interface Namespace {
+export type Namespace = {
     readonly name: string;
     readonly definitions: ReadonlyMap<string, Definition>;
-}
+};
 
 /**
  * Parsed CDS definition.
  *
  * @export
- * @interface Parsed
  */
-export interface Parsed {
+export type Parsed = {
     readonly namespaces: Option<ReadonlyArray<Namespace>>;
     readonly definitions: Option<ReadonlyMap<string, Definition>>;
-}
+};
 
 /**
  * Definitions namespace.
@@ -118,7 +110,8 @@ export const Definitions = {
      */
     isTypeAlias: (def: Definition): def is TypeAlias =>
         def.kind === cds.Kind.Type &&
-        ((def as TypeAlias).type !== undefined || (def as TypeAlias).elements !== undefined) &&
+        ((def as TypeAlias).type !== undefined ||
+            (def as TypeAlias).elements !== undefined) &&
         (def as TypeAlias).isArray !== undefined,
 
     /**
@@ -128,7 +121,8 @@ export const Definitions = {
      * @returns {def is Entity} Flag, whether the definition is a entity
      */
     isEntity: (def: Definition): def is Entity =>
-        def.kind === cds.Kind.Entity || (def.kind === cds.Kind.Type && (def as Enum).enum === undefined),
+        def.kind === cds.Kind.Entity ||
+        (def.kind === cds.Kind.Type && (def as Enum).enum === undefined),
 
     /**
      * isEnum :: Definition -> Boolean
@@ -136,7 +130,8 @@ export const Definitions = {
      * @param {Definition} def Definition to check
      * @returns {def is Enum} Flag, whether the definition is a enum
      */
-    isEnum: (def: Definition): def is Enum => def.kind === cds.Kind.Type && (def as Enum).enum !== undefined,
+    isEnum: (def: Definition): def is Enum =>
+        def.kind === cds.Kind.Type && (def as Enum).enum !== undefined,
 
     /**
      * isAction :: Definition -> Boolean
@@ -144,5 +139,6 @@ export const Definitions = {
      * @param {Definition} def Definition to check
      * @returns {def is Action} Flag, whether the definition is a action
      */
-    isAction: (def: Definition): def is Action => def.kind === cds.Kind.Function || def.kind === cds.Kind.Action,
+    isAction: (def: Definition): def is Action =>
+        def.kind === cds.Kind.Function || def.kind === cds.Kind.Action,
 };

@@ -5,10 +5,9 @@ import { Kind, Parameters, ReturnType } from "./core";
  * CDS action.
  *
  * @export
- * @interface Action
  */
-export interface Action {
+export type Action = {
     readonly kind: Kind;
     readonly params: Option<Parameters>;
     readonly returns: Option<ReturnType>;
-}
+};

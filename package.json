@@ -2,7 +2,7 @@
     "name": "cds2types",
     "version": "2.5.1",
     "description": "CLI to convert CDS models to Typescript interfaces and enumerations",
-    "main": "./bin/cli.js",
+    "main": "./bin/index.js",
     "repository": "git@github.com:mrbandler/cds2types.git",
     "author": "mrbandler <mrbandler@fivefingergames.com>",
     "license": "MIT",
@@ -11,44 +11,19 @@
         "url": "https://github.com/mrbandler/cds2types/issues"
     },
     "bin": {
-        "cds2types": "./bin/main.js"
+        "cds2types": "./bin/index.js"
     },
     "files": [
         "bin"
     ],
     "scripts": {
-        "start": "node",
+        "start": "node ./bin/index.js",
         "build": "tsc",
         "build:start": "yarn build && yarn start",
-        "build:link": "yarn build && npm link"
-    },
-    "devDependencies": {
-        "@commitlint/cli": "^11.0.0",
-        "@commitlint/config-conventional": "^11.0.0",
-        "@types/fs-extra": "^9.0.4",
-        "@types/node": "^14.14.7",
-        "@typescript-eslint/eslint-plugin": "^4.8.0",
-        "@typescript-eslint/parser": "^4.8.0",
-        "eslint": "^7.13.0",
-        "eslint-config-prettier": "^6.15.0",
-        "eslint-plugin-prettier": "^3.1.4",
-        "eslint-plugin-ts-immutable": "^0.3.0",
-        "husky": "^4.3.0",
-        "lint-staged": "^10.5.1",
-        "prettier": "^2.1.2",
-        "ts-node": "^9.0.0",
-        "typescript": "^4.0.5"
-    },
-    "dependencies": {
-        "@sap/cds": "^4.3.0",
-        "commander": "^6.2.0",
-        "fp-ts": "^2.8.6",
-        "fp-ts-contrib": "^0.1.21",
-        "fs-extra": "^9.0.1",
-        "logging-ts": "^0.3.4",
-        "monocle-ts": "^2.3.3",
-        "newtype-ts": "^0.3.4",
-        "ts-morph": "^8.2.0"
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:watch:all": "jest --watch-all",
+        "coverage": "jest --collect-coverage"
     },
     "husky": {
         "hooks": {
@@ -63,5 +38,39 @@
         "*.{js,ts}": [
             "eslint --fix"
         ]
+    },
+    "dependencies": {
+        "@sap/cds": "^4.4.10",
+        "commander": "^7.0.0",
+        "fp-ts": "^2.9.3",
+        "fp-ts-contrib": "^0.1.21",
+        "io-ts": "^2.2.13",
+        "logging-ts": "^0.3.4",
+        "monocle-ts": "^2.3.5",
+        "newtype-ts": "^0.3.4",
+        "ts-morph": "^9.1.0"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^11.0.0",
+        "@commitlint/config-conventional": "^11.0.0",
+        "@relmify/jest-fp-ts": "^1.1.1",
+        "@types/fs-extra": "^9.0.6",
+        "@types/jest": "^26.0.20",
+        "@types/node": "^14.14.22",
+        "@typescript-eslint/eslint-plugin": "^4.14.0",
+        "@typescript-eslint/parser": "^4.14.0",
+        "eslint": "^7.18.0",
+        "eslint-config-prettier": "^7.2.0",
+        "eslint-plugin-functional": "^3.2.1",
+        "eslint-plugin-prettier": "^3.3.1",
+        "fast-check": "^2.11.0",
+        "fp-ts-laws": "^0.3.0",
+        "husky": "^4.3.8",
+        "jest": "^26.6.3",
+        "lint-staged": "^10.5.3",
+        "prettier": "^2.2.1",
+        "ts-jest": "^26.4.4",
+        "ts-node": "^9.1.1",
+        "typescript": "^4.1.3"
     }
 }

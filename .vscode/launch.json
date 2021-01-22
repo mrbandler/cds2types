@@ -8,12 +8,21 @@
             "name": "Debug",
             "type": "node",
             "request": "launch",
-            "args": ["${workspaceRoot}/src/main.ts", "-c", "./service.cds", "-o", "./service.ts", "-p", "I", "-j"],
+            "args": [
+                "${workspaceRoot}/src/index.ts",
+                "-c",
+                "./service.cds",
+                "-o",
+                "./service.ts",
+                "-p",
+                "I",
+                "-j"
+            ],
             "runtimeArgs": ["-r", "ts-node/register"],
             "cwd": "${workspaceRoot}",
             "protocol": "inspector",
             "internalConsoleOptions": "openOnSessionStart",
-            "skipFiles": ["<node_internals>/**/*.js", "${workspaceRoot}/node_modules/lodash/**/*.js"],
+            "skipFiles": ["<node_internals>/**/*.js"],
             "env": {
                 "TS_NODE_IGNORE": "false"
             }

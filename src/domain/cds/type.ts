@@ -5,32 +5,29 @@ import { Elements, Enum, Kind, PrimitiveType, Reference } from "./core";
  * CDS type alias.
  *
  * @export
- * @interface TypeAlias
  */
-export interface TypeAlias {
+export type TypeAlias = {
     readonly kind: Kind;
     readonly type: PrimitiveType;
-}
+};
 
 /**
  * Type items for a CDS array type alias.
  *
  * @export
- * @interface TypeItems
  */
-export interface TypeItems {
+export type TypeItems = {
     readonly type: PrimitiveType | string;
-}
+};
 
 /**
  * Element items for a CDS array type alias.
  *
  * @export
- * @interface ElementItems
  */
-export interface ElementItems {
+export type ElementItems = {
     readonly elements: Elements;
-}
+};
 
 /**
  * CDS items.
@@ -41,38 +38,35 @@ export type Items = TypeItems | ElementItems;
  * CDS array type alias.
  *
  * @export
- * @interface ArrayTypeAlias
  */
-export interface ArrayTypeAlias {
+export type ArrayTypeAlias = {
     readonly kind: Kind;
     readonly items: TypeItems | ElementItems;
-}
+};
 
 /**
  * CDS structured type definition.
  *
  * @export
- * @interface StructuredType
  */
-export interface StructuredType {
+export type StructuredType = {
     readonly kind: Kind;
     readonly type: PrimitiveType;
     readonly elements: Option<Elements>;
     readonly target: Option<string>;
     readonly keys: Option<Reference>;
-}
+};
 
 /**
  * CDS enum type definition.
  *
  * @export
- * @interface EnumType
  */
-export interface EnumType {
+export type EnumType = {
     readonly kind: Kind;
     readonly type: PrimitiveType;
     readonly enum: Enum;
-}
+};
 
 /**
  * CDS type definition.

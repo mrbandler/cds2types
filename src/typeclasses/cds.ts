@@ -8,7 +8,7 @@ import { CSN } from "@sap/cds-reflect/apis/csn";
  * @interface CDS
  * @template A URI of the kind to wrap a tuple valued side effect
  */
-export interface CDS<A extends URIS2> {
+export type CDS<A extends URIS2> = {
     /**
      * Reads CDS from a given file path and returns the read CSN.
      *
@@ -29,4 +29,4 @@ export interface CDS<A extends URIS2> {
      * @memberof CDS
      */
     readonly write: (path: string) => (json: JSON) => Kind2<A, Error, string>;
-}
+};
