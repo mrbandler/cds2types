@@ -67,6 +67,7 @@ export interface ICsnElement {
     virtual?: boolean;
     default?: ICsnValue;
     enum?: IEnum;
+    items?: ICsnArrayTypeAliasTypeItems;
     "@Core.Immutable"?: boolean;
     "@Core.Computed"?: boolean;
 }
