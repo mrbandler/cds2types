@@ -20,8 +20,7 @@
         "start": "node",
         "build": "tsc",
         "build:start": "yarn build && yarn start",
-        "build:link": "yarn build && npm link",
-        "prettier:gen": "json2ts ./src/formatting/prettier/prettierrc-schema.json ./src/formatting/prettier/config.ts"
+        "build:link": "yarn build && npm link"
     },
     "devDependencies": {
         "@commitlint/cli": "^8.3.5",

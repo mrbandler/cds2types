@@ -26,14 +26,16 @@ export class Program {
      * @memberof Program
      */
     public async run(options: IOptions): Promise<void> {
-        // Load and parse compiled cds.
+        // Load compiled CDS.
         const jsonObj = await this.loadCdsAndConvertToJSON(options.cds);
-        const parsed = new CDSParser().parse(jsonObj as ICsn);
 
-        // Write the compiled cds JSON to disc for debugging.
+        // Write the compiled CDS JSON to disc for debugging.
         if (options.json) {
             fs.writeFileSync(options.output + ".json", JSON.stringify(jsonObj));
         }
+
+        // Parse compile CDS.
+        const parsed = new CDSParser().parse(jsonObj as ICsn);
 
         // Remove the output file if it already exists.
         if (fs.existsSync(options.output)) {

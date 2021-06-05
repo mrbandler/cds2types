@@ -270,7 +270,7 @@ export class CDSParser {
                     const element = elements[elementName];
 
                     if (this.isLocalizationField(element)) continue;
-                    if (!element.type) {
+                    if (!element.type && !element.items) {
                         if (element.type === undefined) {
                             throw new Error(
                                 `Unable to parse element '${elementName}' on entity '${name}'. It seems to be a CDS expression without a type definition, please add a type to it.`
@@ -278,7 +278,11 @@ export class CDSParser {
                         }
                     }
 
-                    const _enum = this.parseEnum(element);
+                    const type = element.type
+                        ? element.type
+                        : element.items
+                        ? element.items.type
+                        : "";
 
                     const canBeNull =
                         element["@Core.Computed"] ||
@@ -292,12 +296,18 @@ export class CDSParser {
                               elementName === Managed.ModifiedAt ||
                               elementName === Managed.ModifiedBy;
 
+                    const cardinality = element.cardinality
+                        ? element.cardinality
+                        : element.items
+                        ? { max: Cardinality.many }
+                        : { max: Cardinality.one };
+
+                    const _enum = this.parseEnum(element);
+
                     result.set(elementName, {
-                        type: element.type,
+                        type: type,
                         canBeNull: canBeNull,
-                        cardinality: element.cardinality
-                            ? element.cardinality
-                            : { max: Cardinality.one },
+                        cardinality: cardinality,
                         target: element.target,
                         enum: _enum.size <= 0 ? undefined : _enum,
                         keys: element.keys,

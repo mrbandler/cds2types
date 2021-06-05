@@ -415,6 +415,12 @@ export abstract class BaseType<O = unknown> {
                     result = this.resolveTargetType(element, prefix);
                 } else {
                     result = this.resolveType(element.type, types);
+                    if (
+                        element.cardinality &&
+                        element.cardinality.max === Cardinality.many
+                    ) {
+                        result = `${result}[]`;
+                    }
                 }
 
                 break;
