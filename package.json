@@ -18,7 +18,8 @@
     ],
     "scripts": {
         "start": "node",
-        "build": "tsc",
+        "build": "tsc --project tsconfig.build.json",
+        "test": "tsc --project tsconfig.test.json",
         "build:start": "yarn build && yarn start",
         "build:link": "yarn build && npm link"
     },

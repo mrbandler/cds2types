@@ -153,6 +153,7 @@ $RECYCLE.BIN/
 bin
 service.ts
 service.ts.json
+test/dist
 
 .yarn/*
 !.yarn/patches
