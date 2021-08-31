@@ -153,3 +153,11 @@ $RECYCLE.BIN/
 bin
 service.ts
 service.ts.json
+
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
