@@ -1,6 +1,6 @@
 {
     "name": "cds2types",
-    "version": "2.6.1",
+    "version": "2.6.2",
     "description": "CLI to convert CDS models to Typescript interfaces and enumerations",
     "main": "./bin/cli.js",
     "repository": "git@github.com:mrbandler/cds2types.git",
@@ -18,7 +18,8 @@
     ],
     "scripts": {
         "start": "node",
-        "build": "tsc",
+        "build": "tsc --project tsconfig.build.json",
+        "test": "tsc --project tsconfig.test.json",
         "build:start": "yarn build && yarn start",
         "build:link": "yarn build && npm link"
     },

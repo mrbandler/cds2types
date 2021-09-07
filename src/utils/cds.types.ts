@@ -134,6 +134,10 @@ export interface ICsnTypeRef {
     ref: string[];
 }
 
+export interface ICsnArrayParam {
+    items: ICsnParam;
+}
+
 export interface ICsnParam {
     type: Type | ICsnTypeRef;
 }
@@ -144,7 +148,7 @@ export interface ICsnParams {
 
 export interface ICsnActionDefinition {
     kind: Kind;
-    params?: ICsnParams;
+    params?: ICsnParams | ICsnArrayParam;
     returns?: CsnReturns;
 }
 
