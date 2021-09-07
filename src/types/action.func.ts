@@ -1,10 +1,13 @@
 import * as morph from "ts-morph";
 
-import { ICsnTypeRef, Kind, isTypeRef } from "../utils/cds.types";
+import { ICsnTypeRef, Kind, isTypeRef, Cardinality } from "../utils/cds.types";
 
 import { BaseType } from "./base.type";
 import { Entity } from "./entity";
-import { IActionFunctionDefinition } from "../utils/types";
+import {
+    IActionFunctionDefinition,
+    ITypeAliasDefinition,
+} from "../utils/types";
 
 /**
  * Action/Function toType return type.
@@ -172,7 +175,7 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
             result = this.createInterface(prefix, "Params");
 
             for (const [key, value] of this.def.params) {
-                if (isTypeRef(value.type)) {
+                if (isTypeRef(value.type as ICsnTypeRef)) {
                     const typeRef = value.type as ICsnTypeRef;
                     const type = types.find((t) => t.Name === typeRef.ref[0]);
 
@@ -189,9 +192,19 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
                         }
                     }
                 } else {
+                    const type = this.cdsElementToType(
+                        {
+                            type: value.type as string,
+                            canBeNull: false,
+                            cardinality: (value as ITypeAliasDefinition).isArray
+                                ? { max: Cardinality.many }
+                                : { max: Cardinality.one },
+                        },
+                        types
+                    );
                     result.properties?.push({
                         name: key,
-                        type: this.cdsTypeToType(value.type),
+                        type: type,
                     });
                 }
             }

@@ -43,7 +43,7 @@ import {
     ITypeAliasDefinition,
 } from "./utils/types";
 
-import _, { isElement } from "lodash";
+import _ from "lodash";
 
 /**
  * Parses a compiled CDS JSON object.
@@ -384,12 +384,21 @@ export class CDSParser {
      */
     private parseParams(
         definition: ICsnActionDefinition | ICsnFunctionDefinition
-    ): Map<string, ICsnParam> {
-        const result: Map<string, ICsnParam> = new Map<string, ICsnParam>();
+    ): Map<string, ICsnParam | ITypeAliasDefinition> {
+        const result: Map<string, ICsnParam | ITypeAliasDefinition> = new Map<
+            string,
+            ICsnParam | ITypeAliasDefinition
+        >();
 
         if (definition.params) {
             for (const key in definition.params) {
-                if (definition.params.hasOwnProperty(key)) {
+                if (definition.params[key].items !== undefined) {
+                    const value = this.parseArrayTypeAliasDef(
+                        key,
+                        definition.params[key]
+                    );
+                    result.set(key, value);
+                } else if (definition.params.hasOwnProperty(key)) {
                     const value = definition.params[key];
                     result.set(key, value as ICsnParam);
                 }

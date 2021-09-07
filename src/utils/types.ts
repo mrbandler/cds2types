@@ -58,7 +58,7 @@ export interface IActionFunctionReturns {
 
 export interface IActionFunctionDefinition {
     kind: Kind;
-    params?: Map<string, ICsnParam>;
+    params?: Map<string, ICsnParam | ITypeAliasDefinition>;
     returns?: IActionFunctionReturns;
 }
 
