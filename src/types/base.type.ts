@@ -1,6 +1,6 @@
 import * as morph from "ts-morph";
 
-import { Cardinality, isType, Type } from "../utils/cds.types";
+import { Cardinality, CommonType, isType, Type } from "../utils/cds.types";
 import { Definition, IElement } from "../utils/types";
 
 /**
@@ -384,6 +384,38 @@ export abstract class BaseType<O = unknown> {
     }
 
     /**
+     * Converts a CDS type to a Typescript type.
+     *
+     * @protected
+     * @param {Type} type
+     * @returns {string}
+     * @memberof BaseType
+     */
+    protected commonTypeToType(type: CommonType | string): string {
+        let result = "unknown";
+
+        switch (type) {
+            case CommonType.CodeList:
+                result = "CodeList";
+                break;
+
+            case CommonType.Countries:
+                result = "Countries";
+                break;
+
+            case CommonType.Currencies:
+                result = "Currencies";
+                break;
+
+            case CommonType.Languages:
+                result = "Languages";
+                break;
+        }
+
+        return result;
+    }
+
+    /**
      * Converts a given element to a Typescript type.
      *
      * @protected
@@ -412,7 +444,11 @@ export abstract class BaseType<O = unknown> {
 
             default:
                 if (element.target) {
-                    result = this.resolveTargetType(element, prefix);
+                    if (element.target.startsWith("sap.common.")) {
+                        result = this.commonTypeToType(element.target);
+                    } else {
+                        result = this.resolveTargetType(element, prefix);
+                    }
                 } else {
                     result = this.resolveType(element.type, types);
                     if (

@@ -112,6 +112,7 @@ export class Namespace {
     ) {
         this._name = name;
         this.definitions = definitions;
+
         this.extractTypes(interfacePrefix);
     }
 
@@ -160,14 +161,28 @@ export class Namespace {
             t.toType(otherEntities)
         );
 
-        let namespaceOrSource:
-            | morph.SourceFile
-            | morph.NamespaceDeclaration = source;
+        const namespaceOrSource = source;
+        // if (this.name && this.name !== "") {
+        //     namespaceOrSource = source.addNamespace({
+        //         name: this.name,
+        //         isExported: true,
+        //     });
+        // }
+
         if (this.name && this.name !== "") {
-            namespaceOrSource = source.addNamespace({
-                name: this.name,
-                isExported: true,
-            });
+            source
+                .addImportDeclaration({ moduleSpecifier: "./cds" })
+                .addNamedImports(["User", "Cuid", "Managed", "Temporal"]);
+        }
+        if (this.name !== "sap.common") {
+            source
+                .addImportDeclaration({ moduleSpecifier: "./sap.common" })
+                .addNamedImports([
+                    "CodeList",
+                    "Countries",
+                    "Currencies",
+                    "Languages",
+                ]);
         }
 
         this.addTypeAliasDeclarations(typeAliasDeclarations, namespaceOrSource);

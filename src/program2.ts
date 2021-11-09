@@ -18,7 +18,7 @@ import { PrettierFormatter } from "./formatter/prettier.formatter";
  * @export
  * @class Program
  */
-export class Program {
+export class Program2 {
     /**
      * Main method.
      *
@@ -48,18 +48,28 @@ export class Program {
 
         // Create ts-morph project and source file to write to.
         const project = new morph.Project({ manipulationSettings: settings });
-        const source = project.createSourceFile(options.output);
+        // const sources = new Map<string, morph.SourceFile>();
+        // sources.set("default", project.createSourceFile(`default.ts`));
+        // if (parsed.namespaces) {
+        //     for (const parsedNamespace of parsed.namespaces) {
+        //         sources.set(
+        //             parsedNamespace.name,
+        //             project.createSourceFile(`${parsedNamespace.name}.ts`)
+        //         );
+        //     }
+        // }
 
         // Generate the actual source code.
-        this.generateCode(source, parsed, options);
+        const sources = this.generateCode(parsed, project, options);
 
-        // Extract source code and format it.
-        source.formatText();
-        const text = source.getFullText();
-        const formattedText = await formatter.format(text);
-
-        // Write the actual source file.
-        await this.writeSource(options.output, formattedText);
+        for (const [fileName, source] of sources.entries()) {
+            // Extract source code and format it.
+            source.formatText();
+            const text = source.getFullText();
+            const formattedText = await formatter.format(text);
+            // Write the actual source file.
+            await this.writeSource(source.getFilePath(), formattedText);
+        }
     }
 
     /**
@@ -98,10 +108,10 @@ export class Program {
      * @memberof Program
      */
     private generateCode(
-        source: morph.SourceFile,
         parsed: IParsed,
-        { prefix, useNewParsing }: IOptions
-    ): void {
+        project: morph.Project,
+        { prefix }: IOptions
+    ): morph.SourceFile[] {
         const namespaces: Namespace[] = [];
 
         if (parsed.namespaces) {
@@ -126,10 +136,21 @@ export class Program {
             namespaces.push(ns);
         }
 
+        const sources: morph.SourceFile[] = [];
+
         for (const namespace of namespaces) {
             const types = _.flatten(namespaces.map((n) => n.getTypes()));
+
+            const source = project.createSourceFile(
+                `${namespace.name || "cds"}.ts`
+            );
+
             namespace.generateCode(source, types);
+
+            sources.push(source);
         }
+
+        return sources;
     }
 
     /**
@@ -149,8 +170,6 @@ export class Program {
             console.error(
                 `Unable to write types: '${dir}' is not a valid directory`
             );
-
-            process.exit(-1);
         }
     }
 }

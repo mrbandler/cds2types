@@ -2,6 +2,8 @@ using {sap.capire.bookshop as my} from './schema';
 
 service CatalogService @(path : '/browse') {
 
+    entity Authors as projection on my.Authors;
+
     entity ServiceEntity {
         key id           : UUID;
             arrayComplex : array of arrayParameterType;
