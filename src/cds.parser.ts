@@ -270,13 +270,6 @@ export class CDSParser {
                     const element = elements[elementName];
 
                     if (this.isLocalizationField(element)) continue;
-                    if (!element.type && !element.items) {
-                        if (element.type === undefined) {
-                            throw new Error(
-                                `Unable to parse element '${elementName}' on entity '${name}'. It seems to be a CDS expression without a type definition, please add a type to it.`
-                            );
-                        }
-                    }
 
                     const type = element.type
                         ? element.type
@@ -304,6 +297,19 @@ export class CDSParser {
 
                     const _enum = this.parseEnum(element);
 
+                    let childElements = new Map<string, IElement>();
+                    if (
+                        (!type &&
+                            !element.target &&
+                            !_.isEmpty(element.elements)) ||
+                        (type === Type.Composition && !element.target)
+                    ) {
+                        childElements = this.parseElements(
+                            elementName,
+                            element.elements || element.targetAspect?.elements
+                        );
+                    }
+
                     result.set(elementName, {
                         type: type,
                         canBeNull: canBeNull,
@@ -311,6 +317,7 @@ export class CDSParser {
                         target: element.target,
                         enum: _enum.size <= 0 ? undefined : _enum,
                         keys: element.keys,
+                        elements: childElements,
                     });
                 }
             }

@@ -30,6 +30,7 @@ export interface IElement {
     target?: string;
     enum?: Map<string, ICsnValue>;
     keys?: ICsnKeys[];
+    elements?: Map<string, IElement>;
 }
 
 /**

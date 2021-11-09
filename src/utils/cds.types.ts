@@ -68,6 +68,8 @@ export interface ICsnElement {
     default?: ICsnValue;
     enum?: IEnum;
     items?: ICsnArrayTypeAliasTypeItems;
+    targetAspect?: ICsnArrayTypeAliasElementItems;
+    elements?: ICsnElements;
     "@Core.Immutable"?: boolean;
     "@Core.Computed"?: boolean;
 }

@@ -1,8 +1,7 @@
 import * as morph from "ts-morph";
-
+import _ from "lodash";
 import { Cardinality, Kind, Type } from "../utils/cds.types";
 import { IElement, IEntityDefinition, IEnumDefinition } from "../utils/types";
-
 import { BaseType } from "./base.type";
 import { Enum } from "./enum";
 import {
@@ -280,5 +279,106 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
         }
 
         return result;
+    }
+
+    /**
+     * Creates a interface field declaration.
+     *
+     * @protected
+     * @param {string} name Name of the field
+     * @param {IElement} element CDS element which represents the field
+     * @param {string} [prefix=""] Prefix of interfaces
+     * @returns {morph.InterfaPropertySignatureStructureceMemberStructures} Created interface field declaration
+     * @memberof BaseType
+     */
+    protected createInterfaceField(
+        name: string,
+        element: IElement,
+        types: BaseType[],
+        prefix = ""
+    ): morph.PropertySignatureStructure {
+        const fieldName =
+            element.canBeNull || element.type === Type.Association
+                ? `${name}?`
+                : name;
+
+        let fieldType: string | morph.WriterFunction = "unknown";
+        if (element.enum) {
+            fieldType =
+                this.sanitizeName(this.sanitizeTarget(this.name)) +
+                this.sanitizeName(name);
+        } else {
+            fieldType = this.cdsElementToType(element, types, prefix);
+        }
+
+        if (
+            (fieldType === "unknown" || fieldType === "") &&
+            !_.isEmpty(element.elements)
+        ) {
+            fieldType = (writer) => {
+                const properties: morph.PropertySignatureStructure[] = [];
+
+                if (element.elements) {
+                    for (const [key, value] of element.elements) {
+                        if (value.enum) {
+                            const interfaceField = this.createInterfaceField(
+                                key,
+                                value,
+                                types,
+                                this.prefix
+                            );
+
+                            const enumValue = Array.from(
+                                value.enum.values()
+                            ).map((value) => value.val);
+
+                            interfaceField.type = (writer) => {
+                                enumValue.forEach((value, index) => {
+                                    if (index > 0) writer.write(" | ");
+                                    if (_.isString(value)) {
+                                        writer.quote(value);
+                                    } else {
+                                        writer.write((value as any).toString());
+                                    }
+                                });
+                            };
+
+                            properties.push(interfaceField);
+                        } else {
+                            const field = this.createInterfaceField(
+                                key,
+                                value,
+                                types,
+                                this.prefix
+                            );
+                            properties.push(field);
+
+                            if (
+                                value.cardinality &&
+                                value.cardinality.max === Cardinality.one
+                            ) {
+                                const fields = this.getAssociationRefField(
+                                    types,
+                                    key,
+                                    "_",
+                                    value
+                                );
+                                properties.push(...fields);
+                            }
+                        }
+                    }
+                }
+
+                morph.Writers.objectType({
+                    properties: properties,
+                })(writer);
+            };
+        }
+
+        return {
+            kind: morph.StructureKind.PropertySignature,
+            name: fieldName,
+            type: fieldType,
+        };
     }
 }
