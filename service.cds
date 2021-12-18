@@ -13,7 +13,7 @@ service CatalogService @(path : '/browse') {
     @readonly
     entity Books            as
         select from my.Books {
-            *,
+            * ,
             author.name as author
         }
         excluding {
@@ -26,7 +26,7 @@ service CatalogService @(path : '/browse') {
             function getViewsCount() returns Integer;
         }
 
-    function getBooks(author : my.Authors:ID) returns array of my.Books;
+    function getBooks(author : my.Authors:ID) returns array of Books;
     action unboudAction(simpleParameter : String, arrayParameter : array of arrayParameterType, typedParameter : typedParameterType) returns ActionReturnType;
 
     @requires_ : 'authenticated-user'
