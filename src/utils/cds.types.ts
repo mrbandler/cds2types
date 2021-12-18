@@ -278,7 +278,7 @@ export function isReturnsMulti(
 }
 
 export function isTypeRef(type: Type | ICsnTypeRef): type is ICsnTypeRef {
-    return (type as ICsnTypeRef).ref !== undefined;
+    return (type as ICsnTypeRef)?.ref !== undefined;
 }
 
 export function isType(type: Type | string): type is Type {
