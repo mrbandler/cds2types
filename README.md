@@ -14,13 +14,13 @@
 ## 1. Installation
 
 ```bash
-$ npm install cds2types
+npm install cds2types
 ```
 
 OR
 
 ```bash
-$ yarn add cds2types
+yarn add cds2types
 ```
 
 ## 2. Usage
@@ -89,7 +89,7 @@ entity Genres : sap.common.CodeList {
 Now when we run the CLI:
 
 ```bash
-$ cds2types --cds ./service.cds --output ./service.ts --prefix I
+cds2types --cds ./service.cds --output ./service.ts --prefix I
 ```
 
 We get the following output:

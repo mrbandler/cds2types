@@ -254,7 +254,7 @@ export abstract class BaseType<O = unknown> {
      */
     protected sanitizeTarget(target: string): string {
         const parts = target.split(".");
-        return parts[parts.length - 1];
+        return this.sanitizeName(parts[parts.length - 1]);
     }
 
     /**
