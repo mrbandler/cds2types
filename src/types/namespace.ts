@@ -152,17 +152,15 @@ export class Namespace {
         );
 
         const entityEnumDeclaration = this.generateEntitiesEnum().toType();
-        const sanitizedEntityEnumDeclaration = this.generateEntitiesEnum(
-            true
-        ).toType();
+        const sanitizedEntityEnumDeclaration =
+            this.generateEntitiesEnum(true).toType();
 
         const typeAliasDeclarations = this.typeAliases.map((t) =>
             t.toType(otherEntities)
         );
 
-        let namespaceOrSource:
-            | morph.SourceFile
-            | morph.NamespaceDeclaration = source;
+        let namespaceOrSource: morph.SourceFile | morph.NamespaceDeclaration =
+            source;
         if (this.name && this.name !== "") {
             namespaceOrSource = source.addNamespace({
                 name: this.name,
