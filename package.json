@@ -49,12 +49,6 @@
         "prettier": "^2.5.1",
         "ts-morph": "^9.1.0"
     },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged",
-            "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-        }
-    },
     "lint-staged": {
         "*.{js,ts,css,json,yml}": [
             "prettier --write"
