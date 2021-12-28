@@ -141,7 +141,7 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
         const result = this.createEnum(prefix);
 
         result.members?.push(
-            this.createEnumField("name", this.sanitizeTarget(this.name), true)
+            this.createEnumField("name", this.getTarget(this.name), true)
         );
 
         if (this.def.params) {
