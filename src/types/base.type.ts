@@ -253,8 +253,20 @@ export abstract class BaseType<O = unknown> {
      * @memberof BaseType
      */
     protected sanitizeTarget(target: string): string {
+        return this.sanitizeName(this.getTarget(target));
+    }
+
+    /**
+     * Return a target from a given target string
+     *
+     * @protected
+     * @param {string} target Target to sanitize
+     * @returns {string} Sanitized target
+     * @memberof BaseType
+     */
+    protected getTarget(target: string): string {
         const parts = target.split(".");
-        return this.sanitizeName(parts[parts.length - 1]);
+        return parts[parts.length - 1];
     }
 
     /**
