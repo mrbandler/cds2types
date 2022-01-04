@@ -9,7 +9,8 @@ import { Program } from "./program";
  */
 function main(): void {
     const cli = new commander.Command();
-    cli.version("2.6.1")
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    cli.version(require("../package.json").version)
         .description(
             "CLI to convert CDS models to Typescript interfaces and enumerations"
         )
