@@ -37,14 +37,6 @@ export class Program {
             fs.writeFileSync(options.output + ".json", JSON.stringify(jsonObj));
         }
 
-        // if (options.sort && typeof jsonObj === "unknow") {
-        //     jsonObj.definitions = Object.fromEntries(
-        //         Object.entries(jsonObj.definitions).sort((a, b) =>
-        //             String(a[0]).localeCompare(b[0])
-        //         )
-        //     );
-        // }
-
         // Parse compile CDS.
         const parsed = new CDSParser().parse(jsonObj as ICsn);
 
