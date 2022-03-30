@@ -101,12 +101,12 @@ export class Program {
     ): Promise<unknown> {
         const csn = await cds.load(path);
 
-        let result: ICsn = JSON.parse(cds.compile.to.json(csn));
+        const result: ICsn = JSON.parse(cds.compile.to.json(csn));
 
         if (sort) {
             result.definitions = Object.fromEntries(
-                Object.entries(result.definitions).sort((a, b) =>
-                    String(a[0]).localeCompare(b[0])
+                Object.entries(result.definitions).sort((key, value) =>
+                    String(key[0]).localeCompare(value[0])
                 )
             );
         }
