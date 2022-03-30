@@ -18,7 +18,8 @@
                 "I",
                 "--format",
                 "--json",
-                "--debug"
+                "--debug",
+                "--sort"
             ],
             "runtimeArgs": ["-r", "ts-node/register"],
             "cwd": "${workspaceRoot}",

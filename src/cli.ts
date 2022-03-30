@@ -29,6 +29,10 @@ function main(): void {
             "-f, --format",
             "Flag, whether to format the outputted source code or not (will try to format with prettier rules in the project)"
         )
+        .option(
+            "-s, --sort",
+            "Flag, whether to sort outputted source code or not"
+        )
         .parse(process.argv);
 
     if (!process.argv.slice(2).length) {
