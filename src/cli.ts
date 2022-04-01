@@ -23,7 +23,7 @@ function main(): void {
         )
         .option(
             "-d, --debug",
-            "Prints JavaScript error message, should be used for issue reporting => https://github.com/mrbandler/cds2types/issues"
+            "Prints JavaScript error message, should be used for issue reporting => https://github.com/kiko240/cds2types/issues"
         )
         .option(
             "-f, --format",
