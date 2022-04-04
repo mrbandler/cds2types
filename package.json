@@ -1,6 +1,6 @@
 {
     "name": "@kiko240/cds2types",
-    "version": "2.7.3",
+    "version": "2.7.4",
     "description": "CLI to convert CDS models to Typescript interfaces and enumerations",
     "main": "./bin/cli.js",
     "repository": "git@github.com:kiko240/cds2types.git",
