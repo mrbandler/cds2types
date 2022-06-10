@@ -20,6 +20,7 @@
         "start": "node",
         "build": "tsc --project tsconfig.build.json",
         "test": "tsc --project tsconfig.test.json",
+        "test:compileCDS": "ts-node ./src/cli.ts --cds ./test/srv/service.cds --output ./test/service.ts --prefix I --format --sort --json --debug",
         "build:start": "yarn build && yarn start",
         "build:link": "yarn build && npm link"
     },
