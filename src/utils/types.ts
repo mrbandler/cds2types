@@ -161,4 +161,5 @@ export interface IOptions {
     debug: boolean;
     version: string;
     format: boolean;
+    sort: boolean;
 }

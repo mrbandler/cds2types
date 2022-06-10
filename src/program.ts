@@ -27,7 +27,10 @@ export class Program {
      */
     public async run(options: IOptions): Promise<void> {
         // Load compiled CDS.
-        const jsonObj = await this.loadCdsAndConvertToJSON(options.cds);
+        const jsonObj = await this.loadCdsAndConvertToJSON(
+            options.cds,
+            options.sort
+        );
 
         // Write the compiled CDS JSON to disc for debugging.
         if (options.json) {
@@ -84,9 +87,23 @@ export class Program {
      * @returns {Promise<any>}
      * @memberof Program
      */
-    private async loadCdsAndConvertToJSON(path: string): Promise<unknown> {
+    private async loadCdsAndConvertToJSON(
+        path: string,
+        sort: boolean
+    ): Promise<unknown> {
         const csn = await cds.load(path);
-        return JSON.parse(cds.compile.to.json(csn));
+
+        const result: ICsn = JSON.parse(cds.compile.to.json(csn));
+
+        if (sort) {
+            result.definitions = Object.fromEntries(
+                Object.entries(result.definitions).sort((key, value) =>
+                    String(key[0]).localeCompare(value[0])
+                )
+            );
+        }
+
+        return result;
     }
 
     /**
