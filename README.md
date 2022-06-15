@@ -8,19 +8,19 @@
 
 1. [Installation](#1-installation) 💻
 2. [Usage](#2-usage) ⌨️
-3. [Bugs and Features](#4-bugs-and-features) 🐞💡
-4. [License](#5-license) 📃
+3. [Bugs and Features](#3-bugs-and-features) 🐞💡
+4. [License](#4-license) 📃
 
 ## 1. Installation
 
 ```bash
-npm install cds2types
+npm install cds2types --save-dev
 ```
 
 OR
 
 ```bash
-yarn add cds2types
+yarn add cds2types --dev
 ```
 
 ## 2. Usage
