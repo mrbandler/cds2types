@@ -7,6 +7,11 @@ using {
 
 namespace sap.capire.bookshop;
 
+entity EntityWithSlashes {
+    field1: String(10);
+    ![/part1/part2]: String(23);
+}
+
 entity ArrayUsingEntity : cuid {
     inlineArray      : array of {
         id           : String;
@@ -29,6 +34,7 @@ entity Books : managed {
         stock    : Integer;
         price    : Decimal(9, 2);
         currency : Currency;
+        ![/part1/part2]: String(23) default 'test';
 }
 
 
