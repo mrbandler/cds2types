@@ -24,6 +24,7 @@ export enum Type {
     LargeString = "cds.LargeString",
     LargeBinary = "cds.LargeBinary",
     User = "User",
+    HanaTinyint = "cds.hana.TINYINT",
 }
 
 export enum Kind {
