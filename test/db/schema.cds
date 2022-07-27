@@ -8,8 +8,8 @@ using {
 namespace sap.capire.bookshop;
 
 entity EntityWithSlashes {
-    field1          : String(10);
-    ![/part1/part2] : String(23);
+    field1: String(10);
+    ![/part1/part2]: String(23);
 }
 
 entity ArrayUsingEntity : cuid {
@@ -25,16 +25,16 @@ entity ArrayUsingEntity : cuid {
 }
 
 entity Books : managed {
-    key ID              : Integer;
-        title           : localized String(111);
-        descr           : localized String(1111);
-        longdesc        : localized String(1111111);
-        author          : Association to Authors;
-        genre           : Association to Genres;
-        stock           : Integer;
-        price           : Decimal(9, 2);
-        currency        : Currency;
-        ![/part1/part2] : String(23) default 'test';
+    key ID       : Integer;
+        title    : localized String(111);
+        descr    : localized String(1111);
+        longdesc : localized String(1111111);
+        author   : Association to Authors;
+        genre    : Association to Genres;
+        stock    : Integer;
+        price    : Decimal(9, 2);
+        currency : Currency;
+        ![/part1/part2]: String(23) default 'test';
 }
 
 
