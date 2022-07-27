@@ -404,6 +404,10 @@ export abstract class BaseType<O = unknown> {
             case Type.LargeBinary:
                 result = "Buffer";
                 break;
+
+            case Type.HanaTinyint:
+                result = "number";
+                break;
         }
 
         return result;
