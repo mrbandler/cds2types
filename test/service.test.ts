@@ -1,6 +1,6 @@
 // This file should be compilable if the types were created correctly.
 
-import { CatalogService } from "../service";
+import { CatalogService } from "./service";
 
 const serviceEntity: CatalogService.IServiceEntity = {
     id: "",

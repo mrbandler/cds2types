@@ -1,6 +1,6 @@
 // This file should be compilable if the types were created correctly.
 
-import { sap } from "../service";
+import { sap } from "./service";
 
 const address: sap.capire.bookshop.IAddress = {
     street: "",

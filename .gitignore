@@ -151,8 +151,8 @@ $RECYCLE.BIN/
 
 # Custom ignores
 bin
-service.ts
-service.ts.json
+test/service.ts
+test/service.ts.json
 test/dist
 
 .yarn/*
@@ -162,3 +162,5 @@ test/dist
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+
+.idea
