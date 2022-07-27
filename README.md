@@ -1,6 +1,6 @@
 # cds2types
 
-[![npm version](https://badge.fury.io/js/cds2types.svg)](https://badge.fury.io/js/cds2types) [![Actions Status](https://github.com/mrbandler/cds2types/workflows/build/badge.svg)](https://github.com/mrbandler/cds2types/actions) [![GitHub License](https://img.shields.io/github/license/mrbandler/cds2types)](https://github.com/mrbandler/cds2types/blob/master/LICENSE)
+[![npm version](https://badge.fury.io/js/cds2types.svg)](https://badge.fury.io/js/cds2types) [![Actions Status](https://github.com/kiko240/cds2types/workflows/build/badge.svg)](https://github.com/kiko240/cds2types/actions) [![GitHub License](https://img.shields.io/github/license/kiko240/cds2types)](https://github.com/kiko240/cds2types/blob/master/LICENSE)
 
 **CLI to convert CDS definitions to native Typescript types.**
 
@@ -328,7 +328,7 @@ Please open a issue when you encounter any bugs 🐞 or if you have an idea for 
 
 MIT License
 
-Copyright (c) 2019 mrbandler
+Copyright (c) 2022 kiko240
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
