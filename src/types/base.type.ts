@@ -150,7 +150,8 @@ export abstract class BaseType<O = unknown> {
     ): morph.PropertySignatureStructure {
         let fieldName = name;
         if (fieldName.includes("/")) fieldName = `"${fieldName}"`;
-        if (element.canBeNull || element.type === Type.Association) fieldName = `${fieldName}?`;
+        if (element.canBeNull || element.type === Type.Association)
+            fieldName = `${fieldName}?`;
 
         let fieldType = "unknown";
         if (element.enum) {
@@ -160,7 +161,6 @@ export abstract class BaseType<O = unknown> {
         } else {
             fieldType = this.cdsElementToType(element, types, prefix);
         }
-
 
         return {
             kind: morph.StructureKind.PropertySignature,
@@ -389,6 +389,10 @@ export abstract class BaseType<O = unknown> {
 
             case Type.LargeBinary:
                 result = "Buffer";
+                break;
+
+            case Type.HanaTinyint:
+                result = "number";
                 break;
         }
 

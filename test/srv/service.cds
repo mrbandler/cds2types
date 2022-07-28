@@ -13,8 +13,9 @@ service CatalogService @(path : '/browse') {
     @readonly
     entity Books            as
         select from my.Books {
-            * ,
-            author.name as author
+            *,
+            author.name as author,
+            virtual 1   as isStockVisible : hana.TINYINT
         }
         excluding {
             createdBy,
@@ -22,15 +23,15 @@ service CatalogService @(path : '/browse') {
         }
 
         actions {
-            action addRating(stars :         Integer);
+            action   addRating(stars : Integer);
             function getViewsCount() returns Integer;
         }
 
-    function getBooks(author : my.Authors:ID) returns array of Books;
-    action unboudAction(simpleParameter : String, arrayParameter : array of arrayParameterType, typedParameter : typedParameterType) returns ActionReturnType;
+    function getBooks(author : my.Authors:ID)                                                                                          returns array of Books;
+    action   unboudAction(simpleParameter : String, arrayParameter : array of arrayParameterType, typedParameter : typedParameterType) returns ActionReturnType;
 
     @requires_ : 'authenticated-user'
-    action submitOrder(book : Books:ID, amount : Integer);
+    action   submitOrder(book : Books:ID, amount : Integer);
 
 
     type arrayParameterType : {
