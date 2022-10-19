@@ -1,5 +1,4 @@
 import _ from "lodash";
-import cds from "@sap/cds";
 import * as fs from "fs-extra";
 import * as morph from "ts-morph";
 import * as path from "path";
@@ -11,6 +10,10 @@ import { Namespace } from "./types/namespace";
 import { Formatter } from "./formatter/formatter";
 import { NoopFormatter } from "./formatter/noop.formatter";
 import { PrettierFormatter } from "./formatter/prettier.formatter";
+
+// load @sap/cds with preference to a locally installed package in the current project
+const localCdsPackage = path.join(process.cwd(), "node_modules", "@sap/cds");
+const cds = require(localCdsPackage) || require("@sap/cds");
 
 /**
  * Main porgram class.
