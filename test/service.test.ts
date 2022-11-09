@@ -62,6 +62,7 @@ const book: CatalogService.IBooks = {
         symbol: "",
     },
     currency_code: "",
+    longdesc: ""
 };
 
 const authorAddRatingAction: CatalogService.IBooks.actions.IActionAddRatingParams = {
