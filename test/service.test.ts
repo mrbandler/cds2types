@@ -23,7 +23,7 @@ const arrayUsingEntity: CatalogService.IArrayUsingEntity = {
             country: "",
         },
     ],
-    compositoinField: [
+    compositionField: [
         {
             idComposition: "",
             quantityComposition: 1,

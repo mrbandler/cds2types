@@ -59,7 +59,7 @@ const arrayUsingEntity: sap.capire.bookshop.IArrayUsingEntity = {
     ID: "",
     inlineArray: [],
     adressArray: [address],
-    compositoinField: [
+    compositionField: [
         {
             idComposition: "",
             quantityComposition: 1,
