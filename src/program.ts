@@ -3,7 +3,15 @@ import cds from "@sap/cds";
 import * as fs from "fs-extra";
 import * as morph from "ts-morph";
 import * as path from "path";
-import { IOptions, IParsed, isActionFunction, isEntity, isEnum, isType, KindName } from "./utils/types";
+import {
+    IOptions,
+    IParsed,
+    isActionFunction,
+    isEntity,
+    isEnum,
+    isType,
+    KindName,
+} from "./utils/types";
 import { CDSParser } from "./cds.parser";
 import { ICsn } from "./utils/cds.types";
 import { Namespace } from "./types/namespace";
@@ -33,7 +41,10 @@ export class Program {
 
         // Write the compiled CDS JSON to disc for debugging.
         if (options.json) {
-            fs.writeFileSync(options.output + "servicdefinitions.json", JSON.stringify(jsonObj));
+            fs.writeFileSync(
+                `${options.output}servicdefinitions.json`,
+                JSON.stringify(jsonObj)
+            );
         }
 
         // Parse compile CDS.
@@ -130,33 +141,64 @@ export class Program {
         }
 
         const otherNamespaces = new Map<string, KindName[]>();
-        const namespaceNames = namespaces.map(ns => ns.name);
-        namespaceNames.forEach(ns => {
+        const namespaceNames = namespaces.map((ns) => ns.name);
+        namespaceNames.forEach((ns) => {
             otherNamespaces.set(ns, []);
-        })
+        });
         for (const namespace of namespaces) {
-            const source = project.createSourceFile(options.output + namespace.name);
+            const source = project.createSourceFile(
+                options.output + namespace.name
+            );
             const types = _.flatten(namespaces.map((n) => n.getTypes()));
 
             for (const [key, value] of namespace.Definitions) {
                 if (isType(value)) {
-                    const elementFromOtherNamespace = namespaceNames.find(ns => (value.type?.includes(ns) && !value.type?.includes(namespace.name)));
+                    const elementFromOtherNamespace = namespaceNames.find(
+                        (ns) =>
+                            value.type?.includes(ns) &&
+                            !value.type?.includes(namespace.name)
+                    );
                     if (!_.isEmpty(elementFromOtherNamespace)) {
                         if (value.type) {
-                            const relevantType = types.find(t => t.Name === value.type);
-                            otherNamespaces.get(namespace.name)?.push({ kind: relevantType ? relevantType.Definition?.kind : "type", name: value.type });
+                            const relevantType = types.find(
+                                (t) => t.Name === value.type
+                            );
+                            otherNamespaces.get(namespace.name)?.push({
+                                kind: relevantType
+                                    ? relevantType.Definition?.kind
+                                    : "type",
+                                name: value.type,
+                            });
                         }
                     }
                 } else if (isEntity(value)) {
                     const elements = value.elements ? value.elements : [];
                     for (const [innerKey, element] of elements) {
-                        const elementFromOtherNamespace = namespaceNames.find(ns => (element.type?.includes(ns) && !element.type?.includes(namespace.name)) || (element.target?.includes(ns) && !element.target?.includes(namespace.name)));
+                        const elementFromOtherNamespace = namespaceNames.find(
+                            (ns) =>
+                                (element.type?.includes(ns) &&
+                                    !element.type?.includes(namespace.name)) ||
+                                (element.target?.includes(ns) &&
+                                    !element.target?.includes(namespace.name))
+                        );
                         if (!_.isEmpty(elementFromOtherNamespace)) {
-                            const relevantType = types.find(t => t.Name === element.type);
+                            const relevantType = types.find(
+                                (t) => t.Name === element.type
+                            );
                             if (element.target) {
-                                otherNamespaces.get(namespace.name)?.push({ kind: relevantType ? relevantType.Definition?.kind : "entity", name: element.target });
+                                otherNamespaces.get(namespace.name)?.push({
+                                    kind: relevantType
+                                        ? relevantType.Definition?.kind
+                                        : "entity",
+                                    name: element.target,
+                                });
                             } else {
-                                otherNamespaces.get(namespace.name)?.push({ kind: relevantType ? relevantType.Definition?.kind : "entity", name: element.type });
+                                otherNamespaces.get(namespace.name)?.push({
+                                    kind: relevantType
+                                        ? relevantType.Definition?.kind
+                                        : "entity",
+                                    name: element.type,
+                                });
                             }
                         }
                     }
@@ -166,27 +208,75 @@ export class Program {
                     const params = value.params ? value.params : [];
                     for (const [innerKey, param] of params) {
                         if (param[0] && param[0].value) {
-                            const relevantType = types.find(t => t.Name === param[0].value.type.ref[0]);
-                            const elementFromOtherNamespace = namespaceNames.find(ns => param[0].value.type.ref[0].includes(ns) && !param[0].value.type.ref[0].includes(namespace.name));
+                            const relevantType = types.find(
+                                (t) => t.Name === param[0].value.type.ref[0]
+                            );
+                            const elementFromOtherNamespace =
+                                namespaceNames.find(
+                                    (ns) =>
+                                        param[0].value.type.ref[0].includes(
+                                            ns
+                                        ) &&
+                                        !param[0].value.type.ref[0].includes(
+                                            namespace.name
+                                        )
+                                );
                             if (!_.isEmpty(elementFromOtherNamespace)) {
-                                otherNamespaces.get(namespace.name)?.push({ kind: relevantType ? relevantType.Definition?.kind : "action", name: param[0].value.type.ref[0] });
+                                otherNamespaces.get(namespace.name)?.push({
+                                    kind: relevantType
+                                        ? relevantType.Definition?.kind
+                                        : "action",
+                                    name: param[0].value.type.ref[0],
+                                });
                             }
-                        } else if (param.type && typeof param.type !== "string") {
-                            const elementFromOtherNamespace = namespaceNames.find(ns => param.type ? param.type["ref"][0].includes(ns) && !param.type["ref"][0].includes(namespace.name) : false);
-                            const relevantType = types.find(t => param.type ? t.Name === param.type["ref"][0] : false);
+                        } else if (
+                            param.type &&
+                            typeof param.type !== "string"
+                        ) {
+                            const elementFromOtherNamespace =
+                                namespaceNames.find((ns) =>
+                                    param.type
+                                        ? param.type["ref"][0].includes(ns) &&
+                                          !param.type["ref"][0].includes(
+                                              namespace.name
+                                          )
+                                        : false
+                                );
+                            const relevantType = types.find((t) =>
+                                param.type
+                                    ? t.Name === param.type["ref"][0]
+                                    : false
+                            );
                             if (!_.isEmpty(elementFromOtherNamespace)) {
-                                otherNamespaces.get(namespace.name)?.push({ kind: relevantType ? relevantType.Definition?.kind : "action", name: param.type["ref"][0] });
+                                otherNamespaces.get(namespace.name)?.push({
+                                    kind: relevantType
+                                        ? relevantType.Definition?.kind
+                                        : "action",
+                                    name: param.type["ref"][0],
+                                });
                             }
                         }
                     }
                 }
             }
 
-            namespace.generateCode(source, options.prefix, namespaceNames, otherNamespaces.get(namespace.name), types);
+            namespace.generateCode(
+                source,
+                options.prefix,
+                namespaceNames,
+                otherNamespaces.get(namespace.name),
+                types
+            );
 
             // Write the actual source file.
-            const namespaceName = _.isEmpty(namespace.name) ? "other" : namespace.name;
-            await this.writeSource(options.output, namespaceName, source.getFullText());
+            const namespaceName = _.isEmpty(namespace.name)
+                ? "other"
+                : namespace.name;
+            await this.writeSource(
+                options.output,
+                namespaceName,
+                source.getFullText()
+            );
         }
 
         await this.formatWrittenFiles(namespaceNames, options, formatter);
@@ -202,17 +292,33 @@ export class Program {
      * @return {Promise<void>}
      * @memberof Program
      */
-    private async formatWrittenFiles(namespaceNames: string[], options: IOptions, formatter: Formatter): Promise<void> {
+    private async formatWrittenFiles(
+        namespaceNames: string[],
+        options: IOptions,
+        formatter: Formatter
+    ): Promise<void> {
         console.log(`Unformatted files written.`);
-        const formatProject = new morph.Project({ manipulationSettings: formatter.getSettings() });
+        const formatProject = new morph.Project({
+            manipulationSettings: formatter.getSettings(),
+        });
         for (const namespace of namespaceNames) {
             const namespaceName = _.isEmpty(namespace) ? "other" : namespace;
-            const file = formatProject.addSourceFileAtPath(options.output + namespaceName + ".ts");
+            const file = formatProject.addSourceFileAtPath(
+                `${options.output}${namespaceName}.ts`
+            );
             if (file) {
-                let fileWithFixedImports = file.fixMissingImports().fixUnusedIdentifiers();
+                let fileWithFixedImports = file
+                    .fixMissingImports()
+                    .fixUnusedIdentifiers();
                 fileWithFixedImports.formatText();
-                const formattedText = await formatter.format(fileWithFixedImports.getFullText());
-                await this.writeSource(options.output, namespaceName, formattedText);
+                const formattedText = await formatter.format(
+                    fileWithFixedImports.getFullText()
+                );
+                await this.writeSource(
+                    options.output,
+                    namespaceName,
+                    formattedText
+                );
             }
         }
         console.log(`Formatted files written.`);
@@ -228,10 +334,14 @@ export class Program {
      * @return {Promise<void>}
      * @memberof Program
      */
-    private async writeSource(filepath: string, namespaceName: string, source: string): Promise<void> {
+    private async writeSource(
+        filepath: string,
+        namespaceName: string,
+        source: string
+    ): Promise<void> {
         const dir = path.dirname(filepath);
         if (fs.existsSync(dir)) {
-            const fullPath = filepath + namespaceName + ".ts";
+            const fullPath = `${filepath}${namespaceName}.ts`;
             // Remove the output file if it already exists.
             fs.removeSync(fullPath);
             await fs.writeFile(fullPath, source);
@@ -246,4 +356,3 @@ export class Program {
         }
     }
 }
-

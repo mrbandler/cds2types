@@ -103,7 +103,7 @@ export abstract class BaseType<O = unknown> {
         }
 
         if (withNamespace && (this.namespace || this.namespace !== "")) {
-            name = this.namespace + "." + name;
+            name = `${this.namespace}.${name}`;
         }
 
         return name;

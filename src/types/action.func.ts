@@ -204,7 +204,7 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
                                 ? { max: Cardinality.many }
                                 : { max: Cardinality.one },
                         },
-                        types, 
+                        types,
                         interfaceName
                     );
                     result.properties?.push({
