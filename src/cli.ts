@@ -16,8 +16,8 @@ function main(): void {
         )
         .option("-c, --cds <file.cds>", "CDS file to convert")
         .option(
-            "-o, --output ./<path>",
-            "Output location in which the generated *.ts files are written to"
+            "-o, --output ./<path>/",
+            "Output location in which the generated *.ts files are written to. Make sure the path ends with '/'."
         )
         .option("-p, --prefix <I>", "Interface prefix", "")
         .option(
