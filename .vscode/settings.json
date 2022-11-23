@@ -1,5 +1,4 @@
 {
-    "eslint.validate": ["javascript", "typescript"],
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "files.exclude": {
         "**/node_modules": true,
