@@ -2,13 +2,21 @@
     "compilerOptions": {
         "target": "es2015",
         "module": "commonjs",
-        "lib": ["es6", "es2015", "es2016", "es2020", "dom"],
+        "lib": [
+            "dom",
+            "es2015",
+            "es2019"
+        ],
         "rootDir": "./",
         "downlevelIteration": true,
         "strict": true,
-        "types": ["node"],
+        "types": [
+            "node"
+        ],
+        "moduleResolution": "node",
         "noImplicitAny": false,
         "esModuleInterop": true,
-        "removeComments": true
+        "removeComments": true,
+        "skipLibCheck": true
     }
 }

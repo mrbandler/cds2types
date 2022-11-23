@@ -1,21 +1,22 @@
 // This file should be compilable if the types were created correctly.
 
-import { sap } from "./service";
+import { Gender, IAddress, IArrayUsingEntity, IAuthors, IBooks } from "./gen/sap.capire.bookshop";
 
-const address: sap.capire.bookshop.IAddress = {
+
+const address: IAddress = {
     street: "",
     houseNo: "",
     town: "",
     country: "",
 };
 
-const author: sap.capire.bookshop.IAuthors = {
+const author: IAuthors = {
     ID: 1,
     name: {
         firstname: "",
         lastname: "",
     },
-    gender: sap.capire.bookshop.Gender.Female,
+    gender: Gender.Female,
     addresses: [address],
     dateOfBirth: new Date(),
     dateOfDeath: new Date(),
@@ -24,7 +25,7 @@ const author: sap.capire.bookshop.IAuthors = {
     books: [],
 };
 
-const book: sap.capire.bookshop.IBooks = {
+const book: IBooks = {
     ID: 1,
     title: "",
     descr: "",
@@ -55,7 +56,7 @@ const book: sap.capire.bookshop.IBooks = {
     longdesc: ""
 };
 
-const arrayUsingEntity: sap.capire.bookshop.IArrayUsingEntity = {
+const arrayUsingEntity: IArrayUsingEntity = {
     ID: "",
     inlineArray: [],
     adressArray: [address],

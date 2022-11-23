@@ -27,6 +27,13 @@ export enum Type {
     HanaTinyint = "cds.hana.TINYINT",
 }
 
+export enum CommonType {
+    CodeList = "sap.common.CodeList",
+    Countries = "sap.common.Countries",
+    Currencies = "sap.common.Currencies",
+    Languages = "sap.common.Languages",
+}
+
 export enum Kind {
     Service = "service",
     Entity = "entity",
