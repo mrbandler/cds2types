@@ -1,23 +1,26 @@
-import _ from "lodash";
 import cds from "@sap/cds";
 import * as fs from "fs-extra";
-import * as morph from "ts-morph";
+import _ from "lodash";
 import * as path from "path";
+import * as morph from "ts-morph";
+import { CDSParser } from "./cds.parser";
+import { Formatter } from "./formatter/formatter";
+import { NoopFormatter } from "./formatter/noop.formatter";
+import { PrettierFormatter } from "./formatter/prettier.formatter";
+import { BaseType } from "./types/base.type";
+import { Namespace } from "./types/namespace";
+import { ICsn, ICsnParam, Kind } from "./utils/cds.types";
 import {
+    IEntityDefinition,
     IOptions,
     IParsed,
     isActionFunction,
     isEntity,
     isEnum,
     isType,
+    ITypeAliasDefinition,
     KindName,
 } from "./utils/types";
-import { CDSParser } from "./cds.parser";
-import { ICsn } from "./utils/cds.types";
-import { Namespace } from "./types/namespace";
-import { Formatter } from "./formatter/formatter";
-import { NoopFormatter } from "./formatter/noop.formatter";
-import { PrettierFormatter } from "./formatter/prettier.formatter";
 
 /**
  * Main porgram class.
@@ -140,131 +143,24 @@ export class Program {
             namespaces.push(ns);
         }
 
-        const otherNamespaces = new Map<string, KindName[]>();
         const namespaceNames = namespaces.map((ns) => ns.name);
-        namespaceNames.forEach((ns) => {
-            otherNamespaces.set(ns, []);
-        });
         for (const namespace of namespaces) {
             const source = project.createSourceFile(
                 options.output + namespace.name
             );
             const types = _.flatten(namespaces.map((n) => n.getTypes()));
-
-            for (const [key, value] of namespace.Definitions) {
-                if (isType(value)) {
-                    const elementFromOtherNamespace = namespaceNames.find(
-                        (ns) =>
-                            value.type?.includes(ns) &&
-                            !value.type?.includes(namespace.name)
-                    );
-                    if (!_.isEmpty(elementFromOtherNamespace)) {
-                        if (value.type) {
-                            const relevantType = types.find(
-                                (t) => t.Name === value.type
-                            );
-                            otherNamespaces.get(namespace.name)?.push({
-                                kind: relevantType
-                                    ? relevantType.Definition?.kind
-                                    : "type",
-                                name: value.type,
-                            });
-                        }
-                    }
-                } else if (isEntity(value)) {
-                    const elements = value.elements ? value.elements : [];
-                    for (const [innerKey, element] of elements) {
-                        const elementFromOtherNamespace = namespaceNames.find(
-                            (ns) =>
-                                (element.type?.includes(ns) &&
-                                    !element.type?.includes(namespace.name)) ||
-                                (element.target?.includes(ns) &&
-                                    !element.target?.includes(namespace.name))
-                        );
-                        if (!_.isEmpty(elementFromOtherNamespace)) {
-                            const relevantType = types.find(
-                                (t) => t.Name === element.type
-                            );
-                            if (element.target) {
-                                otherNamespaces.get(namespace.name)?.push({
-                                    kind: relevantType
-                                        ? relevantType.Definition?.kind
-                                        : "entity",
-                                    name: element.target,
-                                });
-                            } else {
-                                otherNamespaces.get(namespace.name)?.push({
-                                    kind: relevantType
-                                        ? relevantType.Definition?.kind
-                                        : "entity",
-                                    name: element.type,
-                                });
-                            }
-                        }
-                    }
-                } else if (isEnum(value)) {
-                    // t.b.d
-                } else if (isActionFunction(value)) {
-                    const params = value.params ? value.params : [];
-                    for (const [innerKey, param] of params) {
-                        if (param[0] && param[0].value) {
-                            const relevantType = types.find(
-                                (t) => t.Name === param[0].value.type.ref[0]
-                            );
-                            const elementFromOtherNamespace =
-                                namespaceNames.find(
-                                    (ns) =>
-                                        param[0].value.type.ref[0].includes(
-                                            ns
-                                        ) &&
-                                        !param[0].value.type.ref[0].includes(
-                                            namespace.name
-                                        )
-                                );
-                            if (!_.isEmpty(elementFromOtherNamespace)) {
-                                otherNamespaces.get(namespace.name)?.push({
-                                    kind: relevantType
-                                        ? relevantType.Definition?.kind
-                                        : "action",
-                                    name: param[0].value.type.ref[0],
-                                });
-                            }
-                        } else if (
-                            param.type &&
-                            typeof param.type !== "string"
-                        ) {
-                            const elementFromOtherNamespace =
-                                namespaceNames.find((ns) =>
-                                    param.type
-                                        ? param.type["ref"][0].includes(ns) &&
-                                          !param.type["ref"][0].includes(
-                                              namespace.name
-                                          )
-                                        : false
-                                );
-                            const relevantType = types.find((t) =>
-                                param.type
-                                    ? t.Name === param.type["ref"][0]
-                                    : false
-                            );
-                            if (!_.isEmpty(elementFromOtherNamespace)) {
-                                otherNamespaces.get(namespace.name)?.push({
-                                    kind: relevantType
-                                        ? relevantType.Definition?.kind
-                                        : "action",
-                                    name: param.type["ref"][0],
-                                });
-                            }
-                        }
-                    }
-                }
-            }
+            const elementsFromOtherNamespaces =
+                this.findElementsFromOtherNamespaces(
+                    namespace,
+                    namespaceNames,
+                    types
+                );
 
             namespace.generateCode(
                 source,
                 options.prefix,
                 namespaceNames,
-                otherNamespaces.get(namespace.name),
+                elementsFromOtherNamespaces.get(namespace.name),
                 types
             );
 
@@ -353,6 +249,200 @@ export class Program {
             );
 
             process.exit(-1);
+        }
+    }
+
+    /**
+     * Finds elements which are defined in another namespace as the current one.
+     *
+     * @private
+     * @param {Namespace} namespace
+     * @param {string[]} namespaceNames
+     * @param {BaseType[]} types
+     * @return {Map<string, KindName[]>}
+     * @memberof Program
+     */
+    private findElementsFromOtherNamespaces(
+        namespace: Namespace,
+        namespaceNames: string[],
+        types: BaseType[]
+    ): Map<string, KindName[]> {
+        const otherNamespaces = new Map<string, KindName[]>();
+        otherNamespaces.set(namespace.name, []);
+
+        for (const [key, value] of namespace.Definitions) {
+            if (isType(value)) {
+                this.checkTypeIfElementFromOtherNamespace(
+                    namespaceNames,
+                    value,
+                    namespace,
+                    types,
+                    otherNamespaces
+                );
+            } else if (isEntity(value)) {
+                this.checkEntityIfElementFromOtherNamespace(
+                    value,
+                    namespaceNames,
+                    namespace,
+                    types,
+                    otherNamespaces
+                );
+            } else if (isEnum(value)) {
+                // TODO: is this relevant for enums?
+            } else if (isActionFunction(value)) {
+                const params = value.params ? value.params : [];
+                this.checkActionFunctionIfElementFromOtherNamespace(
+                    params,
+                    types,
+                    namespaceNames,
+                    namespace,
+                    otherNamespaces
+                );
+            }
+        }
+
+        return otherNamespaces;
+    }
+
+    /**
+     * Checks if entity has elements from other namespace as the current one.
+     *
+     * @private
+     * @param {string[]} namespaceNames
+     * @param {ITypeAliasDefinition} value
+     * @param {Namespace} namespace
+     * @param {BaseType<unknown>[]} types
+     * @param {Map<string, KindName[]>} otherNamespaces
+     * @memberof Program
+     */
+    private checkTypeIfElementFromOtherNamespace(
+        namespaceNames: string[],
+        value: ITypeAliasDefinition,
+        namespace: Namespace,
+        types: BaseType<unknown>[],
+        otherNamespaces: Map<string, KindName[]>
+    ) {
+        const elementFromOtherNamespace = namespaceNames.find(
+            (ns) =>
+                value.type?.includes(ns) &&
+                !value.type?.includes(namespace.name)
+        );
+        if (!_.isEmpty(elementFromOtherNamespace)) {
+            if (value.type) {
+                const relevantType = types.find((t) => t.Name === value.type);
+                otherNamespaces.get(namespace.name)?.push({
+                    kind: relevantType
+                        ? relevantType.Definition?.kind
+                        : Kind.Type,
+                    name: value.type,
+                });
+            }
+        }
+    }
+
+    /**
+     * Checks if entity has elements from other namespace as the current one.
+     *
+     * @private
+     * @param {IEntityDefinition} value
+     * @param {string[]} namespaceNames
+     * @param {Namespace} namespace
+     * @param {BaseType<unknown>[]} types
+     * @param {Map<string, KindName[]>} otherNamespaces
+     * @memberof Program
+     */
+    private checkEntityIfElementFromOtherNamespace(
+        value: IEntityDefinition,
+        namespaceNames: string[],
+        namespace: Namespace,
+        types: BaseType<unknown>[],
+        otherNamespaces: Map<string, KindName[]>
+    ) {
+        const elements = value.elements ? value.elements : [];
+        for (const [innerKey, element] of elements) {
+            const elementFromOtherNamespace = namespaceNames.find(
+                (ns) =>
+                    (element.type?.includes(ns) &&
+                        !element.type?.includes(namespace.name)) ||
+                    (element.target?.includes(ns) &&
+                        !element.target?.includes(namespace.name))
+            );
+            if (!_.isEmpty(elementFromOtherNamespace)) {
+                const relevantType = types.find((t) => t.Name === element.type);
+                if (element.target) {
+                    otherNamespaces.get(namespace.name)?.push({
+                        kind: relevantType
+                            ? relevantType.Definition?.kind
+                            : Kind.Entity,
+                        name: element.target,
+                    });
+                } else {
+                    otherNamespaces.get(namespace.name)?.push({
+                        kind: relevantType
+                            ? relevantType.Definition?.kind
+                            : Kind.Entity,
+                        name: element.type,
+                    });
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if action function has elements from other namespace as the current one.
+     *
+     * @private
+     * @param {(Map<string, ITypeAliasDefinition | ICsnParam> | never[])} params
+     * @param {BaseType<unknown>[]} types
+     * @param {string[]} namespaceNames
+     * @param {Namespace} namespace
+     * @param {Map<string, KindName[]>} otherNamespaces
+     * @memberof Program
+     */
+    private checkActionFunctionIfElementFromOtherNamespace(
+        params: Map<string, ITypeAliasDefinition | ICsnParam> | never[],
+        types: BaseType<unknown>[],
+        namespaceNames: string[],
+        namespace: Namespace,
+        otherNamespaces: Map<string, KindName[]>
+    ) {
+        for (const [innerKey, param] of params) {
+            if (param[0] && param[0].value) {
+                const relevantType = types.find(
+                    (t) => t.Name === param[0].value.type.ref[0]
+                );
+                const elementFromOtherNamespace = namespaceNames.find(
+                    (ns) =>
+                        param[0].value.type.ref[0].includes(ns) &&
+                        !param[0].value.type.ref[0].includes(namespace.name)
+                );
+                if (!_.isEmpty(elementFromOtherNamespace)) {
+                    otherNamespaces.get(namespace.name)?.push({
+                        kind: relevantType
+                            ? relevantType.Definition?.kind
+                            : Kind.Action,
+                        name: param[0].value.type.ref[0],
+                    });
+                }
+            } else if (param.type && typeof param.type !== "string") {
+                const elementFromOtherNamespace = namespaceNames.find((ns) =>
+                    param.type
+                        ? param.type["ref"][0].includes(ns) &&
+                          !param.type["ref"][0].includes(namespace.name)
+                        : false
+                );
+                const relevantType = types.find((t) =>
+                    param.type ? t.Name === param.type["ref"][0] : false
+                );
+                if (!_.isEmpty(elementFromOtherNamespace)) {
+                    otherNamespaces.get(namespace.name)?.push({
+                        kind: relevantType
+                            ? relevantType.Definition?.kind
+                            : Kind.Action,
+                        name: param.type["ref"][0],
+                    });
+                }
+            }
         }
     }
 }
