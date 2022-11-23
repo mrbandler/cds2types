@@ -177,21 +177,31 @@ export class Namespace {
         const importMap = new Map<string, string[]>();
         if (!_.isNil(elementsFromOtherNamespace)) {
             for (const element of elementsFromOtherNamespace) {
-                const relevantNamespace = allNamespaces.find(ns => (element.name.includes(ns)));
+                const relevantNamespace = allNamespaces.find((ns) =>
+                    element.name.includes(ns)
+                );
 
                 if (!_.isNil(relevantNamespace)) {
                     if (_.isNil(importMap.get(relevantNamespace))) {
-                        importMap.set(relevantNamespace, [])
+                        importMap.set(relevantNamespace, []);
                     }
-                    let elementWithoutNamespace = element.name.replace(`${relevantNamespace}.`, "");
+                    let elementWithoutNamespace = element.name.replace(
+                        `${relevantNamespace}.`,
+                        ""
+                    );
 
                     if (element.kind === Kind.Entity) {
                         elementWithoutNamespace = `${interfacePrefix}${elementWithoutNamespace}`;
                     }
 
                     const mapElement = importMap.get(relevantNamespace);
-                    if (!_.isNil(mapElement) && !mapElement.some(element => element === elementWithoutNamespace)) {
-                        mapElement.push(elementWithoutNamespace)
+                    if (
+                        !_.isNil(mapElement) &&
+                        !mapElement.some(
+                            (element) => element === elementWithoutNamespace
+                        )
+                    ) {
+                        mapElement.push(elementWithoutNamespace);
                     }
                 }
             }
@@ -275,15 +285,7 @@ export class Namespace {
             source.addInterface(ed.interfaceDeclarationStructure);
 
             if (!_.isEmpty(ed.actionFuncStructures)) {
-                const actionsNamespace = source.addNamespace({
-                    name: `${ed.interfaceDeclarationStructure.name}.actions`,
-                    isExported: true,
-                });
-
-                this.addActionFuncDeclarations(
-                    ed.actionFuncStructures,
-                    actionsNamespace
-                );
+                this.addActionFuncDeclarations(ed.actionFuncStructures, source);
             }
         });
     }
