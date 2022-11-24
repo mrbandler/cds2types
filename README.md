@@ -120,6 +120,7 @@ We get the following output:
 
 ```typescript
 // sap.capire.bookshop.ts
+
 import { ICurrencies, Locale } from "./sap.common";
 
 export type Addresses = IAddress[];
@@ -255,6 +256,7 @@ export enum SanitizedEntity {
 
 ```typescript
 // sap.common.ts
+
 export type Locale = string;
 
 export interface ICountries {
@@ -324,6 +326,7 @@ export enum SanitizedEntity {
 
 ```typescript
 // other.ts
+
 export type User = string;
 
 export enum Entity {}
