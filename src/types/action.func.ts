@@ -173,6 +173,9 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
 
         if (this.def.params && this.def.params.size > 0) {
             result = this.createInterface(prefix, "Params");
+            const interfaceName = this.sanitizeName(
+                this.sanitizeTarget(this.name)
+            );
 
             for (const [key, value] of this.def.params) {
                 if (isTypeRef(value.type as ICsnTypeRef)) {
@@ -186,7 +189,8 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
                                 this.createInterfaceField(
                                     key,
                                     element,
-                                    types
+                                    types,
+                                    interfaceName
                                 ) as morph.PropertySignatureStructure
                             );
                         }
@@ -200,7 +204,8 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
                                 ? { max: Cardinality.many }
                                 : { max: Cardinality.one },
                         },
-                        types
+                        types,
+                        interfaceName
                     );
                     result.properties?.push({
                         name: key,

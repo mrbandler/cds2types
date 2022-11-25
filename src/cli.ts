@@ -15,7 +15,10 @@ function main(): void {
             "CLI to convert CDS models to Typescript interfaces and enumerations"
         )
         .option("-c, --cds <file.cds>", "CDS file to convert")
-        .option("-o, --output <file.ts>", "Output location for the *.ts file")
+        .option(
+            "-o, --output ./<path>/",
+            "Output location in which the generated *.ts files are written to. Make sure the path ends with '/'."
+        )
         .option("-p, --prefix <I>", "Interface prefix", "")
         .option(
             "-j, --json",

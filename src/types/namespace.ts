@@ -7,6 +7,7 @@ import {
     isEntity,
     isEnum,
     isType,
+    KindName,
 } from "../utils/types";
 import { ICsnValue, Kind, Type } from "../utils/cds.types";
 
@@ -97,6 +98,17 @@ export class Namespace {
     }
 
     /**
+     * Get definitions of namespace.
+     *
+     * @readonly
+     * @type {string}
+     * @memberof Namespace
+     */
+    public get Definitions(): Map<string, Definition> {
+        return this.definitions;
+    }
+
+    /**
      * Default constructor.
      *
      * @param {Map<string, IDefinition>} definitions Namespaces definitions
@@ -140,6 +152,9 @@ export class Namespace {
      */
     public generateCode(
         source: morph.SourceFile,
+        interfacePrefix = "",
+        allNamespaces: string[],
+        elementsFromOtherNamespace: KindName[] | undefined,
         otherEntities: BaseType[]
     ): void {
         const actionFuncDeclarations = this.actionFunctions.map((f) =>
@@ -159,25 +174,52 @@ export class Namespace {
             t.toType(otherEntities)
         );
 
-        let namespaceOrSource: morph.SourceFile | morph.NamespaceDeclaration =
-            source;
-        if (this.name && this.name !== "") {
-            namespaceOrSource = source.addNamespace({
-                name: this.name,
-                isExported: true,
-            });
+        const importMap = new Map<string, string[]>();
+        if (!_.isNil(elementsFromOtherNamespace)) {
+            for (const element of elementsFromOtherNamespace) {
+                const relevantNamespace = allNamespaces.find((ns) =>
+                    element.name.includes(ns)
+                );
+
+                if (!_.isNil(relevantNamespace)) {
+                    if (_.isNil(importMap.get(relevantNamespace))) {
+                        importMap.set(relevantNamespace, []);
+                    }
+                    let elementWithoutNamespace = element.name.replace(
+                        `${relevantNamespace}.`,
+                        ""
+                    );
+
+                    if (element.kind === Kind.Entity) {
+                        elementWithoutNamespace = `${interfacePrefix}${elementWithoutNamespace}`;
+                    }
+
+                    const mapElement = importMap.get(relevantNamespace);
+                    if (
+                        !_.isNil(mapElement) &&
+                        !mapElement.some(
+                            (element) => element === elementWithoutNamespace
+                        )
+                    ) {
+                        mapElement.push(elementWithoutNamespace);
+                    }
+                }
+            }
         }
 
-        this.addTypeAliasDeclarations(typeAliasDeclarations, namespaceOrSource);
-        this.addEnumDeclarations(enumDeclarations, namespaceOrSource);
-        this.addEntityDeclarations(entityDeclarations, namespaceOrSource);
-        this.addActionFuncDeclarations(
-            actionFuncDeclarations,
-            namespaceOrSource
-        );
+        for (const [key, element] of importMap) {
+            source
+                .addImportDeclaration({ moduleSpecifier: `./${key}` })
+                .addNamedImports(element);
+        }
 
-        namespaceOrSource.addEnum(entityEnumDeclaration);
-        namespaceOrSource.addEnum(sanitizedEntityEnumDeclaration);
+        this.addTypeAliasDeclarations(typeAliasDeclarations, source);
+        this.addEnumDeclarations(enumDeclarations, source);
+        this.addEntityDeclarations(entityDeclarations, source);
+        this.addActionFuncDeclarations(actionFuncDeclarations, source);
+
+        source.addEnum(entityEnumDeclaration);
+        source.addEnum(sanitizedEntityEnumDeclaration);
     }
 
     /**
@@ -243,15 +285,7 @@ export class Namespace {
             source.addInterface(ed.interfaceDeclarationStructure);
 
             if (!_.isEmpty(ed.actionFuncStructures)) {
-                const actionsNamespace = source.addNamespace({
-                    name: `${ed.interfaceDeclarationStructure.name}.actions`,
-                    isExported: true,
-                });
-
-                this.addActionFuncDeclarations(
-                    ed.actionFuncStructures,
-                    actionsNamespace
-                );
+                this.addActionFuncDeclarations(ed.actionFuncStructures, source);
             }
         });
     }

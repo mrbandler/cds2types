@@ -96,9 +96,16 @@ export class TypeAlias extends BaseType<
         elements: Map<string, IElement>,
         types: BaseType[]
     ): morph.TypeAliasDeclarationStructure {
+        const interfaceName = this.sanitizeName(this.sanitizeTarget(this.name));
         const fields = Array.from(elements)
             .map(([key, value]) =>
-                this.createInterfaceField(key, value, types, this.prefix)
+                this.createInterfaceField(
+                    key,
+                    value,
+                    types,
+                    interfaceName,
+                    this.prefix
+                )
             )
             .map((f) => `${f.name}${f.hasQuestionToken ? "?" : ""}: ${f.type}`);
 

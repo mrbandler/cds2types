@@ -71,6 +71,9 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
         };
 
         if (this.def.elements) {
+            const interfaceName = this.sanitizeName(
+                this.sanitizeTarget(this.name)
+            );
             for (const [key, value] of this.def.elements) {
                 if (value.enum) {
                     result.enumDeclarationStructures.push(
@@ -82,6 +85,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
                             key,
                             value,
                             types,
+                            interfaceName,
                             this.prefix
                         ) as morph.PropertySignatureStructure
                     );
@@ -91,6 +95,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
                             key,
                             value,
                             types,
+                            interfaceName,
                             this.prefix
                         );
                         result.interfaceDeclarationStructure.properties?.push(
@@ -204,7 +209,7 @@ export class Entity extends BaseType<IEntityDeclarationStructure> {
             );
 
             if (entities) {
-                result = entities.map((e) => e.getSanitizedName(true, true));
+                result = entities.map((e) => e.getSanitizedName(false, true));
             }
         }
 

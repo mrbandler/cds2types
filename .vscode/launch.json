@@ -11,9 +11,9 @@
             "args": [
                 "${workspaceRoot}/src/cli.ts",
                 "--cds",
-                "./service.cds",
+                "./test/srv/service.cds",
                 "--output",
-                "./service.ts",
+                "./test/gen/",
                 "--prefix",
                 "I",
                 "--format",

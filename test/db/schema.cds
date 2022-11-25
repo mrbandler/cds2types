@@ -1,5 +1,4 @@
 using {
-    Currency,
     managed,
     sap,
     cuid
@@ -8,14 +7,14 @@ using {
 namespace sap.capire.bookshop;
 
 entity EntityWithSlashes {
-    field1: String(10);
-    ![/part1/part2]: String(23);
+    field1          : String(10);
+    ![/part1/part2] : String(23);
 }
 
 entity ArrayUsingEntity : cuid {
     inlineArray      : array of {
-        id           : String;
-        quantity     : Integer
+        id       : String;
+        quantity : Integer
     };
     adressArray      : array of Address;
     compositionField : Composition of many {
@@ -25,26 +24,26 @@ entity ArrayUsingEntity : cuid {
 }
 
 entity Books : managed {
-    key ID       : Integer;
-        title    : localized String(111);
-        descr    : localized String(1111);
-        longdesc : localized String(1111111);
-        author   : Association to Authors;
-        genre    : Association to Genres;
-        stock    : Integer;
-        price    : Decimal(9, 2);
-        currency : Currency;
-        ![/part1/part2]: String(23) default 'test';
+    key ID              : Integer;
+        title           : localized String(111);
+        descr           : localized String(1111);
+        longdesc        : localized String(1111111);
+        author          : Association to Authors;
+        genre           : Association to Genres;
+        stock           : Integer;
+        price           : Decimal(9, 2);
+        currency        : Association to one sap.common.Currencies;
+        ![/part1/part2] : String(23) default 'test';
 }
 
 
-type Gender : Integer enum {
+type Gender    : Integer enum {
     NonBinary = 1;
     Male      = 2;
     Female    = 3;
 }
 
-type NameStr : String(111);
+type NameStr   : String(111);
 
 type Name {
     firstname : NameStr;

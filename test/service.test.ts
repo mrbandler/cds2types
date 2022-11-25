@@ -1,8 +1,8 @@
 // This file should be compilable if the types were created correctly.
 
-import { CatalogService } from "./service";
+import { IArrayUsingEntity, IServiceEntity, IBooks, IFuncGetBooksParams, IActionUnboudActionParams, ActionUnboudActionReturn, IActionSubmitOrderParams } from "./gen/CatalogService";
 
-const serviceEntity: CatalogService.IServiceEntity = {
+const serviceEntity: IServiceEntity = {
     id: "",
     arrayComplex: [
         {
@@ -12,7 +12,7 @@ const serviceEntity: CatalogService.IServiceEntity = {
     arraySimple: [""],
 };
 
-const arrayUsingEntity: CatalogService.IArrayUsingEntity = {
+const arrayUsingEntity: IArrayUsingEntity = {
     ID: "",
     inlineArray: [],
     adressArray: [
@@ -32,7 +32,7 @@ const arrayUsingEntity: CatalogService.IArrayUsingEntity = {
     ],
 };
 
-const book: CatalogService.IBooks = {
+const book: IBooks = {
     ID: 1,
     title: "",
     descr: "",
@@ -65,17 +65,17 @@ const book: CatalogService.IBooks = {
     longdesc: ""
 };
 
-const authorAddRatingAction: CatalogService.IBooks.actions.IActionAddRatingParams = {
+const authorAddRatingAction: IBooks.actions.IActionAddRatingParams = {
     stars: 1,
 };
 
-const authorGetViewsCountFunction: CatalogService.IBooks.actions.FuncGetViewsCountReturn = 1;
+const authorGetViewsCountFunction: IBooks.actions.FuncGetViewsCountReturn = 1;
 
-const getBooksFunctionParams: CatalogService.IFuncGetBooksParams = {
+const getBooksFunctionParams: IFuncGetBooksParams = {
     author: 1,
 };
 
-const unboundActionParams: CatalogService.IActionUnboudActionParams = {
+const unboundActionParams: IActionUnboudActionParams = {
     simpleParameter: "",
     arrayParameter: [
         {
@@ -86,11 +86,11 @@ const unboundActionParams: CatalogService.IActionUnboudActionParams = {
         value: "",
     },
 };
-const unboundActionReturn: CatalogService.ActionUnboudActionReturn = {
+const unboundActionReturn: ActionUnboudActionReturn = {
     success: true,
 };
 
-const actionSubmitOrderParams: CatalogService.IActionSubmitOrderParams = {
+const actionSubmitOrderParams: IActionSubmitOrderParams = {
     book: 1,
     amount: 1,
 };
