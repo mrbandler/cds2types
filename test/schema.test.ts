@@ -16,7 +16,7 @@ const author: sap.capire.bookshop.IAuthors = {
         lastname: "",
     },
     gender: sap.capire.bookshop.Gender.Female,
-    addresses: [[address]],
+    addresses: [address],
     dateOfBirth: new Date(),
     dateOfDeath: new Date(),
     placeOfBirth: "",
@@ -36,11 +36,11 @@ const book: sap.capire.bookshop.IBooks = {
             ID: 2,
             children: [],
             name: "",
-            descr: "",
+            descr: ""
         },
         name: "",
         descr: "",
-        children: [],
+        children: []
     },
     genre_ID: 1,
     stock: 1,
@@ -52,13 +52,14 @@ const book: sap.capire.bookshop.IBooks = {
         symbol: "",
     },
     currency_code: "",
+    longdesc: ""
 };
 
 const arrayUsingEntity: sap.capire.bookshop.IArrayUsingEntity = {
     ID: "",
     inlineArray: [],
     adressArray: [address],
-    compositoinField: [
+    compositionField: [
         {
             idComposition: "",
             quantityComposition: 1,

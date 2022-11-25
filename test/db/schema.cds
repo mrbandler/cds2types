@@ -18,7 +18,7 @@ entity ArrayUsingEntity : cuid {
         quantity     : Integer
     };
     adressArray      : array of Address;
-    compositoinField : Composition of many {
+    compositionField : Composition of many {
                            idComposition       : String;
                            quantityComposition : Integer;
                        }

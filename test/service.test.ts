@@ -23,7 +23,7 @@ const arrayUsingEntity: CatalogService.IArrayUsingEntity = {
             country: "",
         },
     ],
-    compositoinField: [
+    compositionField: [
         {
             idComposition: "",
             quantityComposition: 1,
@@ -62,6 +62,7 @@ const book: CatalogService.IBooks = {
         symbol: "",
     },
     currency_code: "",
+    longdesc: ""
 };
 
 const authorAddRatingAction: CatalogService.IBooks.actions.IActionAddRatingParams = {
