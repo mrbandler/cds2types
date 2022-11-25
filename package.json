@@ -25,6 +25,9 @@
         "build:link": "yarn build && npm link",
         "test:lint": "npx eslint './test/gen/*'"
     },
+    "peerDependencies": {
+        "@sap/cds": "^6.3.1"
+    },
     "devDependencies": {
         "@commitlint/cli": "^15.0.0",
         "@commitlint/config-conventional": "^15.0.0",
