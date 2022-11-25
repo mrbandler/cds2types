@@ -4,6 +4,12 @@
 
 **CLI to convert CDS definitions to native Typescript types.**
 
+> ⚠ Breaking change with version 3.0.0 of cds2types:
+>
+> -   cds2types now uses the CDS version of the project it is used in
+> -   You have to pass an output directory to the cds2types command instead of a output file
+> -   For each CDS namespace or service a separate file is generated in the output folder (module syntax)
+
 ## Table of Content
 
 1. [Installation](#1-installation) 💻
