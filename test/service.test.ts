@@ -1,6 +1,16 @@
 // This file should be compilable if the types were created correctly.
 
-import { IArrayUsingEntity, IServiceEntity, IBooks, IFuncGetBooksParams, IActionUnboudActionParams, ActionUnboudActionReturn, IActionSubmitOrderParams } from "./gen/CatalogService";
+import {
+    ActionUnboudActionReturn,
+    FuncGetViewsCountReturn,
+    IActionAddRatingParams,
+    IActionSubmitOrderParams,
+    IActionUnboudActionParams,
+    IArrayUsingEntity,
+    IBooks,
+    IFuncGetBooksParams,
+    IServiceEntity,
+} from "./gen/CatalogService";
 
 const serviceEntity: IServiceEntity = {
     id: "",
@@ -62,14 +72,14 @@ const book: IBooks = {
         symbol: "",
     },
     currency_code: "",
-    longdesc: ""
+    longdesc: "",
 };
 
-const authorAddRatingAction: IBooks.actions.IActionAddRatingParams = {
+const authorAddRatingAction: IActionAddRatingParams = {
     stars: 1,
 };
 
-const authorGetViewsCountFunction: IBooks.actions.FuncGetViewsCountReturn = 1;
+const authorGetViewsCountFunction: FuncGetViewsCountReturn = 1;
 
 const getBooksFunctionParams: IFuncGetBooksParams = {
     author: 1,
