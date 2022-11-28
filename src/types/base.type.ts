@@ -1,6 +1,7 @@
 import * as morph from "ts-morph";
+import _ from "lodash";
 
-import { Cardinality, isType, Type } from "../utils/cds.types";
+import { Cardinality, CommonType, isType, Type } from "../utils/cds.types";
 import { Definition, IElement } from "../utils/types";
 
 /**
@@ -53,6 +54,10 @@ export abstract class BaseType<O = unknown> {
      */
     protected definition: Definition;
 
+    public get Definition(): Definition {
+        return this.definition;
+    }
+
     /**
      * Default constructor.
      *
@@ -98,7 +103,7 @@ export abstract class BaseType<O = unknown> {
         }
 
         if (withNamespace && (this.namespace || this.namespace !== "")) {
-            name = this.namespace + "." + name;
+            name = `${this.namespace}.${name}`;
         }
 
         return name;
@@ -138,6 +143,8 @@ export abstract class BaseType<O = unknown> {
      * @protected
      * @param {string} name Name of the field
      * @param {IElement} element CDS element which represents the field
+     * @param {BaseType[]} types
+     * @param {string} interfaceName
      * @param {string} [prefix=""] Prefix of interfaces
      * @returns {morph.InterfaPropertySignatureStructureceMemberStructures} Created interface field declaration
      * @memberof BaseType
@@ -146,11 +153,12 @@ export abstract class BaseType<O = unknown> {
         name: string,
         element: IElement,
         types: BaseType[],
+        interfaceName: string,
         prefix = ""
     ): morph.PropertySignatureStructure {
         let fieldName = name;
         if (fieldName.includes("/")) fieldName = `"${fieldName}"`;
-        if (element.canBeNull || element.type === Type.Association)
+        if (element.canBeNull || element.type === Type.Association || name === "texts")
             fieldName = `${fieldName}?`;
 
         let fieldType = "unknown";
@@ -159,7 +167,7 @@ export abstract class BaseType<O = unknown> {
                 this.sanitizeName(this.sanitizeTarget(this.name)) +
                 this.sanitizeName(name);
         } else {
-            fieldType = this.cdsElementToType(element, types, prefix);
+            fieldType = this.cdsElementToType(element, types, interfaceName, prefix);
         }
 
         return {
@@ -241,6 +249,10 @@ export abstract class BaseType<O = unknown> {
                 name.substring(1, name.length);
         }
 
+        if (name.includes(".")) {
+            result = _.replace(_.startCase(name), new RegExp(" ", "g"), "");
+        }
+
         return result;
     }
 
@@ -265,8 +277,17 @@ export abstract class BaseType<O = unknown> {
      * @memberof BaseType
      */
     protected getTarget(target: string): string {
-        const parts = target.split(".");
-        return parts[parts.length - 1];
+        const parts = target.replace(`${this.namespace}.`, "").split(".");
+
+        let result = target;
+
+        if (_.last(parts) === "texts") {
+            result = _.join(_.takeRight(parts, 2), ".");
+        } else {
+            result = parts[parts.length - 1];
+        }
+
+        return result;
     }
 
     /**
@@ -294,20 +315,17 @@ export abstract class BaseType<O = unknown> {
      */
     protected resolveType(type: Type | string, types: BaseType[]): string {
         let result = "unknown";
-
         if (isType(type)) {
             result = this.cdsTypeToType(type);
         } else {
-            const found = types.find((t) => t.name === type);
+            const found = types.find((t) => t.name === type || t.name === `${t.namespace}.${type}`);
             if (found) {
-                result = found.getSanitizedName(true, true);
-
+                result = found.getSanitizedName(false, true);
                 if (this.namespace !== "" && result.includes(this.namespace)) {
                     result = result.replace(`${this.namespace}.`, "");
                 }
             }
         }
-
         return result;
     }
 
@@ -400,10 +418,44 @@ export abstract class BaseType<O = unknown> {
     }
 
     /**
+     * Converts a CDS type to a Typescript type.
+     *
+     * @protected
+     * @param {Type} type
+     * @returns {string}
+     * @memberof BaseType
+     */
+    protected commonTypeToType(type: CommonType | string): string {
+        let result = "unknown";
+
+        switch (type) {
+            case CommonType.CodeList:
+                result = "CodeList";
+                break;
+
+            case CommonType.Countries:
+                result = "Countries";
+                break;
+
+            case CommonType.Currencies:
+                result = "Currencies";
+                break;
+
+            case CommonType.Languages:
+                result = "Languages";
+                break;
+        }
+
+        return result;
+    }
+
+    /**
      * Converts a given element to a Typescript type.
      *
      * @protected
      * @param {IElement} element Element to convert to a type declaration
+     * @param {BaseType[]} types
+     * @param {string} interfaceName
      * @param {string} [prefix=""] Prefix of the type declaration
      * @returns {string} Created type declaration
      * @memberof BaseType
@@ -411,24 +463,28 @@ export abstract class BaseType<O = unknown> {
     protected cdsElementToType(
         element: IElement,
         types: BaseType[],
+        interfaceName: string,
         prefix = ""
     ): string {
         let result = "unknown";
 
         switch (element.type) {
             case Type.Association:
-                result = this.resolveTargetType(element, prefix);
-
+                result = this.resolveTargetType(element, interfaceName, prefix);
                 break;
-
             case Type.Composition:
-                result = this.resolveTargetType(element, prefix);
-
+                result = this.resolveTargetType(element, interfaceName, prefix);
                 break;
-
+            case "Locale":
+                result = "Locale";
+                break;
             default:
                 if (element.target) {
-                    result = this.resolveTargetType(element, prefix);
+                    if (element.target.startsWith("sap.common.")) {
+                        result = this.commonTypeToType(element.target);
+                    } else {
+                        result = this.resolveTargetType(element, interfaceName, prefix);
+                    }
                 } else {
                     result = this.resolveType(element.type, types);
                     if (
@@ -438,14 +494,23 @@ export abstract class BaseType<O = unknown> {
                         result = `${result}[]`;
                     }
                 }
-
                 break;
         }
 
         return result;
     }
 
-    protected resolveTargetType(element: IElement, prefix = ""): string {
+    /**
+     * Resolves a target type.
+     *
+     * @protected
+     * @param {IElement} element
+     * @param {string} interfaceName
+     * @param {string} [prefix=""]
+     * @return {string}
+     * @memberof BaseType
+     */
+    protected resolveTargetType(element: IElement, interfaceName: string, prefix = ""): string {
         let result = "";
 
         if (element && element.target && element.cardinality) {
@@ -453,9 +518,10 @@ export abstract class BaseType<O = unknown> {
             if (element.target.includes(this.namespace)) {
                 target = prefix + this.sanitizeTarget(element.target);
             } else {
-                target =
-                    this.getNamespace(element.target) +
-                    "." +
+                const namespace = this.getNamespace(element.target);
+                const namespaceForTarget = namespace === "" || namespace === interfaceName || namespace === "sap.common" ? "" : `${namespace}.`;
+
+                target = namespaceForTarget +
                     prefix +
                     this.sanitizeTarget(element.target);
             }

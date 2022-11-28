@@ -32,6 +32,11 @@ export interface IElement {
     keys?: ICsnKeys[];
 }
 
+export interface KindName {
+    kind: string | undefined;
+    name: string;
+}
+
 /**
  * Definition inside a CDS service.
  *

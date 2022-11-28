@@ -4,6 +4,12 @@
 
 **CLI to convert CDS definitions to native Typescript types.**
 
+> ⚠ Breaking change with version 3.0.0 of cds2types:
+>
+> -   cds2types now uses the CDS version of the project it is used in
+> -   You have to pass an output directory to the cds2types command instead of a output file
+> -   For each CDS namespace or service a separate file is generated in the output folder (module syntax)
+
 ## Table of Content
 
 1. [Installation](#1-installation) 💻
@@ -30,292 +36,308 @@ Let's look at a CDS example:
 ```cds
 // schema.cds
 
-using { Currency, managed, sap } from '@sap/cds/common';
+using { managed, sap, cuid } from '@sap/cds/common';
 namespace sap.capire.bookshop;
 
+entity EntityWithSlashes {
+    field1          : String(10);
+    ![/part1/part2] : String(23);
+}
+
+entity ArrayUsingEntity : cuid {
+    inlineArray      : array of {
+        id       : String;
+        quantity : Integer
+    };
+    adressArray      : array of Address;
+    compositionField : Composition of many {
+                           idComposition       : String;
+                           quantityComposition : Integer;
+                       }
+}
+
 entity Books : managed {
-    key ID   : Integer;
-    title    : localized String(111);
-    descr    : localized String(1111);
-    author   : Association to Authors;
-    genre    : Association to Genres;
-    stock    : Integer;
-    price    : Decimal(9,2);
-    currency : Currency;
+    key ID              : Integer;
+        title           : localized String(111);
+        descr           : localized String(1111);
+        longdesc        : localized String(1111111);
+        author          : Association to Authors;
+        genre           : Association to Genres;
+        stock           : Integer;
+        price           : Decimal(9, 2);
+        currency        : Association to one sap.common.Currencies;
+        ![/part1/part2] : String(23) default 'test';
 }
 
-type Gender : Integer enum {
-    NonBinary;
-    Male;
-    Female;
+
+type Gender    : Integer enum {
+    NonBinary = 1;
+    Male      = 2;
+    Female    = 3;
 }
 
-type NameStr : String(111);
+type NameStr   : String(111);
 
 type Name {
-    firstname: NameStr;
-    lastname: NameStr;
+    firstname : NameStr;
+    lastname  : NameStr;
 }
 
 type Address {
-    street: String;
-    houseNo: String;
-    town: String;
-    country: String;
+    street  : String;
+    houseNo : String;
+    town    : String;
+    country : String;
 }
 
 type Addresses : many Address;
 
 entity Authors : managed {
-    key ID       : Integer;
-    name         : Name;
-    gender       : Gender;
-    addresses    : Addresses;
-    dateOfBirth  : Date;
-    dateOfDeath  : Date;
-    placeOfBirth : String;
-    placeOfDeath : String;
-    books        : Association to many Books on books.author = $self;
+    key ID           : Integer;
+        name         : Name;
+        gender       : Gender;
+        addresses    : Addresses;
+        dateOfBirth  : Date;
+        dateOfDeath  : Date;
+        placeOfBirth : String;
+        placeOfDeath : String;
+        books        : Association to many Books
+                           on books.author = $self;
 }
 
-/** Hierarchically organized Code List for Genres */
+/**
+ * Hierarchically organized Code List for Genres
+ */
 entity Genres : sap.common.CodeList {
-    key ID   : Integer;
-    parent   : Association to Genres;
-    children : Composition of many Genres on children.parent = $self;
+    key ID       : Integer;
+        parent   : Association to Genres;
+        children : Composition of many Genres
+                       on children.parent = $self;
 }
 ```
 
 Now when we run the CLI:
 
 ```bash
-cds2types --cds ./service.cds --output ./service.ts --prefix I
+cds2types --cds ./service.cds --output ./ --prefix I
 ```
 
 We get the following output:
 
 ```typescript
-// service.ts
+// sap.capire.bookshop.ts
 
-export namespace sap.capire.bookshop {
-    export type Addresses = IAddress[];
-    export type NameStr = string;
+import { ICurrencies, Locale } from "./sap.common";
 
-    export enum Gender {
-        NonBinary,
-        Male,
-        Female,
-    }
+export type Addresses = IAddress[];
+export type NameStr = string;
 
-    export interface IAddress {
-        street: string;
-        houseNo: string;
-        town: string;
-        country: string;
-    }
-
-    export interface IAuthors extends IManaged {
-        ID: number;
-        name: IName;
-        gender: Gender;
-        addresses: Addresses;
-        dateOfBirth: Date;
-        dateOfDeath: Date;
-        placeOfBirth: string;
-        placeOfDeath: string;
-        books?: IBooks[];
-    }
-
-    export interface IBooks extends IManaged {
-        ID: number;
-        title: string;
-        descr: string;
-        author?: IAuthors;
-        author_ID?: number;
-        genre?: IGenres;
-        genre_ID?: number;
-        stock: number;
-        price: number;
-        currency: sap.common.ICurrencies;
-        currency_code?: string;
-    }
-
-    export interface IGenres extends sap.common.ICodeList {
-        ID: number;
-        parent?: IGenres;
-        parent_ID?: number;
-        children: IGenres[];
-    }
-
-    export interface IName {
-        firstname: NameStr;
-        lastname: NameStr;
-    }
-
-    export enum Entity {
-        Address = "sap.capire.bookshop.Address",
-        Authors = "sap.capire.bookshop.Authors",
-        Books = "sap.capire.bookshop.Books",
-        Genres = "sap.capire.bookshop.Genres",
-        Name = "sap.capire.bookshop.Name",
-    }
-
-    export enum SanitizedEntity {
-        Address = "Address",
-        Authors = "Authors",
-        Books = "Books",
-        Genres = "Genres",
-        Name = "Name",
-    }
+export enum Gender {
+    NonBinary = 1,
+    Male = 2,
+    Female = 3,
 }
 
-export namespace sap.common {
-    export interface ICodeList {
-        name: string;
-        descr: string;
-    }
-
-    export interface ICountries extends sap.common.ICodeList {
-        code: string;
-    }
-
-    export interface ICurrencies extends sap.common.ICodeList {
-        code: string;
-        symbol: string;
-    }
-
-    export interface ILanguages extends sap.common.ICodeList {
-        code: string;
-    }
-
-    export enum Entity {
-        CodeList = "sap.common.CodeList",
-        Countries = "sap.common.Countries",
-        Currencies = "sap.common.Currencies",
-        Languages = "sap.common.Languages",
-    }
-
-    export enum SanitizedEntity {
-        CodeList = "CodeList",
-        Countries = "Countries",
-        Currencies = "Currencies",
-        Languages = "Languages",
-    }
+export interface IAddress {
+    street: string;
+    houseNo: string;
+    town: string;
+    country: string;
 }
 
-export namespace CatalogService {
-    export interface IBooks {
-        createdAt?: Date;
-        modifiedAt?: Date;
-        ID: number;
-        title: string;
-        descr: string;
-        author: sap.capire.bookshop.IName;
-        genre?: IGenres;
-        genre_ID?: number;
-        stock: number;
-        price: number;
-        currency: ICurrencies;
-        currency_code?: string;
-    }
-
-    export namespace IBooks.actions {
-        export enum ActionAddRating {
-            name = "addRating",
-            paramStars = "stars",
-        }
-
-        export interface IActionAddRatingParams {
-            stars: number;
-        }
-
-        export enum FuncGetViewsCount {
-            name = "getViewsCount",
-        }
-
-        export type FuncGetViewsCountReturn = number;
-    }
-
-    export interface ICurrencies {
-        name: string;
-        descr: string;
-        code: string;
-        symbol: string;
-    }
-
-    export interface IGenres {
-        name: string;
-        descr: string;
-        ID: number;
-        parent?: IGenres;
-        parent_ID?: number;
-        children: IGenres[];
-    }
-
-    export enum FuncGetBooks {
-        name = "getBooks",
-        paramAuthor = "author",
-    }
-
-    export interface IFuncGetBooksParams {
-        author: number;
-    }
-
-    export type FuncGetBooksReturn = sap.capire.bookshop.IBooks[];
-
-    export enum ActionSubmitOrder {
-        name = "submitOrder",
-        paramBook = "book",
-        paramAmount = "amount",
-    }
-
-    export interface IActionSubmitOrderParams {
-        book: number;
-        amount: number;
-    }
-
-    export enum Entity {
-        Books = "CatalogService.Books",
-        Currencies = "CatalogService.Currencies",
-        Genres = "CatalogService.Genres",
-    }
-
-    export enum SanitizedEntity {
-        Books = "Books",
-        Currencies = "Currencies",
-        Genres = "Genres",
-    }
-}
-
-export type User = string;
-
-export interface ICuid {
+export interface IArrayUsingEntity {
     ID: string;
+    inlineArray: unknown[];
+    adressArray: IAddress[];
+    compositionField: ICompositionField[];
 }
 
-export interface IManaged {
+export interface ICompositionField {
+    up_?: IArrayUsingEntity;
+    up__ID?: string;
+    idComposition: string;
+    quantityComposition: number;
+}
+
+export interface IAuthors {
     createdAt?: Date;
     createdBy?: string;
     modifiedAt?: Date;
     modifiedBy?: string;
+    ID: number;
+    name: IName;
+    gender: Gender;
+    addresses: Addresses;
+    dateOfBirth: Date;
+    dateOfDeath: Date;
+    placeOfBirth: string;
+    placeOfDeath: string;
+    books?: IBooks[];
 }
 
-export interface ITemporal {
-    validFrom: Date;
-    validTo: Date;
+export interface IBooks {
+    createdAt?: Date;
+    createdBy?: string;
+    modifiedAt?: Date;
+    modifiedBy?: string;
+    ID: number;
+    title: string;
+    descr: string;
+    longdesc: string;
+    author?: IAuthors;
+    author_ID?: number;
+    genre?: IGenres;
+    genre_ID?: number;
+    stock: number;
+    price: number;
+    currency?: ICurrencies;
+    currency_code?: string;
+    "/part1/part2"?: string;
+    texts?: IBooksTexts[];
+    localized?: IBooksTexts;
+}
+
+export interface IBooksTexts {
+    locale: Locale;
+    ID: number;
+    title: string;
+    descr: string;
+    longdesc: string;
+}
+
+export interface IEntityWithSlashes {
+    field1: string;
+    "/part1/part2": string;
+}
+
+export interface IGenres {
+    name: string;
+    descr: string;
+    ID: number;
+    parent?: IGenres;
+    parent_ID?: number;
+    children: IGenres[];
+    texts?: IGenresTexts[];
+    localized?: IGenresTexts;
+}
+
+export interface IGenresTexts {
+    locale: Locale;
+    name: string;
+    descr: string;
+    ID: number;
+}
+
+export interface IName {
+    firstname: NameStr;
+    lastname: NameStr;
 }
 
 export enum Entity {
-    Cuid = "cuid",
-    Managed = "managed",
-    Temporal = "temporal",
+    Address = "sap.capire.bookshop.Address",
+    ArrayUsingEntity = "sap.capire.bookshop.ArrayUsingEntity",
+    CompositionField = "sap.capire.bookshop.ArrayUsingEntity.compositionField",
+    Authors = "sap.capire.bookshop.Authors",
+    Books = "sap.capire.bookshop.Books",
+    BooksTexts = "sap.capire.bookshop.Books.texts",
+    EntityWithSlashes = "sap.capire.bookshop.EntityWithSlashes",
+    Genres = "sap.capire.bookshop.Genres",
+    GenresTexts = "sap.capire.bookshop.Genres.texts",
+    Name = "sap.capire.bookshop.Name",
 }
 
 export enum SanitizedEntity {
-    Cuid = "Cuid",
-    Managed = "Managed",
-    Temporal = "Temporal",
+    Address = "Address",
+    ArrayUsingEntity = "ArrayUsingEntity",
+    CompositionField = "CompositionField",
+    Authors = "Authors",
+    Books = "Books",
+    BooksTexts = "BooksTexts",
+    EntityWithSlashes = "EntityWithSlashes",
+    Genres = "Genres",
+    GenresTexts = "GenresTexts",
+    Name = "Name",
 }
+```
+
+```typescript
+// sap.common.ts
+
+export type Locale = string;
+
+export interface ICountries {
+    name: string;
+    descr: string;
+    code: string;
+    texts?: ICountriesTexts[];
+    localized?: ICountriesTexts;
+}
+
+export interface ICountriesTexts {
+    locale: Locale;
+    name: string;
+    descr: string;
+    code: string;
+}
+
+export interface ICurrencies {
+    name: string;
+    descr: string;
+    code: string;
+    symbol: string;
+    texts?: ICurrenciesTexts[];
+    localized?: ICurrenciesTexts;
+}
+
+export interface ICurrenciesTexts {
+    locale: Locale;
+    name: string;
+    descr: string;
+    code: string;
+}
+
+export interface ILanguages {
+    name: string;
+    descr: string;
+    code: Locale;
+    texts?: ILanguagesTexts[];
+    localized?: ILanguagesTexts;
+}
+
+export interface ILanguagesTexts {
+    locale: Locale;
+    name: string;
+    descr: string;
+    code: Locale;
+}
+
+export enum Entity {
+    Countries = "sap.common.Countries",
+    CountriesTexts = "sap.common.Countries.texts",
+    Currencies = "sap.common.Currencies",
+    CurrenciesTexts = "sap.common.Currencies.texts",
+    Languages = "sap.common.Languages",
+    LanguagesTexts = "sap.common.Languages.texts",
+}
+
+export enum SanitizedEntity {
+    Countries = "Countries",
+    CountriesTexts = "CountriesTexts",
+    Currencies = "Currencies",
+    CurrenciesTexts = "CurrenciesTexts",
+    Languages = "Languages",
+    LanguagesTexts = "LanguagesTexts",
+}
+```
+
+```typescript
+// other.ts
+
+export type User = string;
+
+export enum Entity {}
+
+export enum SanitizedEntity {}
 ```
 
 ## 3. Bugs and Features

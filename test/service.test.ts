@@ -1,8 +1,18 @@
 // This file should be compilable if the types were created correctly.
 
-import { CatalogService } from "./service";
+import {
+    ActionUnboudActionReturn,
+    FuncGetViewsCountReturn,
+    IActionAddRatingParams,
+    IActionSubmitOrderParams,
+    IActionUnboudActionParams,
+    IArrayUsingEntity,
+    IBooks,
+    IFuncGetBooksParams,
+    IServiceEntity,
+} from "./gen/CatalogService";
 
-const serviceEntity: CatalogService.IServiceEntity = {
+const serviceEntity: IServiceEntity = {
     id: "",
     arrayComplex: [
         {
@@ -12,7 +22,7 @@ const serviceEntity: CatalogService.IServiceEntity = {
     arraySimple: [""],
 };
 
-const arrayUsingEntity: CatalogService.IArrayUsingEntity = {
+const arrayUsingEntity: IArrayUsingEntity = {
     ID: "",
     inlineArray: [],
     adressArray: [
@@ -23,7 +33,7 @@ const arrayUsingEntity: CatalogService.IArrayUsingEntity = {
             country: "",
         },
     ],
-    compositoinField: [
+    compositionField: [
         {
             idComposition: "",
             quantityComposition: 1,
@@ -32,7 +42,7 @@ const arrayUsingEntity: CatalogService.IArrayUsingEntity = {
     ],
 };
 
-const book: CatalogService.IBooks = {
+const book: IBooks = {
     ID: 1,
     title: "",
     descr: "",
@@ -62,19 +72,20 @@ const book: CatalogService.IBooks = {
         symbol: "",
     },
     currency_code: "",
+    longdesc: "",
 };
 
-const authorAddRatingAction: CatalogService.IBooks.actions.IActionAddRatingParams = {
+const authorAddRatingAction: IActionAddRatingParams = {
     stars: 1,
 };
 
-const authorGetViewsCountFunction: CatalogService.IBooks.actions.FuncGetViewsCountReturn = 1;
+const authorGetViewsCountFunction: FuncGetViewsCountReturn = 1;
 
-const getBooksFunctionParams: CatalogService.IFuncGetBooksParams = {
+const getBooksFunctionParams: IFuncGetBooksParams = {
     author: 1,
 };
 
-const unboundActionParams: CatalogService.IActionUnboudActionParams = {
+const unboundActionParams: IActionUnboudActionParams = {
     simpleParameter: "",
     arrayParameter: [
         {
@@ -85,11 +96,11 @@ const unboundActionParams: CatalogService.IActionUnboudActionParams = {
         value: "",
     },
 };
-const unboundActionReturn: CatalogService.ActionUnboudActionReturn = {
+const unboundActionReturn: ActionUnboudActionReturn = {
     success: true,
 };
 
-const actionSubmitOrderParams: CatalogService.IActionSubmitOrderParams = {
+const actionSubmitOrderParams: IActionSubmitOrderParams = {
     book: 1,
     amount: 1,
 };
