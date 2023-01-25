@@ -115,7 +115,7 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
             this.kind === Kind.Function ? this.FUNC_PREFIX : this.ACTION_PREFIX;
 
         return {
-            enumDeclarationStructure: this.createEnumDeclaration(prefix),
+            enumDeclarationStructure: this.createEnumDeclaration(prefix, types),
             interfaceDeclarationStructure: this.createInterfaceDeclaration(
                 prefix,
                 types
@@ -128,17 +128,47 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
     }
 
     /**
+     * Determine prefix for bound entity actions.
+     *
+     * @private
+     * @param {BaseType[]} types Scoped types for parameter resolution
+     * @returns {string} Created type declaration
+     * @memberof ActionFunction
+     */
+    private determineBoundEntityPrefix(
+        types: BaseType[]
+    ): string | undefined {
+        const sanitizedNamespace = this.sanitizeName(
+            this.sanitizeTarget(this.namespace)
+        );
+        const boundEntity =
+            sanitizedNamespace !== this.namespace
+                ? sanitizedNamespace
+                : undefined;
+        if (boundEntity) {
+            return `${this.resolveType(boundEntity, types)}Actions`;
+        }
+        return boundEntity;
+    }
+
+    /**
      * Creates the Typescript enum declaration.
      *
      * @private
      * @param {string} prefix Kind prefix
+     * @param {BaseType[]} types Scoped types for parameter resolution
      * @returns {morph.EnumDeclarationStructure} Created Typescript enum declaration
      * @memberof ActionFunction
      */
     private createEnumDeclaration(
-        prefix: string
+        prefix: string,
+        types: BaseType[]
     ): morph.EnumDeclarationStructure {
         const result = this.createEnum(prefix);
+        const boundActionPrefix = this.determineBoundEntityPrefix(types);
+        if (boundActionPrefix) {
+            result.name = boundActionPrefix + result.name;
+        }
 
         result.members?.push(
             this.createEnumField("name", this.getTarget(this.name), true)
@@ -176,6 +206,10 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
             const interfaceName = this.sanitizeName(
                 this.sanitizeTarget(this.name)
             );
+            const boundActionPrefix = this.determineBoundEntityPrefix(types);
+            if (boundActionPrefix) {
+                result.name = boundActionPrefix + result.name;
+            }
 
             for (const [key, value] of this.def.params) {
                 if (isTypeRef(value.type as ICsnTypeRef)) {
@@ -235,7 +269,11 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
 
         if (this.def.returns) {
             const target = this.sanitizeTarget(this.name);
-            const name = `${prefix}${this.sanitizeName(target)}Return`;
+            let name = `${prefix}${this.sanitizeName(target)}Return`;
+            const boundActionPrefix = this.determineBoundEntityPrefix(types);
+            if (boundActionPrefix) {
+                name = boundActionPrefix + name;
+            }
 
             let type = this.resolveType(this.def.returns.type, types);
             if (this.def.returns.isArray) {

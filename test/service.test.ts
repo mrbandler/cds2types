@@ -2,8 +2,8 @@
 
 import {
     ActionUnboudActionReturn,
-    FuncGetViewsCountReturn,
-    IActionAddRatingParams,
+    IBooksActionsFuncGetViewsCountReturn,
+    IBooksActionsIActionAddRatingParams,
     IActionSubmitOrderParams,
     IActionUnboudActionParams,
     IArrayUsingEntity,
@@ -75,11 +75,11 @@ const book: IBooks = {
     longdesc: "",
 };
 
-const authorAddRatingAction: IActionAddRatingParams = {
+const authorAddRatingAction: IBooksActionsIActionAddRatingParams = {
     stars: 1,
 };
 
-const authorGetViewsCountFunction: FuncGetViewsCountReturn = 1;
+const authorGetViewsCountFunction: IBooksActionsFuncGetViewsCountReturn = 1;
 
 const getBooksFunctionParams: IFuncGetBooksParams = {
     author: 1,
