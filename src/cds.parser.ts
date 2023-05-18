@@ -284,7 +284,10 @@ export class CDSParser {
                         ? element.items.type
                         : "";
 
-                    const canBeNull =
+                    // By default, elements are always not nullable.
+                    const canBeNull = element.notNull === false;
+
+                    const optional =
                         element["@Core.Computed"] ||
                         element["@Core.Immutable"] ||
                         element.virtual ||
@@ -307,6 +310,7 @@ export class CDSParser {
                     result.set(elementName, {
                         type: type,
                         canBeNull: canBeNull,
+                        optional: optional,
                         cardinality: cardinality,
                         target: element.target,
                         enum: _enum.size <= 0 ? undefined : _enum,

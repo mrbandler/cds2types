@@ -20,6 +20,7 @@ const serviceEntity: IServiceEntity = {
         },
     ],
     arraySimple: [""],
+    nullable: null
 };
 
 const arrayUsingEntity: IArrayUsingEntity = {

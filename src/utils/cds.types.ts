@@ -72,6 +72,7 @@ export interface ICsnElement {
     target?: string;
     keys?: ICsnKeys[];
     cardinality?: ICsnCardinality;
+    notNull?: boolean;
     virtual?: boolean;
     default?: ICsnValue;
     enum?: IEnum;

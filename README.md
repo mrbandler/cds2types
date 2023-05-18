@@ -60,7 +60,7 @@ entity Books : managed {
     key ID              : Integer;
         title           : localized String(111);
         descr           : localized String(1111);
-        longdesc        : localized String(1111111);
+        longdesc        : localized String(1111111) null;
         author          : Association to Authors;
         genre           : Association to Genres;
         stock           : Integer;
@@ -183,7 +183,7 @@ export interface IBooks {
     ID: number;
     title: string;
     descr: string;
-    longdesc: string;
+    longdesc: string | null;
     author?: IAuthors;
     author_ID?: number;
     genre?: IGenres;
