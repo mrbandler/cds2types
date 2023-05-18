@@ -200,6 +200,7 @@ export class ActionFunction extends BaseType<IActionFunctionDeclarationStructure
                         {
                             type: value.type as string,
                             canBeNull: false,
+                            optional: false,
                             cardinality: (value as ITypeAliasDefinition).isArray
                                 ? { max: Cardinality.many }
                                 : { max: Cardinality.one },

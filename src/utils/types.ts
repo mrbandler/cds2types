@@ -26,6 +26,7 @@ export interface IEnum {
 export interface IElement {
     type: Type | string;
     canBeNull: boolean;
+    optional: boolean;
     cardinality?: { max: Cardinality };
     target?: string;
     enum?: Map<string, ICsnValue>;

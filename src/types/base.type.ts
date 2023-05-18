@@ -158,7 +158,7 @@ export abstract class BaseType<O = unknown> {
     ): morph.PropertySignatureStructure {
         let fieldName = name;
         if (fieldName.includes("/")) fieldName = `"${fieldName}"`;
-        if (element.canBeNull || element.type === Type.Association || name === "texts")
+        if (element.optional || element.type === Type.Association || name === "texts")
             fieldName = `${fieldName}?`;
 
         let fieldType = "unknown";
@@ -168,6 +168,10 @@ export abstract class BaseType<O = unknown> {
                 this.sanitizeName(name);
         } else {
             fieldType = this.cdsElementToType(element, types, interfaceName, prefix);
+        }
+
+        if (element.canBeNull) {
+            fieldType += " | null";
         }
 
         return {

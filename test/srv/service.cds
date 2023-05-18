@@ -6,6 +6,7 @@ service CatalogService @(path : '/browse') {
         key id           : UUID;
             arrayComplex : array of arrayParameterType;
             arraySimple  : array of String;
+            nullable     : String null;
     }
 
     entity ArrayUsingEntity as projection on my.ArrayUsingEntity;
