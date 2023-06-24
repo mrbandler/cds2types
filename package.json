@@ -29,7 +29,7 @@
         "@sap/cds": "^6.3.1"
     },
     "devDependencies": {
-        "@commitlint/cli": "^15.0.0",
+        "@commitlint/cli": "^17.6.6",
         "@commitlint/config-conventional": "^15.0.0",
         "@sap/cds": "^6.3.1",
         "@types/eslint": "^8.4.10",
