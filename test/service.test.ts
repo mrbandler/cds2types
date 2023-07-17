@@ -70,6 +70,7 @@ const book: IBooks = {
         descr: "",
         name: "",
         symbol: "",
+        minorUnit: "",
     },
     currency_code: "",
     longdesc: "",
