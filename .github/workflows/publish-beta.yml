@@ -11,16 +11,16 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Clone repo
-              uses: actions/checkout@v2
+              uses: actions/checkout@v6
 
             - name: Setup node environment
-              uses: actions/setup-node@v2
+              uses: actions/setup-node@v6
               with:
                   node-version: 14
                   registry-url: https://registry.npmjs.org/
 
             - name: Download cache
-              uses: actions/cache@v2.0.0
+              uses: actions/cache@v4
               with:
                   key: cds2types-cache
                   path: node_modules
@@ -31,7 +31,7 @@ jobs:
                   yarn build
 
             - name: Upload a build artifact
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                   name: cds2types-artifacts
                   path: bin
@@ -41,22 +41,22 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Clone repo
-              uses: actions/checkout@v2
+              uses: actions/checkout@v6
 
             - name: Download build artifacts
-              uses: actions/download-artifact@v2
+              uses: actions/download-artifact@v6
               with:
                   name: cds2types-artifacts
                   path: bin
 
             - name: Setup node environment
-              uses: actions/setup-node@v2
+              uses: actions/setup-node@v6
               with:
                   node-version: 14
                   registry-url: https://registry.npmjs.org/
 
             - name: Publish to npm
-              uses: JS-DevTools/npm-publish@v1
+              uses: JS-DevTools/npm-publish@v4
               with:
                   token: ${{ secrets.NPM_TOKEN }}
                   tag: beta

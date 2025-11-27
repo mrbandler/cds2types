@@ -2,6 +2,10 @@
 
 [![npm version](https://badge.fury.io/js/cds2types.svg)](https://badge.fury.io/js/cds2types) [![Actions Status](https://github.com/mrbandler/cds2types/workflows/build/badge.svg)](https://github.com/mrbandler/cds2types/actions) [![GitHub License](https://img.shields.io/github/license/mrbandler/cds2types)](https://github.com/mrbandler/cds2types/blob/master/LICENSE)
 
+> [!CAUTION]
+> This project is not maintained anymore.
+> Please refer to the public [CAP documentation](https://cap.cloud.sap/docs/node.js/typescript) for instructions how to setup a typescript based project.
+
 **CLI to convert CDS definitions to native Typescript types.**
 
 > ⚠ Breaking change with version 3.0.0 of cds2types:
